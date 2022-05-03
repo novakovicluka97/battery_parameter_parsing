@@ -60,7 +60,13 @@ def SISOsubid(y, u, n):
         Y[k, :] =y[k : k + j]
         U[k, :] =u[k : k + j]
     # Compute the R factor
-    R = (np.triu(LA.qr([U, Y].transpose()))).transpose()  # Rfactor
+    Y = np.zeros((2, 10))
+    U = np.ones((2, 10))
+    Rtemp = np.concatenate((U, Y))  # this part is checked and matches the one supplied by .m file
+    Rtemp = Rtemp.transpose()
+    Rtemp = LA.qr(Rtemp)[0]  # not the same
+    Rtemp = np.triu(Rtemp)
+    R = Rtemp.transpose()  # Rfactor
     R = R[1:4 * i, 1: 4 * i] # Truncate
 
     ### STEP 1: Calculate oblique and orthogonal projections ###
