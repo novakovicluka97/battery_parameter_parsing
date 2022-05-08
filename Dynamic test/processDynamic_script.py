@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy import linalg as LA
 fminbnd = scipy.optimize.fminbound
+variable = 1
 
 
 def OCVfromSOCtemp(soc,temp,model):
@@ -179,25 +180,31 @@ def minfn(data, model, theTemp, doHyst):
     return [cost, model]
 
 
-def proccessDynamic(data,model,numpoles,doHyst):
+def processDynamic(data,model,numpoles,doHyst):
     """
 
     """
     ##### STEP 1: Compute Q and eta ######
-    eta25=1  # initialize eta as one but the first script should be the one that overwrites this value
-    ind25 = 0  # Todo ind25 = find(alltemps == 25);
+    alltemps = [5, 25, 45]  # Todo change so its not hardcoded
+    alletas = [0, 0, 0]
+    allQs = [0, 0, 0]
+
+    ind25 = 1  # Todo ind25 = find(alltemps == 25); and right now its hardcoded to be the first temp
+
+    totDisAh = data[ind25].script1.disAh[-1] + data[ind25].script2.disAh[-1] + data[ind25].script3.disAh[
+        -1]  # if we have chgAh and disAh as arrays
+    totChgAh = data[ind25].script1.chgAh[-1] + data[ind25].script2.chgAh[-1] + data[ind25].script3.chgAh[
+        -1]  # if we have chgAh and disAh as arrays
+    eta25 = totDisAh / totChgAh
+    data[ind25].script1.chgAh[-1] = eta25 * data[ind25].script1.chgAh[-1]  # correct for the coefficients
+    data[ind25].script2.chgAh[-1] = eta25 * data[ind25].script2.chgAh[-1]  # correct for the coefficients
+    data[ind25].script3.chgAh[-1] = eta25 * data[ind25].script3.chgAh[-1]  # correct for the coefficients
+    Q25 = data[ind25].script1.disAh[-1] + data[ind25].script2.disAh[-1] - data[ind25].script1.chgAh[-1] - data[ind25].script2.chgAh[-1]
+    data[ind25].Q = Q25
+    data[ind25].eta = eta25
+
     for k in range(len(data)):
-        if data[k].temp == 25:
-            totDisAh = data[k].script1.disAh[-1] + data[k].script2.disAh[-1] + data[k].script3.disAh[-1]  # if we have chgAh and disAh as arrays
-            totChgAh = data[k].script1.chgAh[-1] + data[k].script2.chgAh[-1] + data[k].script3.chgAh[-1]  # if we have chgAh and disAh as arrays
-            eta25 = totDisAh / totChgAh
-            data[k].script1.chgAh[-1] = eta25*data[k].script1.chgAh[-1]  # correct for the coefficients
-            data[k].script2.chgAh[-1] = eta25*data[k].script2.chgAh[-1]  # correct for the coefficients
-            data[k].script3.chgAh[-1] = eta25*data[k].script3.chgAh[-1]  # correct for the coefficients
-            Q25 = data[k].script1.disAh[-1] + data[k].script2.disAh[-1] - data[k].script1.chgAh[-1] - data[k].script2.chgAh[-1]
-            eta = eta25
-            Q = Q25
-        else:  # revisit this later (it was copy pasted without understanding)
+        if data[k].temp != 25:  # revisit this later (it was copy pasted without understanding)
             data[k].script2.chgAh = data[k].script2.chgAh * eta25
             data[k].script3.chgAh = data[k].script3.chgAh * eta25
             eta = (data[k].script1.disAh[-1] + data[k].script2.disAh[-1] +
@@ -206,12 +213,14 @@ def proccessDynamic(data,model,numpoles,doHyst):
 
             data[k].script1.chgAh = eta * data[k].script1.chgAh
             Q = data[k].script1.disAh[-1] + data[k].script2.disAh[-1] - data[k].script1.chgAh[-1] - data[k].script2.chgAh[-1]
-
-        model.QParam.append(Q)
-        model.etaParam.append(eta)
+            data[k].Q = Q
+            data[k].eta = eta
+        model.QParam.append(data[k].Q)
+        model.etaParam.append(data[k].eta)
         model.temps.append(data[k].temp)
 
-        ##### STEP 2: OCV ###### for "discharge portion" of test
+    ##### STEP 2: OCV ###### for "discharge portion" of test
+    for k in range(len(data)):
         corrected_current = [0]*len(data[k].script1.current)
         for index, current in enumerate(data[k].script1.current):
             if current < 0:  # if current is flowing into the battery and charging it

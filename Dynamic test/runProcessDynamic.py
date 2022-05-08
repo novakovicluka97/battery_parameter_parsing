@@ -1,14 +1,11 @@
 from battery_cell_data import *
-import matplotlib.pyplot as plt
-import numpy as np
-from numpy import linalg as LA
 fminbnd = scipy.optimize.fminbound
-import processDynamic
+from processDynamic_script import *
 
 
-# setupDynData call this function
+# setupDynData is a function that specifies the data for the battery: P14 and temps 30_05, 50_25, 50_45
 numpoles = 1  # number of resistor--capacitor pairs in final model
 doHyst = 1    # whether to include hysteresis in model
 
-proccessDynamic([P14_DYN_04_N25, P14_DYN_05_N15], P14_model, numpoles, doHyst)
+processDynamic([P14_DYN_30_P05, P14_DYN_50_P25, P14_DYN_50_P45], P14_model, numpoles, doHyst)
 print(1)

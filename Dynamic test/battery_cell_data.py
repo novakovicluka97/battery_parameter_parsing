@@ -27,6 +27,8 @@ class OneTempData:  # DynamicData
         self.script3 = ScriptData_3(model['DYNData'][0][0][2])
         self.Z = []
         self.OCV = []
+        self.Q = []
+        self.eta = []
 
 
 class ScriptData_12:  # data per script
@@ -66,6 +68,7 @@ class ScriptData_3:  # data per script
         self.step = script[0][0][5][0]
 
 
-P14_DYN_04_N25 = OneTempData(scipy.io.loadmat("P14_DYN_04_N25.mat"), 25)
-P14_DYN_05_N15 = OneTempData(scipy.io.loadmat("P14_DYN_05_N15.mat"), 15)
+P14_DYN_50_P45 = OneTempData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
+P14_DYN_50_P25 = OneTempData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
+P14_DYN_30_P05 = OneTempData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
 P14_model = battery_model()
