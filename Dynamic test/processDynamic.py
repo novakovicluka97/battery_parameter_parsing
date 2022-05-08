@@ -242,5 +242,3 @@ def proccessDynamic(data,model,numpoles,doHyst):
             [a , model] = minfn(data, model, model.temps(theTemp), doHyst)
 
 
-proccessDynamic([P14_DYN_04_N25, P14_DYN_05_N15], P14_model, 1, 1)
-print(1)
