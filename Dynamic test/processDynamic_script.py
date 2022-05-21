@@ -11,7 +11,8 @@ def OCVfromSOCtemp(soc,temp,model):
     Extrapolates OCV vector from the soc vector but based on the previous static OCV/SOC test. Test results are contained in the model.
 
     """
-    function = scipy.interpolate.interp1d(model.soc_vector[0], model.ocv_vector[0])
+    index = np.where(np.array(model.temps) == temp)[0]
+    function = scipy.interpolate.interp1d(model.soc_vector[index], model.ocv_vector[index])
     return function(soc)
 
 
@@ -224,10 +225,10 @@ def processDynamic(data,model,numpoles,doHyst):
         corrected_current = [0]*len(data[k].script1.current)
         for index, current in enumerate(data[k].script1.current):
             if current < 0:  # if current is flowing into the battery and charging it
-                corrected_current[index] = current * eta
+                corrected_current[index] = current * model.etaParam[k]
             else:
                 corrected_current[index] = current
-        data[k].Z = np.ones(np.size(corrected_current)) - np.cumsum([0] + corrected_current[0:-1])/(Q*3600)  # for "discharge portion" of test
+        data[k].Z = np.ones(np.size(corrected_current)) - np.cumsum(corrected_current)/(data[k].Q*3600)  # for "discharge portion" of test
         data[k].OCV = OCVfromSOCtemp(data[k].Z, data[k].temp, model)  # for "discharge portion" of test
         # plt.plot(data[k].script1.time, data[k].Z)
 
