@@ -4,7 +4,7 @@ from scipy import interpolate
 
 def processStatic(OCVData, model):
     """
-    Fully completed
+    Fully completed, comments missing
     """
     SOC = np.linspace(0, 1, 201)  # output SOC points for this step
     ind25 = None
@@ -12,7 +12,7 @@ def processStatic(OCVData, model):
         if data_for_1_temp.temp == 25:
             ind25 = index
 
-    if ind25 == None:
+    if not ind25:
         print("There is no default temperature of 25 deg celsius!")
         raise Exception()
 
