@@ -2,6 +2,9 @@ from battery_cell_data import *
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import linalg as LA
+from scipy import optimize
+
+
 fminbnd = scipy.optimize.fminbound
 variable = 1
 

@@ -1,9 +1,4 @@
-import numpy as np
 import scipy.io
-import matplotlib.pyplot as plt
-from scipy import interpolate
-from scipy import optimize
-import battery_cell_data
 
 # more to come
 
@@ -15,23 +10,23 @@ class battery_model:
         self.etaParam = []
         self.RCParam = []
         self.RParam = []
-        self.soc_vector = [[0.00000, 0.00500, 0.01000, 0.01500, 0.02000, 0.02500, 0.03000, 0.03500, 0.04000, 0.04500, 0.05000, 0.05500, 0.06000, 0.06500, 0.07000, 0.07500, 0.08000, 0.08500, 0.09000, 0.09500, 0.10000, 0.10500, 0.11000, 0.11500, 0.12000, 0.12500, 0.13000, 0.13500, 0.14000, 0.14500, 0.15000, 0.15500, 0.16000, 0.16500, 0.17000, 0.17500, 0.18000, 0.18500, 0.19000, 0.19500, 0.20000, 0.20500, 0.21000, 0.21500, 0.22000, 0.22500, 0.23000, 0.23500, 0.24000, 0.24500, 0.25000, 0.25500, 0.26000, 0.26500, 0.27000, 0.27500, 0.28000, 0.28500, 0.29000, 0.29500, 0.30000, 0.30500, 0.31000, 0.31500, 0.32000, 0.32500, 0.33000, 0.33500, 0.34000, 0.34500, 0.35000, 0.35500, 0.36000, 0.36500, 0.37000, 0.37500, 0.38000, 0.38500, 0.39000, 0.39500, 0.40000, 0.40500, 0.41000, 0.41500, 0.42000, 0.42500, 0.43000, 0.43500, 0.44000, 0.44500, 0.45000, 0.45500, 0.46000, 0.46500, 0.47000, 0.47500, 0.48000, 0.48500, 0.49000, 0.49500, 0.50000, 0.50500, 0.51000, 0.51500, 0.52000, 0.52500, 0.53000, 0.53500, 0.54000, 0.54500, 0.55000, 0.55500, 0.56000, 0.56500, 0.57000, 0.57500, 0.58000, 0.58500, 0.59000, 0.59500, 0.60000, 0.60500, 0.61000, 0.61500, 0.62000, 0.62500, 0.63000, 0.63500, 0.64000, 0.64500, 0.65000, 0.65500, 0.66000, 0.66500, 0.67000, 0.67500, 0.68000, 0.68500, 0.69000, 0.69500, 0.70000, 0.70500, 0.71000, 0.71500, 0.72000, 0.72500, 0.73000, 0.73500, 0.74000, 0.74500, 0.75000, 0.75500, 0.76000, 0.76500, 0.77000, 0.77500, 0.78000, 0.78500, 0.79000, 0.79500, 0.80000, 0.80500, 0.81000, 0.81500, 0.82000, 0.82500, 0.83000, 0.83500, 0.84000, 0.84500, 0.85000, 0.85500, 0.86000, 0.86500, 0.87000, 0.87500, 0.88000, 0.88500, 0.89000, 0.89500, 0.90000, 0.90500, 0.91000, 0.91500, 0.92000, 0.92500, 0.93000, 0.93500, 0.94000, 0.94500, 0.95000, 0.95500, 0.96000, 0.96500, 0.97000, 0.97500, 0.98000, 0.98500, 0.99000, 0.99500, 1.00000]]
-        self.ocv_vector = [[2.8100227500000003, 2.916445, 2.99576475, 3.057303, 3.11000275, 3.1564935, 3.19803925, 3.2350955, 3.26858575, 3.2992202500000003, 3.3273629999999996, 3.35331675, 3.37731175, 3.39958975, 3.4203212499999998, 3.4398017500000004, 3.457986, 3.47495625, 3.4909670000000004, 3.50564325, 3.51860325, 3.5288515, 3.535353625, 3.539071775, 3.5418136749999998, 3.544252525, 3.54650775, 3.5488834750000002, 3.5513308, 3.5538369, 3.556474075, 3.55934515, 3.5622776349999996, 3.565399925, 3.5687806749999997, 3.57249005, 3.5763861, 3.5808671, 3.5855184500000004, 3.5906845, 3.5961811499999996, 3.60179325, 3.60771, 3.6137212499999998, 3.619809, 3.626025025, 3.632018475, 3.63826635, 3.644504225, 3.6510093749999997, 3.657832375, 3.66466635, 3.6710585, 3.67705935, 3.6830289499999997, 3.689195475, 3.6957918750000003, 3.70265505, 3.709943825, 3.71715955, 3.72392515, 3.729878475, 3.735234375, 3.7402075, 3.744967125, 3.7498354, 3.7545954999999998, 3.759340025, 3.764046285, 3.7688217, 3.7733491, 3.777854325, 3.78220325, 3.7862525, 3.7902387500000003, 3.79382975, 3.79747175, 3.80099425, 3.8044845, 3.807692, 3.81084575, 3.81401875, 3.81712475, 3.819978, 3.82288775, 3.8256725, 3.82839575, 3.831115, 3.833666, 3.83623375, 3.8387695, 3.8412792500000004, 3.843683, 3.84610625, 3.848493, 3.85085775, 3.853256, 3.8555495, 3.857885, 3.860084, 3.8623624999999997, 3.864488, 3.8665785, 3.868598, 3.8707445, 3.872883, 3.8749195, 3.876992, 3.8789395, 3.881018, 3.8830415, 3.88503225, 3.88720725, 3.88930175, 3.8913365, 3.89335925, 3.8954657499999996, 3.89757275, 3.89982075, 3.90193375, 3.9041045000000003, 3.9064775, 3.9087365, 3.911139, 3.91353525, 3.9160155, 3.91865925, 3.9213975000000003, 3.92425775, 3.927181, 3.9305595, 3.93418175, 3.93828975, 3.942859, 3.9479075, 3.9531125, 3.9585965, 3.9639149999999996, 3.968714, 3.97340675, 3.9776422499999997, 3.98160425, 3.98535725, 3.98884925, 3.992164, 3.995375, 3.9984995000000003, 4.001535, 4.004506, 4.007268, 4.0099659999999995, 4.01259725, 4.015162500000001, 4.017576, 4.019969, 4.0222085, 4.02434475, 4.026504500000001, 4.0285565, 4.030494, 4.03242275, 4.03431475, 4.036036999999999, 4.0377155, 4.03942175, 4.041119, 4.04283575, 4.0445085, 4.046061, 4.047662750000001, 4.04936075, 4.050904500000001, 4.052707, 4.05437925, 4.05612, 4.05792075, 4.0597215, 4.06156925, 4.063487, 4.065569, 4.067661, 4.0698415, 4.072056, 4.074522, 4.07694675, 4.079536999999999, 4.0823055, 4.085265000000001, 4.08839325, 4.0915842499999995, 4.0950035, 4.09868875, 4.102737, 4.106893250000001, 4.11155, 4.1162355, 4.1216729999999995, 4.1272975, 4.133553, 4.140458125, 4.149328799999999]]
+        self.soc_vector = []  # should be multidimensional arrays
+        self.ocv_vector = []  # should be multidimensional arrays
 
 
-class OneTempData:  # DynamicData
-    def __init__(self, model, temp=25):
+class OneTempDynData:  # DynamicData
+    def __init__(self, MAT_data, temp=25):
         self.temp = temp
-        self.script1 = ScriptData_12(model['DYNData'][0][0][0])
-        self.script2 = ScriptData_12(model['DYNData'][0][0][1])
-        self.script3 = ScriptData_3(model['DYNData'][0][0][2])
+        self.script1 = DynScriptData_12(MAT_data['DYNData'][0][0][0])
+        self.script2 = DynScriptData_12(MAT_data['DYNData'][0][0][1])
+        self.script3 = DynScriptData_3(MAT_data['DYNData'][0][0][2])
         self.Z = []
         self.OCV = []
         self.Q = []
         self.eta = []
 
 
-class ScriptData_12:  # data per script
+class DynScriptData_12:  # data per script
     def __init__(self, script):
         self.time = script[0][0][1][0]
         self.step = script[0][0][3][0]
@@ -58,7 +53,7 @@ class ScriptData_12:  # data per script
         #     self.rawDisAh[index] = self.rawDisAh[index][0]
 
 
-class ScriptData_3:  # data per script
+class DynScriptData_3:  # data per script
     def __init__(self, script):
         self.time = script[0][0][0][0]
         self.voltage = script[0][0][1][0]
@@ -68,7 +63,41 @@ class ScriptData_3:  # data per script
         self.step = script[0][0][5][0]
 
 
-P14_DYN_50_P45 = OneTempData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
-P14_DYN_50_P25 = OneTempData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
-P14_DYN_30_P05 = OneTempData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
+class OneTempStaticData:  # Static data
+    def __init__(self, MAT_data, temp=25):
+        self.temp = temp
+        self.script1 = StaticScriptData(MAT_data['OCVData'][0][0][0])
+        self.script2 = StaticScriptData(MAT_data['OCVData'][0][0][1])
+        self.script3 = StaticScriptData(MAT_data['OCVData'][0][0][2])
+        self.script4 = StaticScriptData(MAT_data['OCVData'][0][0][3])
+        self.Z = []
+        self.OCV = []
+        self.Q = []
+        self.eta = []
+
+
+class StaticScriptData:
+    def __init__(self, script):
+        self.time = []  # initiate empty list
+        self.step = []  # initiate empty list
+        self.current = []  # initiate empty list
+        self.voltage = []  # initiate empty list
+        self.chgAh = []  # initiate empty list
+        self.disAh = []  # initiate empty list
+
+        for i in range(len(script[0][0][0])):
+            self.time.append(script[0][0][0][i][0])  # array of list elements with one element -> array of elements
+            self.step.append(script[0][0][1][i][0])  # array of list elements with one element -> array of elements
+            self.current.append(script[0][0][2][i][0])  # array of list elements with one element -> array of elements
+            self.voltage.append(script[0][0][3][i][0])  # array of list elements with one element -> array of elements
+            self.chgAh.append(script[0][0][4][i][0])  # array of list elements with one element -> array of elements
+            self.disAh.append(script[0][0][5][i][0])  # array of list elements with one element -> array of elements
+
+
+P14_DYN_50_P45 = OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
+P14_DYN_50_P25 = OneTempDynData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
+P14_DYN_30_P05 = OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
+P14_OCV_P45 = OneTempStaticData(scipy.io.loadmat("P14_OCV_P45.mat"), 45)
+P14_OCV_P25 = OneTempStaticData(scipy.io.loadmat("P14_OCV_P25.mat"), 25)
+P14_OCV_P05 = OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
 P14_model = battery_model()
