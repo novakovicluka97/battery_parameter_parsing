@@ -189,11 +189,14 @@ def processDynamic(data,model,numpoles,doHyst):
 
     """
     ##### STEP 1: Compute Q and eta ######
-    alltemps = [5, 25, 45]  # Todo change so its not hardcoded
-    alletas = [0, 0, 0]
-    allQs = [0, 0, 0]
+    ind25 = None
+    for index, data_for_1_temp in enumerate(data):
+        if data_for_1_temp.temp == 25:
+            ind25 = index
 
-    ind25 = 1  # Todo ind25 = find(alltemps == 25); and right now its hardcoded to be the first temp
+    if ind25 == None:
+        print("There is no default temperature of 25 deg celsius!")
+        raise Exception()
 
     totDisAh = data[ind25].script1.disAh[-1] + data[ind25].script2.disAh[-1] + data[ind25].script3.disAh[
         -1]  # if we have chgAh and disAh as arrays
