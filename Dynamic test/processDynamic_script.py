@@ -40,6 +40,7 @@ def SISOsubid(y, u, n):
     :param n: order of model
     :return:
     """
+    # inputs looks very precise (u seems completely same as in Octave)
     ny = len(y)
     y = np.array(y)  # does this even work? Recheck this if some latter multiplication doesnt work
     # y = y.transpose()  # turn y into row vector
@@ -64,25 +65,24 @@ def SISOsubid(y, u, n):
     for k in range(twoi):
         Y[k, :] =y[k : k + j]
         U[k, :] =u[k : k + j]
+    # U looks the same and Y looks 99% same
     # Compute the R factor
-    Y = np.zeros((2, 10))
-    U = np.ones((2, 10))
     Rtemp = np.concatenate((U, Y))  # this part is checked and matches the one supplied by .m file
     Rtemp = Rtemp.transpose()
-    Rtemp = LA.qr(Rtemp)[0]  # not the same
-    Rtemp = np.triu(Rtemp)
-    R = Rtemp.transpose()  # Rfactor
-    R = R[1:4 * i, 1: 4 * i] # Truncate
+    R = LA.qr(Rtemp)[1].transpose()
+    # This looks a little cleaner than in Octave but that is because functions work differently
+    # Still, the end result for R looks similar to what we get in Octave
 
     ### STEP 1: Calculate oblique and orthogonal projections ###
-    Rf = R[3 * i + 1:4 * i,:]  # Future outputs
-    Rp = [R[1:i,:], R[2 * i + 1: 3 * i,:]]  # Past inputs and outputs
-    Ru = R[1 * i + 1:2 * i, 1: twoi]  # Future inputs
+    Rf = R[3 * i : 4 * i,:]  # Future outputs
+    Rp = np.append(R[0:i,:], R[2 * i: 3 * i,:], 0)  # Past inputs and outputs
+    Ru = R[1 * i:2 * i, 0: twoi]  # Future inputs
     # Perpendicular future outputs
 
-    Rfp = [Rf[:, 1: twoi] - (Rf[:, 1:twoi] / Ru)*Ru, Rf[:, twoi + 1: 4 * i]]
+    # Todo last checkpoint
+    Rfp = np.append(Rf[:, 0: twoi] - (Rf[:, 0:twoi] / Ru)*Ru, Rf[:, twoi : 4 * i], 1)
     # Perpendicular past inputs and outputs
-    Rfp = [Rp[:, 1: twoi] - (Rp[:, 1:twoi] / Ru) * Ru, Rp[:, twoi + 1: 4 * i]]
+    Rpp = np.append(Rp[:, 1: twoi] - (Rp[:, 1:twoi] / Ru) * Ru, Rp[:, twoi + 1: 4 * i], 0)
 
     # The oblique projection is computed as (6.1) in VODM, page 166.
     # obl / Ufp = Yf / Ufp * pinv(Wp / Ufp) * (Wp / Ufp)
@@ -164,9 +164,9 @@ def minfn(data, model, theTemp, doHyst):
                 sik[k] = sik[k-1]
 
         # First modeling step: Compute error with model = OCV only
-        # Todo checkpoint: everything looks the same up until this part (except OCV and SOC arrays)
-        vest1 = data[ind].OCV
-        v_error = np.array(vk) - np.array(vest1)
+        # Everything looks the same up until this part (except OCV and SOC arrays)
+        vest1 = data[ind].OCV  # OCV is not completely the same but vk is
+        v_error = np.array(vk) - np.array(vest1)  # therefore v_error is not the same as in Octave
         numpoles_2 = numpoles
 
         # Second modeling step: Compute time constants in "A" matrix
