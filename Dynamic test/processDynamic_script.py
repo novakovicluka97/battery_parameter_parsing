@@ -14,12 +14,12 @@ def OCVfromSOCtemp(soc,temp,model):
     Extrapolates OCV vector from the soc vector but based on the previous static OCV/SOC test. Test results are contained in the model.
 
     """
-    index = np.where(np.array(model.temps) == temp)[0]
+    index = np.where(np.array(model.temps) == temp)[0][0]
     function = scipy.interpolate.interp1d(model.soc_vector[index], model.ocv_vector[index])
     return function(soc)
 
 
-def optfn(theGParam,data,model,theTemp, theTemp_index,doHyst):
+def optfn(theGParam, data, model, theTemp, theTemp_index, doHyst):
     """
 
     """
@@ -137,7 +137,7 @@ def minfn(data, model, theTemp, doHyst):
 
     xplots = np.ceil(np.sqrt(numfiles))
     yplots = np.ceil(numfiles / xplots)
-    rmserr = np.zeros(1, xplots * yplots)
+    rmserr = np.zeros(1, xplots * yplots)[0]
 
     G = abs(model.GParam[ind])      # for 25 degrees
     Q = abs(model.QParam[ind])      # for 25 degrees
@@ -156,7 +156,7 @@ def minfn(data, model, theTemp, doHyst):
 
         h = [0] * len(ik)
         sik = [0] * len(ik)
-        fac = np.exp(-abs(G * np.array(etaik) / (3600 * Q)))
+        fac = np.exp(-abs(G * np.array(etaik) / (3600 * Q)))  # looks the same as octave
         for k in range(1, len(ik)):  # check if range is same as in matlab
             h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * np.sign(ik[k - 1])
             sik[k] = np.sign(ik[k])
@@ -164,6 +164,7 @@ def minfn(data, model, theTemp, doHyst):
                 sik[k] = sik[k-1]
 
         # First modeling step: Compute error with model = OCV only
+        # Todo checkpoint: everything looks the same up until this part (except OCV and SOC arrays)
         vest1 = data[ind].OCV
         v_error = np.array(vk) - np.array(vest1)
         numpoles_2 = numpoles

@@ -30,11 +30,11 @@ def processStatic(OCVData, model):
         totChgAh_at_X_temp = OCVData[k].script1.chgAh[-1] + OCVData[k].script3.chgAh[-1]
         totChgAh_at_25_temp = OCVData[k].script2.chgAh[-1] + OCVData[k].script4.chgAh[-1]
         eta = (totDisAh - totChgAh_at_25_temp*eta25) / totChgAh_at_X_temp
-        model.temps.append(eta)
+        model.etaParam_static.append(eta)
 
         # Second step: calculate Q
         Q = OCVData[k].script1.disAh[-1] + OCVData[k].script2.disAh[-1] - eta * OCVData[k].script1.chgAh[-1] - eta * OCVData[k].script2.chgAh[-1]
-        model.temps.append(Q)
+        model.QParam_static.append(Q)
 
         # Third step: calculate OCV curve
         print(f"Calculating static tests for temperature: {OCVData[k].temp}")

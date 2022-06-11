@@ -8,6 +8,8 @@ class battery_model:
         self.temps = []
         self.QParam = []
         self.etaParam = []
+        self.QParam_static = []
+        self.etaParam_static = []
         self.RCParam = []
         self.RParam = []
         self.soc_vector = []  # should be multidimensional arrays
