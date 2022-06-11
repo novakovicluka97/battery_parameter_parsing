@@ -24,8 +24,10 @@ def optfn(theGParam, data, model, theTemp, theTemp_index, doHyst):
 
     """
     global bestcost
+    bestcost = np.inf
     model.GParam[theTemp_index] = abs(theGParam)
     [cost, model] = minfn(data, model, theTemp, doHyst)
+    # Todo last checkpoint
     if cost < bestcost:
         bestcost = cost
         print("The model created for this value of gamma is the best ESC model yet! cost = ", cost)
@@ -148,7 +150,7 @@ def minfn(data, model, theTemp, doHyst):
 
     xplots = np.ceil(np.sqrt(numfiles))
     yplots = np.ceil(numfiles / xplots)
-    rmserr = np.zeros(1, xplots * yplots)[0]
+    rmserr = np.zeros(1, xplots * yplots)
 
     G = abs(model.GParam[ind])      # for 25 degrees
     Q = abs(model.QParam[ind])      # for 25 degrees
@@ -201,47 +203,57 @@ def minfn(data, model, theTemp, doHyst):
             vrcRaw[:, k] = np.diag(RCfact) * vrcRaw[:, k - 1] + (1 - RCfact) * etaik[k - 1]
         vrcRaw = np.transpose(vrcRaw)
         # Close enough vrcRaw
-        # Todo last checkpoint
 
         # Third modeling step: Hysteresis parameters
         if doHyst:
-            H = np.append(np.array(h), np.array(sik)) # -etaik, -vrcRaw)
-            W = LA.lstsq(H, v_error) # W = H\verr;   LEAST SQUARE NON NEGATIVE
-            M  = W[0]
-            M0 = W[1]
-            R0 = W[2]
-            Rfact = np.transpose(W[2:])
+            H_1 = np.append(np.transpose([h]), np.transpose([sik]), 1)
+            H_2 = np.append(np.transpose([-etaik]), -vrcRaw, 1)
+            H = np.append(H_1, H_2, 1)
+            W = LA.lstsq(H, v_error)  # W = H\verr;   LEAST SQUARE NON NEGATIVE
+            M  = W[0][0]
+            M0 = W[0][1]
+            R0 = W[0][2]
+            Rfact = np.transpose(W[0][3:])
         else:
-            H = [-etaik, -vrcRaw]
+            H = np.append(np.transpose([-etaik]), -vrcRaw, 1)
             W = H / v_error  # Todo probably something wrong here, revisit later
             M = 0
             M0 = 0
             R0 = W[0]
-            Rfact = np.transpose(W[1:])
-        ind = np.where(model.temps == data[ind[thefile]].temp, 1)
+            Rfact = np.transpose(W[0][1:])
+        ind = np.where(np.array(model.temps) == theTemp)[0][0]
         model.R0Param[ind] = R0
         model.M0Param[ind] = M0
         model.MParam[ind] = M
-        model.RCParam[ind,:] = np.transpose(RC)
-        model.RParam[ind,:] = np.transpose(Rfact)
+        model.RCParam[ind] = np.transpose(RC)
+        model.RParam[ind] = np.transpose(Rfact)
 
-        vest2 = vest1 + M * h + M0 * sik - R0 * etaik - vrcRaw * np.transpose(Rfact)
+        vest2 = vest1 + np.array(h)*M + M0*np.array(sik) - R0*np.array(etaik) - np.transpose(vrcRaw) * Rfact
         verr = vk - vest2
+        # starting to look different
 
         # Compute RMS error only on data roughly in 5 % to 95 % SOC
-        v1 = OCVfromSOCtemp(0.95, data[ind[thefile]].temp, model)
-        v2 = OCVfromSOCtemp(0.05, data[ind[thefile]].temp, model)
-        N1 = np.where(vk < v1, 1, 'first')
-        N2 = np.where(vk < v2, 1, 'first')
+        v1 = OCVfromSOCtemp(0.95, data[ind].temp, model)
+        v2 = OCVfromSOCtemp(0.05, data[ind].temp, model)
+        N1_array = np.where(vk < v1, 1, 0)
+        N2_array = np.where(vk < v2, 1, 0)
+        for i in range(len(N1_array)):
+            if N1_array[i] == 1:
+                N1 = i
+                break
+        for i in range(len(N2_array)):
+            if N2_array[i] == 1:
+                N2 = i
+                break
         if not N1:
             N1=1
         if not N2:
             N2=len(v_error)
-        rmserr[thefile] = np.sqrt(np.mean(v_error[N1:N2]**2))
+        rmserr[ind] = np.sqrt(np.mean(v_error[N1:N2]**2))
 
     cost = sum(rmserr)
     print(f'RMS error for present value of gamma = {cost * 1000} (mV)\n')
-    assert not cost, 'Exception: Cost is empty'
+    assert cost, 'Exception: Cost is empty'
 
     return [cost, model]
 
