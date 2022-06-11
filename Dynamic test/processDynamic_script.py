@@ -328,7 +328,7 @@ def processDynamic(data,model,numpoles,doHyst):
         else:  # probably never going to happen
             model.GParam[k] = 0
             theGParam = 0
-            optfn(theGParam, data, model, model.temps(theTemp), doHyst)
-            [a , model] = minfn(data, model, model.temps(theTemp), doHyst)
-
+            optfn(theGParam, data, model, model.temps[k], doHyst)
+            [a , model] = minfn(data, model, model.temps[k], doHyst)
+        [_, model] = minfn(data, model, model.temps[k], doHyst)
 
