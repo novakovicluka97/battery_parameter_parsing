@@ -34,7 +34,7 @@ def optfn(theGParam, data, model, theTemp, theTemp_index, doHyst):
 
 def SISOsubid(y, u, n):
     """
-
+    Etirely debugged
     :param y:
     :param u:
     :param n: order of model
@@ -79,10 +79,13 @@ def SISOsubid(y, u, n):
     Ru = R[1 * i:2 * i, 0: twoi]  # Future inputs
     # Perpendicular future outputs
 
-    # Todo last checkpoint
-    Rfp = np.append(Rf[:, 0: twoi] - (Rf[:, 0:twoi] / Ru)*Ru, Rf[:, twoi : 4 * i], 1)
+    Rfp_var = np.dot(Rf[:, 0:twoi], np.linalg.pinv(Ru))
+    Rfp_var1 = np.dot(Rfp_var, Ru)
+    Rfp = np.append(Rf[:, 0: twoi] - Rfp_var1, Rf[:, twoi : 4 * i], 1)
     # Perpendicular past inputs and outputs
-    Rpp = np.append(Rp[:, 1: twoi] - (Rp[:, 1:twoi] / Ru) * Ru, Rp[:, twoi + 1: 4 * i], 0)
+    Rpp_var = np.dot(Rp[:, 0:twoi], np.linalg.pinv(Ru))
+    Rpp_var1 = np.dot(Rpp_var, Ru)
+    Rpp = np.append(Rp[:, 0: twoi] - Rpp_var1, Rp[:, twoi: 4 * i], 1)
 
     # The oblique projection is computed as (6.1) in VODM, page 166.
     # obl / Ufp = Yf / Ufp * pinv(Wp / Ufp) * (Wp / Ufp)
@@ -93,36 +96,44 @@ def SISOsubid(y, u, n):
     if LA.norm(Rpp[:, 3 * i-2:3 * i], 'fro') < 1e-10:
         Ob = (Rfp * LA.pinv(Rpp.transpose())).transpose() * Rp  # Oblique projection
     else:
-        Ob = (Rfp / Rpp) * Rp
+        # Ob = (Rfp / Rpp) * Rp
+        Ob_var = np.dot(Rfp, np.linalg.pinv(Rpp))
+        Ob = np.dot(Ob_var, Rp)
 
     # ------------------------------------------------------------------
     # STEP 2: Compute weighted oblique projection and its SVD
     # Extra projection of Ob on Uf perpendicular
     # ------------------------------------------------------------------
-    WOW = [Ob[:, 1: twoi] - (Ob[:, 1:twoi]/ Ru)*Ru, Ob[:, twoi + 1: 4 * i]]
+    WOW_var = np.dot(Ob[:, 0:twoi], np.linalg.pinv(Ru))
+    WOW_var1 = np.dot(WOW_var, Ru)
+    WOW = np.append(Ob[:, 0: twoi] - WOW_var1, Ob[:, twoi: 4 * i], 1)
     U, S, _ = LA.svd(WOW)
-    ss = np.diag(S)
+    ss = np.transpose(S)  # ss = np.diag(S)
 
     # ------------------------------------------------------------------
     # STEP 3: Partitioning U into U1 and U2(the latter is not used)
     # ------------------------------------------------------------------
-    U1 = U[:, 1: n]  # Determine U1
+    U1 = U[:, 0: n]  # Determine U1
 
     # ------------------------------------------------------------------
     # STEP 4: Determine gam = Gamma(i) and gamm = Gamma(i - 1)
     # ------------------------------------------------------------------
-    gam = U1 * np.diag(np.sqrt(ss[1:n]))
-    gamm = gam[1:(i - 1),:]
+    gam = U1 * np.diag(np.sqrt(ss[0:n]))
+    gamm = gam[0:(i - 1),:]
     gam_inv = LA.pinv(gam)  # Pseudo inverse of gam
     gamm_inv = LA.pinv(gamm)  # Pseudo inverse of gamm
 
     # ------------------------------------------------------------------
     # STEP 5: Determine A matrix(also C, which is not used)
     # ------------------------------------------------------------------
-    Rhs = [[gam_inv * R[3 * i + 1:4 * i, 1: 3 * i], zeros(n, 1)], R[i + 1: twoi, 1: 3 * i + 1]]
-    Lhs = [[gamm_inv * R[3 * i + 1 + 1:4 * i, 1: 3 * i + 1]], R[3 * i + 1: 3 * i + 1, 1: 3 * i + 1]]
-    sol = Lhs / Rhs  # Solve least squares for [A;C]
-    A = sol[1:n, 1: n]  # Extract A
+    var_debug0 = np.dot(gam_inv, R[3 * i:4 * i, 0: 3 * i])
+    var_debug1 = np.zeros((n, 1))
+    var_debug2 = R[i: twoi, 0: 3 * i + 1]
+    Rhs_var = np.append(np.dot(gam_inv, R[3 * i:4 * i, 0: 3 * i]), np.zeros((n, 1)), 1)
+    Rhs = np.append(Rhs_var, R[i: twoi, 0: 3 * i + 1], 0)
+    Lhs = np.append(np.dot(gamm_inv, R[3 * i + 1:4 * i, 0: 3 * i + 1]), R[3 * i : 3 * i + 1, 0: 3 * i + 1], 0)
+    sol = np.dot(Lhs, LA.pinv(Rhs))  # (sol = Lhs / Rhs) Solve least squares for [A;C]
+    A = sol[0:n, 0: n]  # Extract A
     return A
 
 def minfn(data, model, theTemp, doHyst):
@@ -167,21 +178,71 @@ def minfn(data, model, theTemp, doHyst):
         # Everything looks the same up until this part (except OCV and SOC arrays)
         vest1 = data[ind].OCV  # OCV is not completely the same but vk is
         v_error = np.array(vk) - np.array(vest1)  # therefore v_error is not the same as in Octave
-        numpoles_2 = numpoles
+        numpoles_loop_no = numpoles
 
         # Second modeling step: Compute time constants in "A" matrix
         while True:
-            A = SISOsubid(-np.diff(v_error), np.diff(etaik), numpoles_2)   # diff works fine
-            eigA = LA.eig(A)
-            # eigA = eigA(eigA == conj(eigA))  # make sure real # ToDo should be enabled
-            # eigA = eigA(eigA > 0 & eigA < 1)  # make sure in range # ToDo should be enabled
+            A = SISOsubid(-np.diff(v_error), np.diff(etaik), numpoles_loop_no)   # diff works fine
+            eigA = LA.eig(A)[0]
+            assert (eigA == np.conj(eigA)), "eigA is not a real number"
+            assert (1 > eigA > 0), "eigA is not in proper range"
             okpoles = len(eigA)
-            numpoles_2 = numpoles_2 + 1
-            if okpoles >= numpoles_2:
+            numpoles_loop_no = numpoles_loop_no + 1
+            if okpoles >= numpoles:
                 break
-            fprintf('Trying numpoles_2 = %d\n', numpoles_2)
+            print(f'Trying {numpoles_loop_no=}\n')
 
-    cost =1
+        RCfact_var = np.sort(eigA)
+        RCfact = RCfact_var[len(RCfact_var) - numpoles:]
+        RC = -1 / np.log(RCfact)  # reference code says 2.3844
+        # Simulate the R - C filters to find R - C currents
+        vrcRaw = np.zeros((numpoles, len(h)))
+        for k in range(1, len(ik)):
+            vrcRaw[:, k] = np.diag(RCfact) * vrcRaw[:, k - 1] + (1 - RCfact) * etaik[k - 1]
+        vrcRaw = np.transpose(vrcRaw)
+        # Close enough vrcRaw
+        # Todo last checkpoint
+
+        # Third modeling step: Hysteresis parameters
+        if doHyst:
+            H = np.append(np.array(h), np.array(sik)) # -etaik, -vrcRaw)
+            W = LA.lstsq(H, v_error) # W = H\verr;   LEAST SQUARE NON NEGATIVE
+            M  = W[0]
+            M0 = W[1]
+            R0 = W[2]
+            Rfact = np.transpose(W[2:])
+        else:
+            H = [-etaik, -vrcRaw]
+            W = H / v_error  # Todo probably something wrong here, revisit later
+            M = 0
+            M0 = 0
+            R0 = W[0]
+            Rfact = np.transpose(W[1:])
+        ind = np.where(model.temps == data[ind[thefile]].temp, 1)
+        model.R0Param[ind] = R0
+        model.M0Param[ind] = M0
+        model.MParam[ind] = M
+        model.RCParam[ind,:] = np.transpose(RC)
+        model.RParam[ind,:] = np.transpose(Rfact)
+
+        vest2 = vest1 + M * h + M0 * sik - R0 * etaik - vrcRaw * np.transpose(Rfact)
+        verr = vk - vest2
+
+        # Compute RMS error only on data roughly in 5 % to 95 % SOC
+        v1 = OCVfromSOCtemp(0.95, data[ind[thefile]].temp, model)
+        v2 = OCVfromSOCtemp(0.05, data[ind[thefile]].temp, model)
+        N1 = np.where(vk < v1, 1, 'first')
+        N2 = np.where(vk < v2, 1, 'first')
+        if not N1:
+            N1=1
+        if not N2:
+            N2=len(v_error)
+        rmserr[thefile] = np.sqrt(np.mean(v_error[N1:N2]**2))
+
+    cost = sum(rmserr)
+    print(f'RMS error for present value of gamma = {cost * 1000} (mV)\n')
+    assert not cost, 'Exception: Cost is empty'
+
     return [cost, model]
 
 
