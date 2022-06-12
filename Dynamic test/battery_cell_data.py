@@ -1,9 +1,10 @@
 import scipy.io
 
-# more to come
 
-
-class battery_model:
+class ESC_battery_model:
+    """
+    ESC battery model to be saved as a pickled file
+    """
     def __init__(self):
         self.temps = []
         self.QParam = []
@@ -14,9 +15,18 @@ class battery_model:
         self.RParam = []
         self.soc_vector = []  # should be multidimensional arrays
         self.ocv_vector = []  # should be multidimensional arrays
+        self.GParam = []      # model.GParam = [0] * len(data)
+        self.M0Param = []     # model.M0Param = [0] * len(data)
+        self.MParam = []      # model.MParam = [0] * len(data)
+        self.R0Param = []     # model.R0Param = [0] * len(data)
+        self.RCParam = []     # model.RCParam = [[0] * len(data)] * numpoles
+        self.RParam = []      # model.RParam = [[0] * len(data)] * numpoles
 
 
-class OneTempDynData:  # DynamicData
+class OneTempDynData:
+    """
+    Dynamic data for a single temperature value. Consists of 3 scripts from dynamic tests.
+    """
     def __init__(self, MAT_data, temp=25):
         self.temp = temp
         self.script1 = DynScriptData_12(MAT_data['DYNData'][0][0][0])
@@ -28,7 +38,10 @@ class OneTempDynData:  # DynamicData
         self.eta = []
 
 
-class DynScriptData_12:  # data per script
+class DynScriptData_12:
+    """
+    Dynamic data for scripts 1 and 2
+    """
     def __init__(self, script):
         self.time = script[0][0][1][0]
         self.step = script[0][0][3][0]
@@ -37,25 +50,11 @@ class DynScriptData_12:  # data per script
         self.chgAh = script[0][0][9][0]
         self.disAh = script[0][0][11][0]
 
-        # Raw values seem not to be needed
 
-        # self.rawTime = script[0][0][0]
-        # self.rawStep = script[0][0][2]
-        # self.rawCurrent = script[0][0][4]
-        # self.rawVoltage = script[0][0][6]
-        # self.rawChgAh = script[0][0][8]
-        # self.rawDisAh = script[0][0][10]
-
-        # for index, i in enumerate(self.rawTime):
-        #     self.rawTime[index] = self.rawTime[index][0]
-        #     self.rawStep[index] = self.rawStep[index][0]
-        #     self.rawCurrent[index] = self.rawCurrent[index][0]
-        #     self.rawVoltage[index] = self.rawVoltage[index][0]
-        #     self.rawChgAh[index] = self.rawChgAh[index][0]
-        #     self.rawDisAh[index] = self.rawDisAh[index][0]
-
-
-class DynScriptData_3:  # data per script
+class DynScriptData_3:
+    """
+    Dynamic data for script 3
+    """
     def __init__(self, script):
         self.time = script[0][0][0][0]
         self.voltage = script[0][0][1][0]
@@ -65,7 +64,10 @@ class DynScriptData_3:  # data per script
         self.step = script[0][0][5][0]
 
 
-class OneTempStaticData:  # Static data
+class OneTempStaticData:
+    """
+    Static data for a single temperature value. Consists of 4 scripts from static tests.
+    """
     def __init__(self, MAT_data, temp=25):
         self.temp = temp
         self.script1 = StaticScriptData(MAT_data['OCVData'][0][0][0])
@@ -79,27 +81,33 @@ class OneTempStaticData:  # Static data
 
 
 class StaticScriptData:
+    """
+    Static data for all scripts
+    """
     def __init__(self, script):
-        self.time = []  # initiate empty list
-        self.step = []  # initiate empty list
-        self.current = []  # initiate empty list
-        self.voltage = []  # initiate empty list
-        self.chgAh = []  # initiate empty list
-        self.disAh = []  # initiate empty list
+        self.time = []
+        self.step = []
+        self.current = []
+        self.voltage = []
+        self.chgAh = []
+        self.disAh = []
 
         for i in range(len(script[0][0][0])):
-            self.time.append(script[0][0][0][i][0])  # array of list elements with one element -> array of elements
-            self.step.append(script[0][0][1][i][0])  # array of list elements with one element -> array of elements
+            self.time.append(script[0][0][0][i][0])     # array of list elements with one element -> array of elements
+            self.step.append(script[0][0][1][i][0])     # array of list elements with one element -> array of elements
             self.current.append(script[0][0][2][i][0])  # array of list elements with one element -> array of elements
             self.voltage.append(script[0][0][3][i][0])  # array of list elements with one element -> array of elements
-            self.chgAh.append(script[0][0][4][i][0])  # array of list elements with one element -> array of elements
-            self.disAh.append(script[0][0][5][i][0])  # array of list elements with one element -> array of elements
+            self.chgAh.append(script[0][0][4][i][0])    # array of list elements with one element -> array of elements
+            self.disAh.append(script[0][0][5][i][0])    # array of list elements with one element -> array of elements
 
 
+# Initialize data
 P14_DYN_50_P45 = OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
 P14_DYN_50_P25 = OneTempDynData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
 P14_DYN_30_P05 = OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
 P14_OCV_P45 = OneTempStaticData(scipy.io.loadmat("P14_OCV_P45.mat"), 45)
 P14_OCV_P25 = OneTempStaticData(scipy.io.loadmat("P14_OCV_P25.mat"), 25)
 P14_OCV_P05 = OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
-P14_model = battery_model()
+
+# Initialize model
+P14_model = ESC_battery_model()
