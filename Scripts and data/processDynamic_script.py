@@ -63,12 +63,18 @@ def processDynamic(data, model, numpoles, doHyst):
         # plt.plot(data[k].script1.time, data[k].Z)
 
     # Third step: Use optimization algorythm to find parameters M, M0, G, RC, R and R0
+    model.GParam = [0] * len(data)
+    model.MParam = [0] * len(data)
+    model.M0Param = [0] * len(data)
+    model.RParam = [0] * len(data)
+    model.R0Param = [0] * len(data)
+    model.RCParam = [0] * len(data)
     for k in range(len(data)):
         global bestcost
         bestcost = np.inf
         print("Processing temperature: ", data[k].temp)
         if doHyst:
-            model.GParam.append(abs(fminbnd(optfn, 1, 250, args=(data, model, model.temps[k], doHyst), xtol=0.1, maxfun=40, disp=0)))
+            model.GParam[k] = abs(fminbnd(optfn, 1, 250, args=(data, model, model.temps[k], doHyst), xtol=0.1, maxfun=40, disp=0))
         else:  # Todo check functionality and extend it if it doesnt work
             model.GParam.append(0)
             theGParam = 0
@@ -293,11 +299,11 @@ def minfn(data, model, temperature, doHyst):
             Rfact = np.transpose(W[0][1:])
 
         # Populate the model
-        model.R0Param.append(R0)
-        model.M0Param.append(M0)
-        model.MParam.append(M)
-        model.RCParam.append(np.transpose(RC))
-        model.RParam.append(np.transpose(Rfact))
+        model.R0Param[ind] = R0
+        model.M0Param[ind] = M0
+        model.MParam[ind] = M
+        model.RCParam[ind] = np.transpose(RC)
+        model.RParam[ind] = np.transpose(Rfact)
 
         vest2 = vest1 + np.array(h)*M + M0*np.array(sik) - R0*np.array(etaik) - np.transpose(vrcRaw) * Rfact
         verr = vk - vest2
