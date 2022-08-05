@@ -111,3 +111,106 @@ P14_OCV_P05 = OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
 
 # Initialize model
 P14_model = ESC_battery_model()
+
+if __name__ == "__main__":
+    import pickle
+    ####### DYNAMIC TESTS ######################
+
+    DYN_45_SCRIPT_1_TIME    = P14_DYN_50_P45.script1.time - min(P14_DYN_50_P45.script1.time)
+    DYN_45_SCRIPT_2_TIME    = P14_DYN_50_P45.script2.time - min(P14_DYN_50_P45.script2.time)
+    DYN_45_SCRIPT_3_TIME    = P14_DYN_50_P45.script3.time - min(P14_DYN_50_P45.script3.time)
+    DYN_45_SCRIPT_1_CURRENT = P14_DYN_50_P45.script1.current
+    DYN_45_SCRIPT_2_CURRENT = P14_DYN_50_P45.script2.current
+    DYN_45_SCRIPT_3_CURRENT = P14_DYN_50_P45.script3.current
+
+    # Same time as previous temp
+    # DYN_25_SCRIPT_1_TIME    = P14_DYN_50_P25.script1.time - min(P14_DYN_50_P25.script1.time)
+    # DYN_25_SCRIPT_2_TIME    = P14_DYN_50_P25.script2.time - min(P14_DYN_50_P25.script2.time)
+    # DYN_25_SCRIPT_3_TIME    = P14_DYN_50_P25.script3.time - min(P14_DYN_50_P25.script3.time)
+    DYN_25_SCRIPT_1_CURRENT = P14_DYN_50_P25.script1.current
+    DYN_25_SCRIPT_2_CURRENT = P14_DYN_50_P25.script2.current
+    DYN_25_SCRIPT_3_CURRENT = P14_DYN_50_P25.script3.current
+
+    DYN_5_SCRIPT_1_TIME     = P14_DYN_30_P05.script1.time - min(P14_DYN_30_P05.script1.time)
+    DYN_5_SCRIPT_2_TIME     = P14_DYN_30_P05.script2.time - min(P14_DYN_30_P05.script2.time)
+    DYN_5_SCRIPT_3_TIME     = P14_DYN_30_P05.script3.time - min(P14_DYN_30_P05.script3.time)
+    DYN_5_SCRIPT_1_CURRENT  = P14_DYN_30_P05.script1.current
+    DYN_5_SCRIPT_2_CURRENT  = P14_DYN_30_P05.script2.current
+    DYN_5_SCRIPT_3_CURRENT  = P14_DYN_30_P05.script3.current
+
+    ######### STATIC TESTS #########
+
+    OCV_45_SCRIPT_1_TIME     = P14_OCV_P45.script1.time - min(P14_OCV_P45.script1.time)
+    OCV_45_SCRIPT_2_TIME     = P14_OCV_P45.script2.time - min(P14_OCV_P45.script2.time)
+    OCV_45_SCRIPT_3_TIME     = P14_OCV_P45.script3.time - min(P14_OCV_P45.script3.time)
+    OCV_45_SCRIPT_4_TIME     = P14_OCV_P45.script4.time - min(P14_OCV_P45.script4.time)
+    OCV_45_SCRIPT_1_CURRENT  = P14_OCV_P45.script1.current
+    OCV_45_SCRIPT_2_CURRENT  = P14_OCV_P45.script2.current
+    OCV_45_SCRIPT_3_CURRENT  = P14_OCV_P45.script3.current
+    OCV_45_SCRIPT_4_CURRENT  = P14_OCV_P45.script4.current
+
+    OCV_25_SCRIPT_1_TIME     = P14_OCV_P25.script1.time - min(P14_OCV_P25.script1.time)
+    OCV_25_SCRIPT_2_TIME     = P14_OCV_P25.script2.time - min(P14_OCV_P25.script2.time)
+    OCV_25_SCRIPT_3_TIME     = P14_OCV_P25.script3.time - min(P14_OCV_P25.script3.time)
+    OCV_25_SCRIPT_4_TIME     = P14_OCV_P25.script4.time - min(P14_OCV_P25.script4.time)
+    OCV_25_SCRIPT_1_CURRENT  = P14_OCV_P25.script1.current
+    OCV_25_SCRIPT_2_CURRENT  = P14_OCV_P25.script2.current
+    OCV_25_SCRIPT_3_CURRENT  = P14_OCV_P25.script3.current
+    OCV_25_SCRIPT_4_CURRENT  = P14_OCV_P25.script4.current
+
+    OCV_5_SCRIPT_1_TIME      = P14_OCV_P05.script1.time - min(P14_OCV_P05.script1.time)
+    OCV_5_SCRIPT_2_TIME      = P14_OCV_P05.script2.time - min(P14_OCV_P05.script2.time)
+    OCV_5_SCRIPT_3_TIME      = P14_OCV_P05.script3.time - min(P14_OCV_P05.script3.time)
+    OCV_5_SCRIPT_4_TIME      = P14_OCV_P05.script4.time - min(P14_OCV_P05.script4.time)
+    OCV_5_SCRIPT_1_CURRENT   = P14_OCV_P05.script1.current
+    OCV_5_SCRIPT_2_CURRENT   = P14_OCV_P05.script2.current
+    OCV_5_SCRIPT_3_CURRENT   = P14_OCV_P05.script3.current
+    OCV_5_SCRIPT_4_CURRENT   = P14_OCV_P05.script4.current
+
+    current_profiles_dict = {
+        'OCV_45_SCRIPT_1_TIME': OCV_45_SCRIPT_1_TIME,
+        'OCV_45_SCRIPT_2_TIME': OCV_45_SCRIPT_2_TIME,
+        'OCV_45_SCRIPT_3_TIME': OCV_45_SCRIPT_3_TIME,
+        'OCV_45_SCRIPT_4_TIME': OCV_45_SCRIPT_4_TIME,
+        'OCV_45_SCRIPT_1_CURRENT': OCV_45_SCRIPT_1_CURRENT,
+        'OCV_45_SCRIPT_2_CURRENT': OCV_45_SCRIPT_2_CURRENT,
+        'OCV_45_SCRIPT_3_CURRENT': OCV_45_SCRIPT_3_CURRENT,
+        'OCV_45_SCRIPT_4_CURRENT': OCV_45_SCRIPT_4_CURRENT,
+        'OCV_25_SCRIPT_1_TIME': OCV_25_SCRIPT_1_TIME,
+        'OCV_25_SCRIPT_2_TIME': OCV_25_SCRIPT_2_TIME,
+        'OCV_25_SCRIPT_3_TIME': OCV_25_SCRIPT_3_TIME,
+        'OCV_25_SCRIPT_4_TIME': OCV_25_SCRIPT_4_TIME,
+        'OCV_25_SCRIPT_1_CURRENT': OCV_25_SCRIPT_1_CURRENT,
+        'OCV_25_SCRIPT_2_CURRENT': OCV_25_SCRIPT_2_CURRENT,
+        'OCV_25_SCRIPT_3_CURRENT': OCV_25_SCRIPT_3_CURRENT,
+        'OCV_25_SCRIPT_4_CURRENT': OCV_25_SCRIPT_4_CURRENT,
+        'OCV_5_SCRIPT_1_TIME': OCV_5_SCRIPT_1_TIME,
+        'OCV_5_SCRIPT_2_TIME': OCV_5_SCRIPT_2_TIME,
+        'OCV_5_SCRIPT_3_TIME': OCV_5_SCRIPT_3_TIME,
+        'OCV_5_SCRIPT_4_TIME': OCV_5_SCRIPT_4_TIME,
+        'OCV_5_SCRIPT_1_CURRENT': OCV_5_SCRIPT_1_CURRENT,
+        'OCV_5_SCRIPT_2_CURRENT': OCV_5_SCRIPT_2_CURRENT,
+        'OCV_5_SCRIPT_3_CURRENT': OCV_5_SCRIPT_3_CURRENT,
+        'OCV_5_SCRIPT_4_CURRENT': OCV_5_SCRIPT_4_CURRENT,
+        'DYN_45_SCRIPT_1_TIME': DYN_45_SCRIPT_1_TIME,
+        'DYN_45_SCRIPT_2_TIME': DYN_45_SCRIPT_2_TIME,
+        'DYN_45_SCRIPT_3_TIME': DYN_45_SCRIPT_3_TIME,
+        'DYN_45_SCRIPT_1_CURRENT': DYN_45_SCRIPT_1_CURRENT,
+        'DYN_45_SCRIPT_2_CURRENT': DYN_45_SCRIPT_2_CURRENT,
+        'DYN_45_SCRIPT_3_CURRENT': DYN_45_SCRIPT_3_CURRENT,
+        'DYN_25_SCRIPT_1_CURRENT': DYN_25_SCRIPT_1_CURRENT,
+        'DYN_25_SCRIPT_2_CURRENT': DYN_25_SCRIPT_2_CURRENT,
+        'DYN_25_SCRIPT_3_CURRENT': DYN_25_SCRIPT_3_CURRENT,
+        'DYN_5_SCRIPT_1_TIME': DYN_5_SCRIPT_1_TIME,
+        'DYN_5_SCRIPT_2_TIME': DYN_5_SCRIPT_2_TIME,
+        'DYN_5_SCRIPT_3_TIME': DYN_5_SCRIPT_3_TIME,
+        'DYN_5_SCRIPT_1_CURRENT': DYN_5_SCRIPT_1_CURRENT,
+        'DYN_5_SCRIPT_2_CURRENT': DYN_5_SCRIPT_2_CURRENT,
+        'DYN_5_SCRIPT_3_CURRENT': DYN_5_SCRIPT_3_CURRENT,
+    }
+    print("Saving the current profiles for testing")
+    filename = 'current_profiles.pickle'
+    with open(filename, 'wb') as file:
+        pickle.dump(current_profiles_dict, file)
+        print("Current profiles saved as: ", filename)
+
