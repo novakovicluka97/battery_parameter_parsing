@@ -1,8 +1,304 @@
+import scipy.io
 import numpy as np
 from numpy import linalg as LA
 import scipy
 from scipy import optimize
 fminbnd = scipy.optimize.fminbound
+from scipy import interpolate
+
+
+def plot_func(x_axis_list, y_axis_list, names, flag_show: bool = False):
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(11, 11))
+    for i in range(len(x_axis_list)):
+        plt.subplot(221 + i)
+        # Optional, but must be between subplot and show
+        plt.title(names[i])
+        plt.grid(True)
+        plt.plot(x_axis_list[i], y_axis_list[i], linewidth=3.0)
+
+    # Optional spacing options
+    plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25,
+                        wspace=0.35)
+    if flag_show:
+        plt.show()  # Last line
+
+
+class ESC_battery_model:
+    """
+    ESC battery model to be saved as a pickled file
+    """
+
+    def __init__(self):
+        self.temps = []
+        self.QParam = []
+        self.etaParam = []
+        self.QParam_static = []
+        self.etaParam_static = []
+        self.RCParam = []
+        self.RParam = []
+        self.soc_vector = []  # should be multidimensional arrays
+        self.ocv_vector = []  # should be multidimensional arrays
+        self.GParam = []  # model.GParam = [0] * len(data)
+        self.M0Param = []  # model.M0Param = [0] * len(data)
+        self.MParam = []  # model.MParam = [0] * len(data)
+        self.R0Param = []  # model.R0Param = [0] * len(data)
+        self.RCParam = []  # model.RCParam = [[0] * len(data)] * numpoles
+        self.RParam = []  # model.RParam = [[0] * len(data)] * numpoles
+
+
+class OneTempDynData:
+    """
+    Dynamic data for a single temperature value. Consists of 3 scripts from dynamic tests.
+    """
+
+    def __init__(self, MAT_data, temp=25):
+        self.temp = temp
+        self.script1 = DynScriptData_12(MAT_data['DYNData'][0][0][0])
+        self.script2 = DynScriptData_12(MAT_data['DYNData'][0][0][1])
+        self.script3 = DynScriptData_3(MAT_data['DYNData'][0][0][2])
+        self.Z = []
+        self.OCV = []
+        self.Q = []
+        self.eta = []
+
+
+class DynScriptData_12:
+    """
+    Dynamic data for scripts 1 and 2
+    """
+
+    def __init__(self, script):
+        self.time = script[0][0][1][0]
+        self.step = script[0][0][3][0]
+        self.current = script[0][0][5][0]
+        self.voltage = script[0][0][7][0]
+        self.chgAh = script[0][0][9][0]
+        self.disAh = script[0][0][11][0]
+
+
+class DynScriptData_3:
+    """
+    Dynamic data for script 3
+    """
+
+    def __init__(self, script):
+        self.time = script[0][0][0][0]
+        self.voltage = script[0][0][1][0]
+        self.current = script[0][0][2][0]
+        self.chgAh = script[0][0][3][0]
+        self.disAh = script[0][0][4][0]
+        self.step = script[0][0][5][0]
+
+
+class OneTempStaticData:
+    """
+    Static data for a single temperature value. Consists of 4 scripts from static tests.
+    """
+
+    def __init__(self, MAT_data, temp=25):
+        self.temp = temp
+        self.script1 = StaticScriptData(MAT_data['OCVData'][0][0][0])
+        self.script2 = StaticScriptData(MAT_data['OCVData'][0][0][1])
+        self.script3 = StaticScriptData(MAT_data['OCVData'][0][0][2])
+        self.script4 = StaticScriptData(MAT_data['OCVData'][0][0][3])
+        self.Z = []
+        self.OCV = []
+        self.Q = []
+        self.eta = []
+
+
+class StaticScriptData:
+    """
+    Static data for all scripts
+    """
+
+    def __init__(self, script):
+        self.time = []
+        self.step = []
+        self.current = []
+        self.voltage = []
+        self.chgAh = []
+        self.disAh = []
+
+        for i in range(len(script[0][0][0])):
+            self.time.append(script[0][0][0][i][0])  # array of list elements with one element -> array of elements
+            self.step.append(script[0][0][1][i][0])  # array of list elements with one element -> array of elements
+            self.current.append(script[0][0][2][i][0])  # array of list elements with one element -> array of elements
+            self.voltage.append(script[0][0][3][i][0])  # array of list elements with one element -> array of elements
+            self.chgAh.append(script[0][0][4][i][0])  # array of list elements with one element -> array of elements
+            self.disAh.append(script[0][0][5][i][0])  # array of list elements with one element -> array of elements
+
+
+class CellAllData:
+    """
+    Data class of a battery cell that contains all the battery cell data.
+    This type of class is used to store the data obtained from the generated cell data from the Typhoon software.
+    """
+
+    def __init__(self, MAT_data, temp_static=[], temp_dyn=[]):
+        self.static_data = []
+        self.dynamic_data = []
+
+        try:
+            for temp in temp_static:
+                if temp == 5:
+                    self.static_data.append(self.StaticData(MAT_data['OCVData_' + '05'], temp))
+                else:
+                    self.static_data.append(self.StaticData(MAT_data['OCVData_' + str(temp)], temp))
+
+        except ValueError:
+            print('ValueError for static data. Check the format of the provided data')
+
+        try:
+            for temp in temp_dyn:
+                if temp == 5:
+                    self.static_data.append(self.DynData(MAT_data['DYNData_' + '05'], temp))
+                else:
+                    self.static_data.append(self.DynData(MAT_data['DYNData_' + str(temp)], temp))
+
+        except ValueError:
+            print('ValueError for dynamic data. Check the format of the provided data')
+
+    class DynData(OneTempDynData):
+        """
+        dynamic set of data for one temperature
+        """
+
+        def __init__(self, MAT_data, temp=25):
+            self.temp = temp
+            self.script1 = self.ScriptData(MAT_data[0][0])
+            self.script2 = self.ScriptData(MAT_data[0][1])
+            self.script3 = self.ScriptData(MAT_data[0][2])
+            self.Z = []
+            self.OCV = []
+            self.Q = []
+            self.eta = []
+
+        class ScriptData:
+            """
+            Dynamic data for scripts 1, 2 and 3
+            """
+
+            # time, temp, voltage, current, chgAh, disAh
+            def __init__(self, script):
+                self.time = script[0][0][0]
+                self.voltage = script[0][2][0]
+                self.current = script[0][3][0]
+                self.chgAh = script[0][4][0]
+                self.disAh = script[0][5][0]
+
+    class StaticData(OneTempStaticData):
+        """
+        static set of data for one temperature
+        """
+
+        def __init__(self, MAT_data, temp=25):
+            self.temp = temp
+            self.script1 = self.ScriptData(MAT_data[0][0])
+            self.script2 = self.ScriptData(MAT_data[0][1])
+            self.script3 = self.ScriptData(MAT_data[0][2])
+            self.script4 = self.ScriptData(MAT_data[0][3])
+            self.Z = []
+            self.OCV = []
+            self.Q = []
+            self.eta = []
+
+        class ScriptData:
+            """
+            Static data for all scripts
+            time, temp, voltage, current, chgAh, disAh
+            """
+
+            # time, temp, voltage, current, chgAh, disAh
+            def __init__(self, script):
+                self.time = script[0][0][0]
+                self.voltage = script[0][2][0]
+                self.current = script[0][3][0]
+                self.chgAh = script[0][4][0]
+                self.disAh = script[0][5][0]
+
+
+def processStatic(static_data, model):
+    """
+    Script that populates the model parameters based on static test data
+    """
+    SOC_vector = np.linspace(0, 1, 201)  # output SOC_vector points for this step
+
+    # We need to find the index of static data which coresponds with default temperature of 25 degrees celsius
+    # After that, other temperatures can be calculated
+    ind25 = None
+    for index, single_temp_data in enumerate(static_data):
+        if single_temp_data.temp == 25:
+            ind25 = index
+    if not ind25:
+        print("There is no default temperature of 25 degrees celsius!")
+        raise Exception()
+
+    totDisAh = static_data[ind25].script1.disAh[-1] + static_data[ind25].script2.disAh[-1] + \
+               static_data[ind25].script3.disAh[-1] + static_data[ind25].script4.disAh[-1]
+    totChgAh = static_data[ind25].script1.chgAh[-1] + static_data[ind25].script2.chgAh[-1] + \
+               static_data[ind25].script3.chgAh[-1] + static_data[ind25].script4.chgAh[-1]
+    eta25 = totDisAh / totChgAh
+    # Q doesn't need to be calculated differently for temp = 25
+
+    for k in range(len(static_data)):
+        # First step: calculate eta
+        # scripts 1 and 3 are at test temperature but scripts 2 and 4 are always at 25 degrees
+        totDisAh = static_data[k].script1.disAh[-1] + static_data[k].script2.disAh[-1] + static_data[k].script3.disAh[-1] + static_data[k].script4.disAh[-1]
+        totChgAh_at_X_temp = static_data[k].script1.chgAh[-1] + static_data[k].script3.chgAh[-1]
+        totChgAh_at_25_temp = static_data[k].script2.chgAh[-1] + static_data[k].script4.chgAh[-1]
+        eta = (totDisAh - totChgAh_at_25_temp*eta25) / totChgAh_at_X_temp
+
+        # Second step: calculate Q
+        Q = static_data[k].script1.disAh[-1] + static_data[k].script2.disAh[-1] - eta * static_data[k].script1.chgAh[-1] - eta * static_data[k].script2.chgAh[-1]
+
+        # Third step: calculate OCV curve
+        print(f"Calculating static tests for temperature: {static_data[k].temp}")
+        indD  = np.where(np.array(static_data[k].script1.step) == 2)[0]  # slow discharge
+        IR1Da = static_data[k].script1.voltage[indD[0] - 1] - static_data[k].script1.voltage[indD[0]]
+        IR2Da = static_data[k].script1.voltage[indD[-1] + 1] - static_data[k].script1.voltage[indD[-1]]
+
+        indC  = np.where(np.array(static_data[k].script3.step) == 2)[0]  # slow charge
+        IR1Ca = static_data[k].script3.voltage[indC[0]] - static_data[k].script3.voltage[indC[0] - 1]
+        IR2Ca = static_data[k].script3.voltage[indC[-1]] - static_data[k].script3.voltage[indC[-1] + 1]
+        IR1D = min(IR1Da, 2*IR2Ca)
+        IR2D = min(IR2Da, 2*IR1Ca)
+        IR1C = min(IR1Ca, 2*IR2Da)
+        IR2C = min(IR2Ca, 2*IR1Da)
+
+        blend = np.array(range(len(indD)))/(len(indD)-1)
+        IRblend = IR1D + (IR2D-IR1D)*blend
+        disV = static_data[k].script1.voltage[indD[0]:(indD[-1] + 1)] + IRblend
+        disZ = 1 - static_data[k].script1.disAh[indD[0]:(indD[-1] + 1)] / Q
+        disZ = disZ + (1 - disZ[0])
+
+        blend = np.array(range(len(indC)))/(len(indC)-1)
+        IRblend = IR1C + (IR2C-IR1C)*blend
+        chgV = static_data[k].script3.voltage[indC[0]:indC[-1] + 1] - IRblend
+        chgZ = static_data[k].script3.chgAh[indC[0]:indC[-1] + 1] / Q
+        chgZ = chgZ - chgZ[0]
+
+        Voltage_SOC_curve = interpolate.interp1d(chgZ, chgV)
+        Discharge_SOC_curve = interpolate.interp1d(disZ, disV)
+        deltaV50 = Voltage_SOC_curve(0.5) - Discharge_SOC_curve(0.5)
+        ind = np.where(chgZ < 0.5)[0]
+        vChg = chgV[ind[0]:ind[-1]] - chgZ[ind[0]:ind[-1]]*deltaV50
+        zChg = chgZ[ind[0]:ind[-1]]
+        ind = np.where(disZ > 0.5)[0]
+        vDis = np.flipud(disV[ind[0]:ind[-1]] + (1 - disZ[ind[0]:ind[-1]])*deltaV50)
+        zDis = np.flipud(disZ[ind[0]:ind[-1]])
+        np.append(zChg, zDis)
+        FULL_SOC_curve = interpolate.interp1d(np.append(zChg, zDis), np.append(vChg, vDis), fill_value="extrapolate")
+        rawocv = FULL_SOC_curve(SOC_vector)
+
+        # Final step: populate model
+        model.temps.append(static_data[k].temp)
+        model.etaParam_static.append(eta)
+        model.QParam_static.append(Q)
+        model.soc_vector.append(SOC_vector)
+        model.ocv_vector.append(rawocv)
 
 
 def processDynamic(data, model, numpoles, doHyst):

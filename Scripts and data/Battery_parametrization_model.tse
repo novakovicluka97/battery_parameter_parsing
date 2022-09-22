@@ -1,0 +1,3455 @@
+version = 4.2
+
+//
+// Saved by sw version: 2022.3
+//
+
+model "Battery_parametrization_model" {
+    configuration {
+        hil_device = "VHIL+"
+        hil_configuration_id = 1
+        simulation_method = exact
+        simulation_time_step = 20e-6
+        simulation_discret_scaling = 1
+        dsp_timer_periods = 100e-6, 50e-3
+        ss_calc_method = "systematic elimination"
+        enb_pole_shift = True
+        enb_gds_oversampling = True
+        show_modes = False
+        device_ao_limit_enable = False
+        reset_analog_outputs_on_sim_stop = True
+        reset_digital_outputs_on_sim_stop = True
+        vhil_adio_loopback = False
+        cpl_stb = False
+        enb_dep_sw_detect = False
+        code_section = "internal memory"
+        data_section = "internal memory"
+        sys_sp_rate_1 = 0.0001
+        sys_sp_rate_2 = 0.05
+        sys_real_type_precision = "default"
+        user_real_type_precision = "default"
+        sys_cpu_optimization = "high"
+        user_cpu_optimization = "high"
+        user_cpu_part_option = "default"
+        matrix_based_reduction = True
+        cpl_dynamics_analysis = False
+        export_ss_to_pickle = False
+        ground_scope_core = False
+        dss_num_tol = 1e-15
+        cce_platform = "generic"
+        cce_use_relative_names = False
+        cce_type_mapping_real = "double"
+        cce_type_mapping_uint = "unsigned int"
+        cce_type_mapping_int = "int"
+        cce_directory = ""
+        cce_custom_type_int = ""
+        cce_custom_type_uint = ""
+        cce_custom_type_real = ""
+        tunable_params = "component defined"
+        sp_compiler_type = "C compiler"
+        sig_stim = "off"
+        export_resource_list = ""
+        export_dependency_list = ""
+        export_out_file = ""
+        export_lock_top_level = True
+        export_encrypt_library = True
+        export_encrypt_resources = True
+    }
+
+    component Subsystem Root {
+        component "core/Battery Cell" "Battery Cell1" {
+        }
+        [
+            position = 7416, 7312
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp1 {
+        }
+        [
+            position = 7504, 7320
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table1" {
+            in_vec_x = "DYN_45_SCRIPT_1_TIME"
+            out_vec_f_x = "DYN_45_SCRIPT_1_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7640, 7320
+            rotation = down
+        ]
+
+        component src_clock Clock1 {
+        }
+        [
+            position = 8880, 7128
+            rotation = down
+        ]
+
+        component src_scada_input temp_45 {
+            def_value = "45"
+            unit = ""
+        }
+        [
+            position = 7216, 7304
+        ]
+
+        component "core/Battery Cell" "Battery Cell2" {
+        }
+        [
+            position = 7416, 7416
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp2 {
+        }
+        [
+            position = 7504, 7416
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table2" {
+            in_vec_x = "DYN_45_SCRIPT_2_TIME"
+            out_vec_f_x = "DYN_45_SCRIPT_2_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7640, 7416
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell3" {
+        }
+        [
+            position = 7416, 7520
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp3 {
+        }
+        [
+            position = 7504, 7528
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table3" {
+            in_vec_x = "DYN_45_SCRIPT_3_TIME"
+            out_vec_f_x = "DYN_45_SCRIPT_3_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7640, 7528
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell4" {
+        }
+        [
+            position = 7944, 7312
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp4 {
+        }
+        [
+            position = 8032, 7320
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table4" {
+            in_vec_x = "DYN_25_SCRIPT_1_TIME"
+            out_vec_f_x = "DYN_25_SCRIPT_1_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8168, 7320
+            rotation = down
+        ]
+
+        component src_scada_input temp_25 {
+            def_value = "25"
+            unit = ""
+        }
+        [
+            position = 7816, 7304
+        ]
+
+        component "core/Battery Cell" "Battery Cell5" {
+        }
+        [
+            position = 7944, 7416
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp5 {
+        }
+        [
+            position = 8032, 7416
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table5" {
+            in_vec_x = "DYN_25_SCRIPT_2_TIME"
+            out_vec_f_x = "DYN_25_SCRIPT_2_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8168, 7416
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell6" {
+        }
+        [
+            position = 7944, 7520
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp6 {
+        }
+        [
+            position = 8032, 7528
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table6" {
+            in_vec_x = "DYN_25_SCRIPT_3_TIME"
+            out_vec_f_x = "DYN_25_SCRIPT_3_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8168, 7528
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell7" {
+        }
+        [
+            position = 8488, 7312
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp7 {
+        }
+        [
+            position = 8576, 7320
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table7" {
+            in_vec_x = "DYN_5_SCRIPT_1_TIME"
+            out_vec_f_x = "DYN_5_SCRIPT_1_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8712, 7320
+            rotation = down
+        ]
+
+        component src_scada_input temp_5 {
+            def_value = "5"
+            unit = ""
+        }
+        [
+            position = 8360, 7304
+        ]
+
+        component "core/Battery Cell" "Battery Cell8" {
+        }
+        [
+            position = 8488, 7416
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp8 {
+        }
+        [
+            position = 8576, 7416
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table8" {
+            in_vec_x = "DYN_5_SCRIPT_2_TIME"
+            out_vec_f_x = "DYN_5_SCRIPT_2_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8712, 7416
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell9" {
+        }
+        [
+            position = 8488, 7520
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp9 {
+        }
+        [
+            position = 8576, 7528
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table9" {
+            in_vec_x = "DYN_5_SCRIPT_3_TIME"
+            out_vec_f_x = "DYN_5_SCRIPT_3_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8712, 7528
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell10" {
+        }
+        [
+            position = 7416, 7744
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp10 {
+        }
+        [
+            position = 7504, 7752
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table10" {
+            in_vec_x = "OCV_45_SCRIPT_1_TIME"
+            out_vec_f_x = "OCV_45_SCRIPT_1_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7640, 7752
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell11" {
+        }
+        [
+            position = 7416, 7848
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp11 {
+        }
+        [
+            position = 7504, 7848
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table11" {
+            in_vec_x = "OCV_45_SCRIPT_2_TIME"
+            out_vec_f_x = "OCV_45_SCRIPT_2_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7640, 7848
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell12" {
+        }
+        [
+            position = 7416, 7952
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp12 {
+        }
+        [
+            position = 7504, 7960
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table12" {
+            in_vec_x = "OCV_45_SCRIPT_3_TIME"
+            out_vec_f_x = "OCV_45_SCRIPT_3_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7640, 7960
+            rotation = down
+        ]
+
+        component lut_1d "1D look-up table13" {
+            in_vec_x = "OCV_45_SCRIPT_4_TIME"
+            out_vec_f_x = "OCV_45_SCRIPT_4_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7640, 8064
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell13" {
+        }
+        [
+            position = 7416, 8056
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp13 {
+        }
+        [
+            position = 7504, 8064
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component "core/Battery Cell" "Battery Cell14" {
+        }
+        [
+            position = 7944, 7744
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp14 {
+        }
+        [
+            position = 8032, 7752
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table14" {
+            in_vec_x = "OCV_25_SCRIPT_1_TIME"
+            out_vec_f_x = "OCV_25_SCRIPT_1_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8168, 7752
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell15" {
+        }
+        [
+            position = 7944, 7848
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp15 {
+        }
+        [
+            position = 8032, 7848
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table15" {
+            in_vec_x = "OCV_25_SCRIPT_2_TIME"
+            out_vec_f_x = "OCV_25_SCRIPT_2_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8168, 7848
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell16" {
+        }
+        [
+            position = 7944, 7952
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp16 {
+        }
+        [
+            position = 8032, 7960
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table16" {
+            in_vec_x = "OCV_25_SCRIPT_3_TIME"
+            out_vec_f_x = "OCV_25_SCRIPT_3_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8168, 7960
+            rotation = down
+        ]
+
+        component lut_1d "1D look-up table17" {
+            in_vec_x = "OCV_25_SCRIPT_4_TIME"
+            out_vec_f_x = "OCV_25_SCRIPT_4_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8168, 8064
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell17" {
+        }
+        [
+            position = 7944, 8056
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp17 {
+        }
+        [
+            position = 8032, 8064
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component "core/Battery Cell" "Battery Cell18" {
+        }
+        [
+            position = 8488, 7744
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp18 {
+        }
+        [
+            position = 8576, 7752
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table18" {
+            in_vec_x = "OCV_5_SCRIPT_1_TIME"
+            out_vec_f_x = "OCV_5_SCRIPT_1_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8712, 7752
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell19" {
+        }
+        [
+            position = 8488, 7848
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp19 {
+        }
+        [
+            position = 8576, 7848
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table19" {
+            in_vec_x = "OCV_5_SCRIPT_2_TIME"
+            out_vec_f_x = "OCV_5_SCRIPT_2_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8712, 7848
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell20" {
+        }
+        [
+            position = 8488, 7952
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp20 {
+        }
+        [
+            position = 8576, 7960
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component lut_1d "1D look-up table20" {
+            in_vec_x = "OCV_5_SCRIPT_3_TIME"
+            out_vec_f_x = "OCV_5_SCRIPT_3_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8712, 7960
+            rotation = down
+        ]
+
+        component lut_1d "1D look-up table21" {
+            in_vec_x = "OCV_5_SCRIPT_4_TIME"
+            out_vec_f_x = "OCV_5_SCRIPT_4_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8712, 8064
+            rotation = down
+        ]
+
+        component "core/Battery Cell" "Battery Cell21" {
+        }
+        [
+            position = 8488, 8056
+            size = 32, 64
+        ]
+
+        component "core/Signal Controlled Current Source" Isp21 {
+        }
+        [
+            position = 8576, 8064
+            rotation = left
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component "core/Voltage Measurement" voltage_1 {
+            sig_output = "True"
+        }
+        [
+            position = 6672, 6928
+            rotation = right
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component gen_c_function "C function1" {
+            global_variables = "real next_sw;real counter_cooldown;real first_time_step_flag;real k_time_step;"
+            init_fnc = "/*Begin code section*/
+script_no = 1;  // start with the first script
+sw_select = 1;  // start with first sw permutation (1st script)
+timer = 0;
+k_time_step = 1/Ts;
+counter_cooldown = k_time_step*cooldown_time_in_sec;  // wait an hour for the
+// battery to go back to its original temperature [instant with typhoon] 
+// and to discharge the capacitors
+// 1000 is there because the execution rate is 1e-4
+first_time_step_flag = 1;  // This flag exists because vcell measurement
+// will always start with 0. We need to prevent even looking at that false vcell.
+temperature = input_temp;
+/*End code section*/"
+            input_terminals = "real input_temp;real Vcell;int time_reset_script_2;int time_reset_script_4;"
+            input_terminals_dimensions = "inherit;inherit;inherit;inherit"
+            input_terminals_feedthrough = "True;True;True;True"
+            input_terminals_show_labels = "True;True;True;True"
+            output_fnc = "/*Begin code section*/
+// The model starts immediately with time and script_no 1
+
+if (Vcell < Vmin && sw_select == 1 && first_time_step_flag != 1) {
+    // Start second script countdown
+    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+    script_no = 2;  // second script
+    sw_select = 0;  // zero current
+    next_sw = 2;
+    temperature = 25;  // default temperature
+}
+else if (Vcell < Vmin && sw_select == 2) {
+    // Start third script
+    script_no = 3;
+    sw_select = 3;
+    temperature = input_temp;
+    timer = 0;
+}
+else if (Vcell > Vmax && sw_select == 3) {
+    // Start forth script countdown
+    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+    script_no = 4;
+    sw_select = 0;  // zero current
+    next_sw = 4;
+}
+else if (Vcell > Vmax && sw_select == 4) {
+    // Start forth script countdown
+    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+    script_no = 0;  // zero current
+    script_no = 5;
+    next_sw = 0;
+}
+
+first_time_step_flag = 0;
+if (sw_select == 0) {
+    counter_cooldown--;
+    timer = 0;
+    if (counter_cooldown == 0) {
+        sw_select = next_sw;
+        counter_cooldown = k_time_step*cooldown_time_in_sec;
+    }
+}
+if (sw_select != 0) {
+    timer += Ts;
+}
+
+if (time_reset_script_2 > 0 && sw_select == 2){
+    timer = 0;
+}
+else if (time_reset_script_4 > 0 && sw_select == 4){
+    timer = 0;
+}
+/*End code section*/"
+            output_terminals = "real sw_select;inherit temperature;inherit timer;inherit script_no;"
+            output_terminals_dimensions = "inherit;inherit;inherit;inherit"
+            output_terminals_feedthrough = "True;True;True;True"
+            output_terminals_show_labels = "True;True;True;True"
+            parameters = "real Vmin;real Vmax;real cooldown_time_in_sec;real Ts;"
+        }
+        [
+            position = 6912, 6472
+            hide_name = True
+            size = 264, 160
+        ]
+
+        component gen_probe script_no_1 {
+        }
+        [
+            position = 7152, 6624
+        ]
+
+        component sys_mp_signal_switch "Multiport signal switch1" {
+            number_of_input_terminals = "4"
+        }
+        [
+            position = 6808, 6792
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table23" {
+            in_vec_x = "OCV_25_SCRIPT_2_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_2_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 6664, 6792
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table25" {
+            in_vec_x = "OCV_25_SCRIPT_4_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_4_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 6664, 6824
+            hide_name = True
+        ]
+
+        component "core/Signal Controlled Current Source" Isp22 {
+        }
+        [
+            position = 6976, 6928
+            rotation = left
+            hide_name = True
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component "core/Battery Cell" "Battery Cell_25" {
+        }
+        [
+            position = 6832, 6936
+            size = 32, 64
+        ]
+
+        component src_scada_input "battery temp 1" {
+            def_value = "25"
+            unit = ""
+        }
+        [
+            position = 6688, 6408
+        ]
+
+        component gen_probe time_1 {
+        }
+        [
+            position = 7152, 6528
+        ]
+
+        component gen_comparator Comparator1 {
+        }
+        [
+            position = 6672, 6536
+            hide_name = True
+        ]
+
+        component src_constant SCRIPT_4_STOP {
+            value = "OCV_25_SCRIPT_4_TIME_STOP"
+        }
+        [
+            position = 6696, 7360
+        ]
+
+        component gen_comparator Comparator2 {
+        }
+        [
+            position = 6608, 6488
+            hide_name = True
+        ]
+
+        component src_constant SCRIPT_2_STOP {
+            value = "OCV_25_SCRIPT_2_TIME_STOP"
+        }
+        [
+            position = 6696, 7296
+        ]
+
+        component tm_delay "Unit Delay1" {
+        }
+        [
+            position = 6736, 6488
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay2" {
+        }
+        [
+            position = 6736, 6536
+            hide_name = True
+        ]
+
+        component src_scada_input DISCHG {
+            def_value = "DISCHG_RATE"
+            unit = ""
+        }
+        [
+            position = 6688, 7424
+        ]
+
+        component src_scada_input CHG {
+            def_value = "CHG_RATE"
+            unit = ""
+        }
+        [
+            position = 6688, 7488
+        ]
+
+        component "core/Current Measurement" current_1 {
+            execution_rate = "Ts"
+            sig_output = "True"
+        }
+        [
+            position = 6912, 6888
+            rotation = down
+            scale = 1, -1
+            size = 64, 32
+        ]
+
+        component gen_integrator Integrator1 {
+        }
+        [
+            position = 7064, 6704
+            hide_name = True
+        ]
+
+        component gen_probe chgAh_1 {
+        }
+        [
+            position = 7160, 6704
+        ]
+
+        component gen_integrator Integrator2 {
+        }
+        [
+            position = 7064, 6768
+            hide_name = True
+        ]
+
+        component gen_probe disAh_1 {
+        }
+        [
+            position = 7160, 6768
+        ]
+
+        component gen_c_function "C function2" {
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = current;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 6968, 6736
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_probe temperature_1 {
+        }
+        [
+            position = 7152, 6400
+        ]
+
+        component "core/Voltage Measurement" voltage_2 {
+            sig_output = "True"
+        }
+        [
+            position = 7528, 6920
+            rotation = right
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component gen_c_function "C function3" {
+            global_variables = "real next_sw;real counter_cooldown;real first_time_step_flag;real k_time_step;"
+            init_fnc = "/*Begin code section*/
+script_no = 1;  // start with the first script
+sw_select = 1;  // start with first sw permutation (1st script)
+timer = 0;
+k_time_step = 1/Ts;
+counter_cooldown = k_time_step*cooldown_time_in_sec;  // wait an hour for the
+// battery to go back to its original temperature [instant with typhoon] 
+// and to discharge the capacitors
+// 1000 is there because the execution rate is 1e-4
+first_time_step_flag = 1;  // This flag exists because vcell measurement
+// will always start with 0. We need to prevent even looking at that false vcell.
+temperature = input_temp;
+/*End code section*/"
+            input_terminals = "real input_temp;real Vcell;int time_reset_script_2;int time_reset_script_4;"
+            input_terminals_dimensions = "inherit;inherit;inherit;inherit"
+            input_terminals_feedthrough = "True;True;True;True"
+            input_terminals_show_labels = "True;True;True;True"
+            output_fnc = "/*Begin code section*/
+// The model starts immediately with time and script_no 1
+
+if (Vcell < Vmin && sw_select == 1 && first_time_step_flag != 1) {
+    // Start second script countdown
+    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+    script_no = 2;  // second script
+    sw_select = 0;  // zero current
+    next_sw = 2;
+    temperature = 25;  // default temperature
+}
+else if (Vcell < Vmin && sw_select == 2) {
+    // Start third script
+    script_no = 3;
+    sw_select = 3;
+    temperature = input_temp;
+    timer = 0;
+}
+else if (Vcell > Vmax && sw_select == 3) {
+    // Start forth script countdown
+    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+    script_no = 4;
+    sw_select = 0;  // zero current
+    next_sw = 4;
+}
+else if (Vcell > Vmax && sw_select == 4) {
+    // Start forth script countdown
+    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+    script_no = 0;  // zero current
+    script_no = 5;
+    next_sw = 0;
+}
+
+first_time_step_flag = 0;
+if (sw_select == 0) {
+    counter_cooldown--;
+    timer = 0;
+    if (counter_cooldown == 0) {
+        sw_select = next_sw;
+        counter_cooldown = k_time_step*cooldown_time_in_sec;
+    }
+}
+if (sw_select != 0) {
+    timer += Ts;
+}
+
+if (time_reset_script_2 > 0 && sw_select == 2){
+    timer = 0;
+}
+else if (time_reset_script_4 > 0 && sw_select == 4){
+    timer = 0;
+}
+/*End code section*/"
+            output_terminals = "real sw_select;inherit temperature;inherit timer;inherit script_no;"
+            output_terminals_dimensions = "inherit;inherit;inherit;inherit"
+            output_terminals_feedthrough = "True;True;True;True"
+            output_terminals_show_labels = "True;True;True;True"
+            parameters = "real Vmin;real Vmax;real cooldown_time_in_sec;real Ts;"
+        }
+        [
+            position = 7768, 6464
+            hide_name = True
+            size = 264, 160
+        ]
+
+        component gen_probe script_no_2 {
+        }
+        [
+            position = 8008, 6616
+        ]
+
+        component sys_mp_signal_switch "Multiport signal switch2" {
+            number_of_input_terminals = "4"
+        }
+        [
+            position = 7664, 6784
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table26" {
+            in_vec_x = "OCV_25_SCRIPT_2_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_2_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7520, 6784
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table27" {
+            in_vec_x = "OCV_25_SCRIPT_4_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_4_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7520, 6816
+            hide_name = True
+        ]
+
+        component "core/Signal Controlled Current Source" Isp23 {
+        }
+        [
+            position = 7832, 6920
+            rotation = left
+            hide_name = True
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component "core/Battery Cell" "Battery Cell_45" {
+        }
+        [
+            position = 7688, 6928
+            size = 32, 64
+        ]
+
+        component src_scada_input "battery temp 2" {
+            def_value = "45"
+            unit = ""
+        }
+        [
+            position = 7544, 6400
+        ]
+
+        component gen_probe time_2 {
+        }
+        [
+            position = 8008, 6520
+        ]
+
+        component gen_comparator Comparator3 {
+        }
+        [
+            position = 7528, 6528
+            hide_name = True
+        ]
+
+        component gen_comparator Comparator4 {
+        }
+        [
+            position = 7464, 6480
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay3" {
+        }
+        [
+            position = 7592, 6480
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay4" {
+        }
+        [
+            position = 7592, 6528
+            hide_name = True
+        ]
+
+        component "core/Current Measurement" current_2 {
+            execution_rate = "Ts"
+            sig_output = "True"
+        }
+        [
+            position = 7768, 6880
+            rotation = down
+            scale = 1, -1
+            size = 64, 32
+        ]
+
+        component gen_integrator Integrator3 {
+        }
+        [
+            position = 7920, 6696
+            hide_name = True
+        ]
+
+        component gen_probe chgAh_2 {
+        }
+        [
+            position = 8016, 6696
+        ]
+
+        component gen_integrator Integrator4 {
+        }
+        [
+            position = 7920, 6760
+            hide_name = True
+        ]
+
+        component gen_probe disAh_2 {
+        }
+        [
+            position = 8016, 6760
+        ]
+
+        component gen_c_function "C function4" {
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = current;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 7824, 6728
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_probe temperature_2 {
+        }
+        [
+            position = 8008, 6392
+        ]
+
+        component "core/Voltage Measurement" voltage_3 {
+            sig_output = "True"
+        }
+        [
+            position = 8400, 6896
+            rotation = right
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component gen_c_function "C function5" {
+            global_variables = "real next_sw;real counter_cooldown;real first_time_step_flag;real k_time_step;"
+            init_fnc = "/*Begin code section*/
+script_no = 1;  // start with the first script
+sw_select = 1;  // start with first sw permutation (1st script)
+timer = 0;
+k_time_step = 1/Ts;
+counter_cooldown = k_time_step*cooldown_time_in_sec;  // wait an hour for the
+// battery to go back to its original temperature [instant with typhoon] 
+// and to discharge the capacitors
+// 1000 is there because the execution rate is 1e-4
+first_time_step_flag = 1;  // This flag exists because vcell measurement
+// will always start with 0. We need to prevent even looking at that false vcell.
+temperature = input_temp;
+/*End code section*/"
+            input_terminals = "real input_temp;real Vcell;int time_reset_script_2;int time_reset_script_4;"
+            input_terminals_dimensions = "inherit;inherit;inherit;inherit"
+            input_terminals_feedthrough = "True;True;True;True"
+            input_terminals_show_labels = "True;True;True;True"
+            output_fnc = "/*Begin code section*/
+// The model starts immediately with time and script_no 1
+
+if (Vcell < Vmin && sw_select == 1 && first_time_step_flag != 1) {
+    // Start second script countdown
+    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+    script_no = 2;  // second script
+    sw_select = 0;  // zero current
+    next_sw = 2;
+    temperature = 25;  // default temperature
+}
+else if (Vcell < Vmin && sw_select == 2) {
+    // Start third script
+    script_no = 3;
+    sw_select = 3;
+    temperature = input_temp;
+    timer = 0;
+}
+else if (Vcell > Vmax && sw_select == 3) {
+    // Start forth script countdown
+    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+    script_no = 4;
+    sw_select = 0;  // zero current
+    next_sw = 4;
+}
+else if (Vcell > Vmax && sw_select == 4) {
+    // Start forth script countdown
+    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+    script_no = 0;  // zero current
+    script_no = 5;
+    next_sw = 0;
+}
+
+first_time_step_flag = 0;
+if (sw_select == 0) {
+    counter_cooldown--;
+    timer = 0;
+    if (counter_cooldown == 0) {
+        sw_select = next_sw;
+        counter_cooldown = k_time_step*cooldown_time_in_sec;
+    }
+}
+if (sw_select != 0) {
+    timer += Ts;
+}
+
+if (time_reset_script_2 > 0 && sw_select == 2){
+    timer = 0;
+}
+else if (time_reset_script_4 > 0 && sw_select == 4){
+    timer = 0;
+}
+/*End code section*/"
+            output_terminals = "real sw_select;inherit temperature;inherit timer;inherit script_no;"
+            output_terminals_dimensions = "inherit;inherit;inherit;inherit"
+            output_terminals_feedthrough = "True;True;True;True"
+            output_terminals_show_labels = "True;True;True;True"
+            parameters = "real Vmin;real Vmax;real cooldown_time_in_sec;real Ts;"
+        }
+        [
+            position = 8640, 6440
+            hide_name = True
+            size = 264, 160
+        ]
+
+        component gen_probe script_no_3 {
+        }
+        [
+            position = 8880, 6592
+        ]
+
+        component sys_mp_signal_switch "Multiport signal switch3" {
+            number_of_input_terminals = "4"
+        }
+        [
+            position = 8536, 6760
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table28" {
+            in_vec_x = "OCV_25_SCRIPT_2_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_2_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8392, 6760
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table29" {
+            in_vec_x = "OCV_25_SCRIPT_4_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_4_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8392, 6792
+            hide_name = True
+        ]
+
+        component "core/Signal Controlled Current Source" Isp24 {
+        }
+        [
+            position = 8704, 6896
+            rotation = left
+            hide_name = True
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component "core/Battery Cell" "Battery Cell_05" {
+        }
+        [
+            position = 8560, 6904
+            size = 32, 64
+        ]
+
+        component src_scada_input "battery temp 3" {
+            def_value = "5"
+            unit = ""
+        }
+        [
+            position = 8416, 6376
+        ]
+
+        component gen_probe time_3 {
+        }
+        [
+            position = 8880, 6496
+        ]
+
+        component gen_comparator Comparator5 {
+        }
+        [
+            position = 8400, 6504
+            hide_name = True
+        ]
+
+        component gen_comparator Comparator6 {
+        }
+        [
+            position = 8336, 6456
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay5" {
+        }
+        [
+            position = 8464, 6456
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay6" {
+        }
+        [
+            position = 8464, 6504
+            hide_name = True
+        ]
+
+        component "core/Current Measurement" current_3 {
+            execution_rate = "Ts"
+            sig_output = "True"
+        }
+        [
+            position = 8640, 6856
+            rotation = down
+            scale = 1, -1
+            size = 64, 32
+        ]
+
+        component gen_integrator Integrator5 {
+        }
+        [
+            position = 8792, 6672
+            hide_name = True
+        ]
+
+        component gen_probe chgAh_3 {
+        }
+        [
+            position = 8888, 6672
+        ]
+
+        component gen_integrator Integrator6 {
+        }
+        [
+            position = 8792, 6736
+            hide_name = True
+        ]
+
+        component gen_probe disAh_3 {
+        }
+        [
+            position = 8888, 6736
+        ]
+
+        component gen_c_function "C function6" {
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = current;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 8696, 6704
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_probe temperature_3 {
+        }
+        [
+            position = 8880, 6368
+        ]
+
+        tag From1 {
+            value = "temp_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6744, 6928
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto1 {
+            value = "temp_1"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7136, 6456
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto2 {
+            value = "timer_1"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7136, 6488
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From2 {
+            value = "timer_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6520, 6528
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From3 {
+            value = "timer_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6520, 6464
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto3 {
+            value = "vcell_1"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 6568, 6992
+            rotation = down
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From4 {
+            value = "vcell_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6688, 6456
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From5 {
+            value = "timer_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6568, 6808
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto4 {
+            value = "sw_select_1"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7136, 6360
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From6 {
+            value = "sw_select_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6656, 6760
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto9 {
+            value = "sc_2_stop"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 6832, 7296
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto10 {
+            value = "sc_4_stop"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 6832, 7360
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From13 {
+            value = "sc_2_stop"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6520, 6496
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From14 {
+            value = "sc_4_stop"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6520, 6560
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto11 {
+            value = "dischg"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 6832, 7424
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto12 {
+            value = "chg"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 6832, 7488
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From15 {
+            value = "dischg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6728, 6776
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From16 {
+            value = "chg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 6728, 6808
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From17 {
+            value = "temp_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7600, 6920
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto13 {
+            value = "temp_2"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7992, 6448
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto14 {
+            value = "timer_2"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7992, 6480
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From18 {
+            value = "timer_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7376, 6520
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From19 {
+            value = "timer_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7376, 6456
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto15 {
+            value = "vcell_2"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7424, 6984
+            rotation = down
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From20 {
+            value = "vcell_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7544, 6448
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From21 {
+            value = "timer_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7424, 6800
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto16 {
+            value = "sw_select_2"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7992, 6352
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From22 {
+            value = "sw_select_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7512, 6752
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From23 {
+            value = "sc_2_stop"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7376, 6488
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From24 {
+            value = "sc_4_stop"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7376, 6552
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From25 {
+            value = "dischg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7584, 6768
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From26 {
+            value = "chg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7584, 6800
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From27 {
+            value = "temp_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8472, 6896
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto17 {
+            value = "temp_3"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8864, 6424
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto18 {
+            value = "timer_3"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8864, 6456
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From28 {
+            value = "timer_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8248, 6496
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From29 {
+            value = "timer_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8248, 6432
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto19 {
+            value = "vcell_3"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8296, 6960
+            rotation = down
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From30 {
+            value = "vcell_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8416, 6424
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From31 {
+            value = "timer_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8296, 6776
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto20 {
+            value = "sw_select_3"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8864, 6328
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From32 {
+            value = "sw_select_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8384, 6728
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From33 {
+            value = "sc_2_stop"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8248, 6464
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From34 {
+            value = "sc_4_stop"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8248, 6528
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From35 {
+            value = "dischg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8456, 6744
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From36 {
+            value = "chg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8456, 6776
+            hide_name = True
+            size = 60, 20
+        ]
+
+        junction Junction1 sp
+        [
+            position = 7336, 7304
+        ]
+
+        junction Junction2 sp
+        [
+            position = 7336, 7408
+        ]
+
+        junction Junction3 sp
+        [
+            position = 7696, 7320
+        ]
+
+        junction Junction4 sp
+        [
+            position = 7696, 7416
+        ]
+
+        junction Junction5 sp
+        [
+            position = 7864, 7304
+        ]
+
+        junction Junction6 sp
+        [
+            position = 7864, 7408
+        ]
+
+        junction Junction7 sp
+        [
+            position = 8408, 7304
+        ]
+
+        junction Junction8 sp
+        [
+            position = 8408, 7408
+        ]
+
+        junction Junction9 sp
+        [
+            position = 8288, 7128
+        ]
+
+        junction Junction10 sp
+        [
+            position = 8288, 7416
+        ]
+
+        junction Junction11 sp
+        [
+            position = 8288, 7320
+        ]
+
+        junction Junction12 sp
+        [
+            position = 8832, 7128
+        ]
+
+        junction Junction13 sp
+        [
+            position = 8832, 7416
+        ]
+
+        junction Junction14 sp
+        [
+            position = 8832, 7320
+        ]
+
+        junction Junction16 sp
+        [
+            position = 7336, 7840
+        ]
+
+        junction Junction18 sp
+        [
+            position = 7696, 7848
+        ]
+
+        junction Junction26 sp
+        [
+            position = 7336, 7512
+        ]
+
+        junction Junction27 sp
+        [
+            position = 7336, 7736
+        ]
+
+        junction Junction32 sp
+        [
+            position = 7696, 7960
+        ]
+
+        junction Junction33 sp
+        [
+            position = 7336, 7944
+        ]
+
+        junction Junction34 sp
+        [
+            position = 7864, 7840
+        ]
+
+        junction Junction35 sp
+        [
+            position = 8224, 7848
+        ]
+
+        junction Junction37 sp
+        [
+            position = 8224, 7960
+        ]
+
+        junction Junction38 sp
+        [
+            position = 7864, 7944
+        ]
+
+        junction Junction39 sp
+        [
+            position = 8408, 7840
+        ]
+
+        junction Junction40 sp
+        [
+            position = 8768, 7848
+        ]
+
+        junction Junction42 sp
+        [
+            position = 8768, 7960
+        ]
+
+        junction Junction43 sp
+        [
+            position = 8408, 7944
+        ]
+
+        junction Junction44 sp
+        [
+            position = 8832, 7528
+        ]
+
+        junction Junction45 sp
+        [
+            position = 8768, 7752
+        ]
+
+        junction Junction46 sp
+        [
+            position = 8288, 7528
+        ]
+
+        junction Junction47 sp
+        [
+            position = 8224, 7752
+        ]
+
+        junction Junction48 sp
+        [
+            position = 7696, 7528
+        ]
+
+        junction Junction49 sp
+        [
+            position = 7696, 7760
+        ]
+
+        junction Junction50 sp
+        [
+            position = 7864, 7512
+        ]
+
+        junction Junction51 sp
+        [
+            position = 7864, 7736
+        ]
+
+        junction Junction52 sp
+        [
+            position = 8416, 7512
+        ]
+
+        junction Junction53 sp
+        [
+            position = 8408, 7736
+        ]
+
+        junction Junction54 pe
+        [
+            position = 7504, 7480
+        ]
+
+        junction Junction55 pe
+        [
+            position = 7504, 7456
+        ]
+
+        junction Junction56 pe
+        [
+            position = 7504, 7376
+        ]
+
+        junction Junction57 pe
+        [
+            position = 7504, 7360
+        ]
+
+        junction Junction58 pe
+        [
+            position = 8032, 7480
+        ]
+
+        junction Junction59 pe
+        [
+            position = 8032, 7456
+        ]
+
+        junction Junction60 pe
+        [
+            position = 8032, 7376
+        ]
+
+        junction Junction61 pe
+        [
+            position = 8032, 7360
+        ]
+
+        junction Junction62 pe
+        [
+            position = 8576, 7480
+        ]
+
+        junction Junction63 pe
+        [
+            position = 8576, 7456
+        ]
+
+        junction Junction64 pe
+        [
+            position = 8576, 7376
+        ]
+
+        junction Junction65 pe
+        [
+            position = 8576, 7360
+        ]
+
+        junction Junction66 pe
+        [
+            position = 7504, 7808
+        ]
+
+        junction Junction67 pe
+        [
+            position = 7504, 7792
+        ]
+
+        junction Junction68 pe
+        [
+            position = 7504, 7912
+        ]
+
+        junction Junction69 pe
+        [
+            position = 7504, 7888
+        ]
+
+        junction Junction70 pe
+        [
+            position = 7504, 8016
+        ]
+
+        junction Junction71 pe
+        [
+            position = 7504, 7984
+        ]
+
+        junction Junction72 pe
+        [
+            position = 8032, 8016
+        ]
+
+        junction Junction73 pe
+        [
+            position = 8032, 8000
+        ]
+
+        junction Junction74 pe
+        [
+            position = 8032, 7912
+        ]
+
+        junction Junction75 pe
+        [
+            position = 8032, 7888
+        ]
+
+        junction Junction76 pe
+        [
+            position = 8032, 7808
+        ]
+
+        junction Junction77 pe
+        [
+            position = 8576, 8016
+        ]
+
+        junction Junction78 pe
+        [
+            position = 8576, 8000
+        ]
+
+        junction Junction79 pe
+        [
+            position = 8576, 7912
+        ]
+
+        junction Junction80 pe
+        [
+            position = 8576, 7888
+        ]
+
+        junction Junction81 pe
+        [
+            position = 8576, 7808
+        ]
+
+        junction Junction82 pe
+        [
+            position = 8576, 7792
+        ]
+
+        junction Junction83 pe
+        [
+            position = 8032, 7704
+        ]
+
+        junction Junction84 pe
+        [
+            position = 8032, 7568
+        ]
+
+        junction Junction85 pe
+        [
+            position = 7504, 7704
+        ]
+
+        junction Junction86 pe
+        [
+            position = 8576, 7704
+        ]
+
+        junction Junction87 pe
+        [
+            position = 8576, 7568
+        ]
+
+        junction Junction91 pe
+        [
+            position = 6832, 6888
+        ]
+
+        junction Junction98 sp
+        [
+            position = 7088, 6456
+        ]
+
+        junction Junction100 sp
+        [
+            position = 7088, 6488
+        ]
+
+        junction Junction104 sp
+        [
+            position = 6632, 6808
+        ]
+
+        junction Junction105 pe
+        [
+            position = 7688, 6880
+        ]
+
+        junction Junction106 sp
+        [
+            position = 7944, 6448
+        ]
+
+        junction Junction107 sp
+        [
+            position = 7944, 6480
+        ]
+
+        junction Junction108 sp
+        [
+            position = 7488, 6800
+        ]
+
+        junction Junction109 pe
+        [
+            position = 8560, 6856
+        ]
+
+        junction Junction110 sp
+        [
+            position = 8816, 6424
+        ]
+
+        junction Junction111 sp
+        [
+            position = 8816, 6456
+        ]
+
+        junction Junction112 sp
+        [
+            position = 8360, 6776
+        ]
+
+        comment Comment1 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">DYNAMIC TEST<br />TEMP 45 DEG</p></body></html> ENDCOMMENT 
+        [
+            position = 7392, 7176
+        ]
+
+        comment Comment2 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">DYNAMIC TEST<br />TEMP 25 DEG</p></body></html> ENDCOMMENT 
+        [
+            position = 7952, 7200
+        ]
+
+        comment Comment3 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">DYNAMIC TEST<br />TEMP 5 DEG </p></body></html> ENDCOMMENT 
+        [
+            position = 8496, 7200
+        ]
+
+        comment Comment4 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 45 DEG </p></body></html> ENDCOMMENT 
+        [
+            position = 7544, 7024
+        ]
+
+        comment Comment5 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 25 DEG </p></body></html> ENDCOMMENT 
+        [
+            position = 6720, 7024
+        ]
+
+        comment Comment6 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 5 DEG  </p></body></html> ENDCOMMENT 
+        [
+            position = 8464, 6992
+        ]
+
+        connect Isp1.n_node "Battery Cell1.P" as Connection2
+        connect "1D look-up table1.value" Isp1.in as Connection3
+        connect "1D look-up table2.value" Isp2.in as Connection8
+        connect Isp3.p_node "Battery Cell3.N" as Connection11
+        connect "1D look-up table3.value" Isp3.in as Connection13
+        connect temp_45.out Junction1 as Connection15
+        connect Junction1 "Battery Cell1.T" as Connection16
+        connect Junction2 Junction1 as Connection19
+        connect "Battery Cell2.T" Junction2 as Connection20
+        connect Junction3 "1D look-up table1.addr" as Connection23
+        connect "1D look-up table2.addr" Junction4 as Connection25
+        connect Junction4 Junction3 as Connection26
+        connect Isp4.n_node "Battery Cell4.P" as Connection29
+        connect "1D look-up table4.value" Isp4.in as Connection30
+        connect "1D look-up table5.value" Isp5.in as Connection33
+        connect "1D look-up table6.value" Isp6.in as Connection36
+        connect temp_25.out Junction5 as Connection37
+        connect Junction5 "Battery Cell4.T" as Connection38
+        connect Junction6 Junction5 as Connection40
+        connect "Battery Cell5.T" Junction6 as Connection41
+        connect Isp7.n_node "Battery Cell7.P" as Connection43
+        connect "1D look-up table7.value" Isp7.in as Connection44
+        connect "1D look-up table8.value" Isp8.in as Connection47
+        connect "1D look-up table9.value" Isp9.in as Connection50
+        connect temp_5.out Junction7 as Connection51
+        connect Junction7 "Battery Cell7.T" as Connection52
+        connect Junction8 Junction7 as Connection54
+        connect "Battery Cell8.T" Junction8 as Connection55
+        connect Junction9 Junction3 as Connection57
+        connect "1D look-up table5.addr" Junction10 as Connection61
+        connect Junction10 Junction11 as Connection62
+        connect Junction11 Junction9 as Connection63
+        connect "1D look-up table4.addr" Junction11 as Connection64
+        connect Clock1.out Junction12 as Connection65
+        connect Junction12 Junction9 as Connection66
+        connect "1D look-up table8.addr" Junction13 as Connection70
+        connect Junction13 Junction14 as Connection71
+        connect "1D look-up table7.addr" Junction14 as Connection73
+        connect "1D look-up table10.value" Isp10.in as Connection76
+        connect "1D look-up table11.value" Isp11.in as Connection79
+        connect "1D look-up table12.value" Isp12.in as Connection82
+        connect "Battery Cell11.T" Junction16 as Connection87
+        connect "1D look-up table11.addr" Junction18 as Connection89
+        connect "Battery Cell3.T" Junction26 as Connection133
+        connect Junction26 Junction2 as Connection134
+        connect "Battery Cell10.T" Junction27 as Connection135
+        connect Junction27 Junction16 as Connection136
+        [
+            breakpoints = 7336, 7736
+        ]
+        connect Junction26 Junction27 as Connection137
+        connect "1D look-up table12.addr" Junction32 as Connection150
+        connect Junction32 Junction18 as Connection151
+        connect "1D look-up table13.addr" Junction32 as Connection152
+        connect Isp13.p_node "Battery Cell13.N" as Connection153
+        connect "1D look-up table13.value" Isp13.in as Connection158
+        connect "Battery Cell12.T" Junction33 as Connection159
+        connect Junction33 Junction16 as Connection160
+        connect "Battery Cell13.T" Junction33 as Connection161
+        connect Isp14.p_node "Battery Cell14.N" as Connection162
+        connect "1D look-up table14.value" Isp14.in as Connection164
+        connect "1D look-up table15.value" Isp15.in as Connection167
+        connect "1D look-up table16.value" Isp16.in as Connection170
+        connect "Battery Cell15.T" Junction34 as Connection171
+        connect "1D look-up table15.addr" Junction35 as Connection172
+        connect "1D look-up table16.addr" Junction37 as Connection176
+        connect Junction37 Junction35 as Connection177
+        connect "1D look-up table17.addr" Junction37 as Connection178
+        connect Isp17.p_node "Battery Cell17.N" as Connection179
+        connect "1D look-up table17.value" Isp17.in as Connection181
+        connect "Battery Cell16.T" Junction38 as Connection182
+        connect Junction38 Junction34 as Connection183
+        connect "Battery Cell17.T" Junction38 as Connection184
+        connect "1D look-up table18.value" Isp18.in as Connection187
+        connect "1D look-up table19.value" Isp19.in as Connection190
+        connect "1D look-up table20.value" Isp20.in as Connection193
+        connect "Battery Cell19.T" Junction39 as Connection194
+        connect "1D look-up table19.addr" Junction40 as Connection195
+        connect "1D look-up table20.addr" Junction42 as Connection199
+        connect Junction42 Junction40 as Connection200
+        connect "1D look-up table21.addr" Junction42 as Connection201
+        connect Isp21.p_node "Battery Cell21.N" as Connection202
+        connect "1D look-up table21.value" Isp21.in as Connection204
+        connect "Battery Cell20.T" Junction43 as Connection205
+        connect Junction43 Junction39 as Connection206
+        connect "Battery Cell21.T" Junction43 as Connection207
+        connect "1D look-up table9.addr" Junction44 as Connection208
+        [
+            breakpoints = 8744, 7528
+        ]
+        connect Junction44 Junction13 as Connection209
+        [
+            breakpoints = 8832, 7528
+        ]
+        connect Junction40 Junction45 as Connection210
+        [
+            breakpoints = 8768, 7848
+        ]
+        connect Junction45 "1D look-up table18.addr" as Connection211
+        [
+            breakpoints = 8768, 7752
+        ]
+        connect Junction44 Junction45 as Connection212
+        connect "1D look-up table6.addr" Junction46 as Connection213
+        connect Junction46 Junction10 as Connection214
+        connect Junction35 Junction47 as Connection215
+        [
+            breakpoints = 8224, 7848
+        ]
+        connect Junction47 "1D look-up table14.addr" as Connection216
+        [
+            breakpoints = 8224, 7752
+        ]
+        connect Junction46 Junction47 as Connection217
+        connect "1D look-up table3.addr" Junction48 as Connection218
+        connect Junction48 Junction4 as Connection219
+        connect Junction18 Junction49 as Connection220
+        [
+            breakpoints = 7696, 7848
+        ]
+        connect Junction49 "1D look-up table10.addr" as Connection221
+        [
+            breakpoints = 7696, 7752
+        ]
+        connect Junction48 Junction49 as Connection222
+        connect Junction6 Junction50 as Connection223
+        [
+            breakpoints = 7864, 7408
+        ]
+        connect Junction50 "Battery Cell6.T" as Connection224
+        [
+            breakpoints = 7864, 7512
+        ]
+        connect Junction51 Junction34 as Connection226
+        [
+            breakpoints = 7864, 7736
+        ]
+        connect Junction50 Junction51 as Connection227
+        connect "Battery Cell9.T" Junction52 as Connection228
+        connect Junction52 Junction8 as Connection229
+        [
+            breakpoints = 8408, 7512
+        ]
+        connect Junction53 Junction39 as Connection231
+        [
+            breakpoints = 8408, 7736
+        ]
+        connect Junction52 Junction53 as Connection232
+        [
+            breakpoints = 8408, 7512; 8408, 7736
+        ]
+        connect Isp3.n_node Junction54 as Connection233
+        [
+            breakpoints = 7504, 7488
+        ]
+        connect Junction54 "Battery Cell3.P" as Connection234
+        [
+            breakpoints = 7504, 7480
+        ]
+        connect Isp2.p_node Junction55 as Connection235
+        connect Junction55 "Battery Cell2.N" as Connection236
+        connect Junction54 Junction55 as Connection237
+        connect Isp2.n_node Junction56 as Connection238
+        connect Junction56 "Battery Cell2.P" as Connection239
+        connect Isp1.p_node Junction57 as Connection240
+        connect Junction57 "Battery Cell1.N" as Connection241
+        connect Junction56 Junction57 as Connection242
+        connect Isp6.n_node Junction58 as Connection243
+        connect Junction58 "Battery Cell6.P" as Connection244
+        connect Isp5.p_node Junction59 as Connection245
+        connect Junction59 "Battery Cell5.N" as Connection246
+        connect Junction58 Junction59 as Connection247
+        connect Isp5.n_node Junction60 as Connection248
+        connect Junction60 "Battery Cell5.P" as Connection249
+        connect Isp4.p_node Junction61 as Connection250
+        connect Junction61 "Battery Cell4.N" as Connection251
+        connect Junction60 Junction61 as Connection252
+        connect Isp9.n_node Junction62 as Connection253
+        connect Junction62 "Battery Cell9.P" as Connection254
+        connect Isp8.p_node Junction63 as Connection255
+        connect Junction63 "Battery Cell8.N" as Connection256
+        connect Junction62 Junction63 as Connection257
+        connect Isp8.n_node Junction64 as Connection258
+        connect Junction64 "Battery Cell8.P" as Connection259
+        [
+            breakpoints = 8576, 7384; 8576, 7376
+        ]
+        connect Isp7.p_node Junction65 as Connection260
+        connect Junction65 "Battery Cell7.N" as Connection261
+        connect Junction64 Junction65 as Connection262
+        connect Isp11.n_node Junction66 as Connection263
+        connect Junction66 "Battery Cell11.P" as Connection264
+        [
+            breakpoints = 7504, 7816; 7504, 7808
+        ]
+        connect Isp10.p_node Junction67 as Connection265
+        connect Junction67 "Battery Cell10.N" as Connection266
+        connect Junction66 Junction67 as Connection267
+        connect Isp12.n_node Junction68 as Connection268
+        connect Junction68 "Battery Cell12.P" as Connection269
+        connect Isp11.p_node Junction69 as Connection270
+        connect Junction69 "Battery Cell11.N" as Connection271
+        connect Junction68 Junction69 as Connection272
+        connect Isp13.n_node Junction70 as Connection273
+        connect Junction70 "Battery Cell13.P" as Connection274
+        connect Isp12.p_node Junction71 as Connection275
+        connect Junction71 "Battery Cell12.N" as Connection276
+        [
+            breakpoints = 7504, 7992; 7448, 7992
+        ]
+        connect Junction70 Junction71 as Connection277
+        connect Isp17.n_node Junction72 as Connection278
+        connect Junction72 "Battery Cell17.P" as Connection279
+        connect Isp16.p_node Junction73 as Connection280
+        connect Junction73 "Battery Cell16.N" as Connection281
+        connect Junction72 Junction73 as Connection282
+        connect Isp16.n_node Junction74 as Connection283
+        connect Junction74 "Battery Cell16.P" as Connection284
+        connect Isp15.p_node Junction75 as Connection285
+        connect Junction75 "Battery Cell15.N" as Connection286
+        connect Junction74 Junction75 as Connection287
+        connect Isp15.n_node Junction76 as Connection288
+        connect Junction76 "Battery Cell15.P" as Connection289
+        connect Junction76 Isp14.p_node as Connection290
+        connect Isp21.n_node Junction77 as Connection291
+        connect Junction77 "Battery Cell21.P" as Connection292
+        connect Isp20.p_node Junction78 as Connection293
+        connect Junction78 "Battery Cell20.N" as Connection294
+        connect Junction77 Junction78 as Connection295
+        connect Isp20.n_node Junction79 as Connection296
+        connect Junction79 "Battery Cell20.P" as Connection297
+        [
+            breakpoints = 8488, 7912; 8488, 7912
+        ]
+        connect Isp19.p_node Junction80 as Connection298
+        connect Junction80 "Battery Cell19.N" as Connection299
+        connect Junction79 Junction80 as Connection300
+        connect Isp19.n_node Junction81 as Connection301
+        connect Junction81 "Battery Cell19.P" as Connection302
+        connect Isp18.p_node Junction82 as Connection303
+        connect Junction82 "Battery Cell18.N" as Connection304
+        connect Junction81 Junction82 as Connection305
+        connect Isp14.n_node Junction83 as Connection306
+        connect Junction83 "Battery Cell14.P" as Connection307
+        connect Isp6.p_node Junction84 as Connection308
+        connect Junction84 "Battery Cell6.N" as Connection309
+        connect Junction83 Junction84 as Connection310
+        connect Isp10.n_node Junction85 as Connection311
+        [
+            breakpoints = 7504, 7720
+        ]
+        connect Junction85 "Battery Cell10.P" as Connection312
+        [
+            breakpoints = 7504, 7704; 7448, 7704
+        ]
+        connect Junction85 Isp3.p_node as Connection313
+        connect Isp18.n_node Junction86 as Connection314
+        [
+            breakpoints = 8576, 7720
+        ]
+        connect Junction86 "Battery Cell18.P" as Connection315
+        [
+            breakpoints = 8576, 7704; 8520, 7704
+        ]
+        connect Isp9.p_node Junction87 as Connection316
+        connect Junction87 "Battery Cell9.N" as Connection317
+        connect Junction86 Junction87 as Connection318
+        connect "Battery Cell14.T" Junction51 as Connection327
+        [
+            breakpoints = 7864, 7736
+        ]
+        connect "Battery Cell18.T" Junction53 as Connection328
+        [
+            breakpoints = 8408, 7736
+        ]
+        connect "1D look-up table23.value" "Multiport signal switch1.in1" as Connection331
+        connect "1D look-up table25.value" "Multiport signal switch1.in3" as Connection332
+        connect Isp22.in "Multiport signal switch1.out" as Connection337
+        connect Isp22.p_node "Battery Cell_25.N" as Connection338
+        [
+            breakpoints = 6904, 6976; 6832, 6976
+        ]
+        connect voltage_1.n_node "Battery Cell_25.N" as Connection339
+        connect voltage_1.p_node Junction91 as Connection341
+        connect Junction91 "Battery Cell_25.P" as Connection342
+        connect From1 "Battery Cell_25.T" as Connection351
+        connect "battery temp 1.out" "C function1.input_temp" as Connection356
+        connect Junction12 Junction14 as Connection365
+        [
+            breakpoints = 8832, 7128; 8832, 7184
+        ]
+        connect From3 Comparator2.in1 as Connection381
+        connect Comparator2.out "Unit Delay1.in" as Connection384
+        [
+            hide_name = True
+        ]
+        connect "Unit Delay1.out" "C function1.time_reset_script_2" as Connection385
+        [
+            hide_name = True
+        ]
+        connect Comparator1.out "Unit Delay2.in" as Connection386
+        [
+            hide_name = True
+        ]
+        connect "Unit Delay2.out" "C function1.time_reset_script_4" as Connection387
+        [
+            hide_name = True
+        ]
+        connect Isp22.n_node current_1.p_node as Connection390
+        connect current_1.n_node Junction91 as Connection391
+        connect Integrator1.out chgAh_1.in as Connection392
+        connect Integrator2.out disAh_1.in as Connection393
+        connect "C function2.current" current_1.out as Connection394
+        connect "C function2.out" Integrator1.in as Connection395
+        connect Goto1 Junction98 as Connection398
+        connect Junction98 "C function1.temperature" as Connection399
+        connect temperature_1.in Junction98 as Connection400
+        connect script_no_1.in "C function1.script_no" as Connection402
+        connect Goto3 voltage_1.out as Connection403
+        connect From4 "C function1.Vcell" as Connection404
+        connect Goto2 Junction100 as Connection412
+        connect Junction100 "C function1.timer" as Connection413
+        connect time_1.in Junction100 as Connection414
+        connect Goto4 "C function1.sw_select" as Connection415
+        [
+            breakpoints = 7088, 6360; 7064, 6360
+        ]
+        connect Integrator2.in "C function2.out2" as Connection417
+        connect Goto9 SCRIPT_2_STOP.out as Connection458
+        connect Goto10 SCRIPT_4_STOP.out as Connection459
+        connect From13 Comparator2.in2 as Connection460
+        connect From14 Comparator1.in2 as Connection461
+        connect From2 Comparator1.in1 as Connection462
+        connect Goto12 CHG.out as Connection463
+        connect DISCHG.out Goto11 as Connection464
+        connect From16 "Multiport signal switch1.in2" as Connection465
+        connect From15 "Multiport signal switch1.in" as Connection466
+        connect From5 Junction104 as Connection468
+        connect Junction104 "1D look-up table23.addr" as Connection469
+        connect "1D look-up table25.addr" Junction104 as Connection470
+        connect "Multiport signal switch1.ctrl" From6 as Connection471
+        connect "1D look-up table26.value" "Multiport signal switch2.in1" as Connection472
+        connect "1D look-up table27.value" "Multiport signal switch2.in3" as Connection473
+        connect Isp23.in "Multiport signal switch2.out" as Connection474
+        connect Isp23.p_node "Battery Cell_45.N" as Connection475
+        [
+            breakpoints = 7760, 6968; 7688, 6968
+        ]
+        connect voltage_2.n_node "Battery Cell_45.N" as Connection476
+        connect voltage_2.p_node Junction105 as Connection477
+        connect Junction105 "Battery Cell_45.P" as Connection478
+        connect From17 "Battery Cell_45.T" as Connection479
+        connect "battery temp 2.out" "C function3.input_temp" as Connection480
+        connect From19 Comparator4.in1 as Connection481
+        connect Comparator4.out "Unit Delay3.in" as Connection482
+        [
+            hide_name = True
+        ]
+        connect "Unit Delay3.out" "C function3.time_reset_script_2" as Connection483
+        [
+            hide_name = True
+        ]
+        connect Comparator3.out "Unit Delay4.in" as Connection484
+        [
+            hide_name = True
+        ]
+        connect "Unit Delay4.out" "C function3.time_reset_script_4" as Connection485
+        [
+            hide_name = True
+        ]
+        connect Isp23.n_node current_2.p_node as Connection486
+        connect current_2.n_node Junction105 as Connection487
+        connect Integrator3.out chgAh_2.in as Connection488
+        connect Integrator4.out disAh_2.in as Connection489
+        connect "C function4.current" current_2.out as Connection490
+        connect "C function4.out" Integrator3.in as Connection491
+        connect Goto13 Junction106 as Connection492
+        connect Junction106 "C function3.temperature" as Connection493
+        connect temperature_2.in Junction106 as Connection494
+        connect script_no_2.in "C function3.script_no" as Connection495
+        connect Goto15 voltage_2.out as Connection496
+        connect From20 "C function3.Vcell" as Connection497
+        connect Goto14 Junction107 as Connection498
+        connect Junction107 "C function3.timer" as Connection499
+        connect time_2.in Junction107 as Connection500
+        connect Goto16 "C function3.sw_select" as Connection501
+        [
+            breakpoints = 7944, 6352; 7920, 6352
+        ]
+        connect Integrator4.in "C function4.out2" as Connection502
+        connect From23 Comparator4.in2 as Connection503
+        connect From24 Comparator3.in2 as Connection504
+        connect From18 Comparator3.in1 as Connection505
+        connect From26 "Multiport signal switch2.in2" as Connection506
+        connect From25 "Multiport signal switch2.in" as Connection507
+        connect From21 Junction108 as Connection508
+        connect Junction108 "1D look-up table26.addr" as Connection509
+        connect "1D look-up table27.addr" Junction108 as Connection510
+        connect "Multiport signal switch2.ctrl" From22 as Connection511
+        connect "1D look-up table28.value" "Multiport signal switch3.in1" as Connection512
+        connect "1D look-up table29.value" "Multiport signal switch3.in3" as Connection513
+        connect Isp24.in "Multiport signal switch3.out" as Connection514
+        connect Isp24.p_node "Battery Cell_05.N" as Connection515
+        [
+            breakpoints = 8632, 6944; 8560, 6944; 8560, 6952; 8560, 6952
+        ]
+        connect voltage_3.n_node "Battery Cell_05.N" as Connection516
+        connect voltage_3.p_node Junction109 as Connection517
+        connect Junction109 "Battery Cell_05.P" as Connection518
+        connect From27 "Battery Cell_05.T" as Connection519
+        connect "battery temp 3.out" "C function5.input_temp" as Connection520
+        connect From29 Comparator6.in1 as Connection521
+        connect Comparator6.out "Unit Delay5.in" as Connection522
+        [
+            hide_name = True
+        ]
+        connect "Unit Delay5.out" "C function5.time_reset_script_2" as Connection523
+        [
+            hide_name = True
+        ]
+        connect Comparator5.out "Unit Delay6.in" as Connection524
+        [
+            hide_name = True
+        ]
+        connect "Unit Delay6.out" "C function5.time_reset_script_4" as Connection525
+        [
+            hide_name = True
+        ]
+        connect Isp24.n_node current_3.p_node as Connection526
+        connect current_3.n_node Junction109 as Connection527
+        connect Integrator5.out chgAh_3.in as Connection528
+        connect Integrator6.out disAh_3.in as Connection529
+        connect "C function6.current" current_3.out as Connection530
+        connect "C function6.out" Integrator5.in as Connection531
+        connect Goto17 Junction110 as Connection532
+        connect Junction110 "C function5.temperature" as Connection533
+        connect temperature_3.in Junction110 as Connection534
+        connect script_no_3.in "C function5.script_no" as Connection535
+        connect Goto19 voltage_3.out as Connection536
+        connect From30 "C function5.Vcell" as Connection537
+        connect Goto18 Junction111 as Connection538
+        connect Junction111 "C function5.timer" as Connection539
+        connect time_3.in Junction111 as Connection540
+        connect Goto20 "C function5.sw_select" as Connection541
+        [
+            breakpoints = 8816, 6328; 8792, 6328
+        ]
+        connect Integrator6.in "C function6.out2" as Connection542
+        connect From33 Comparator6.in2 as Connection543
+        connect From34 Comparator5.in2 as Connection544
+        connect From28 Comparator5.in1 as Connection545
+        connect From36 "Multiport signal switch3.in2" as Connection546
+        connect From35 "Multiport signal switch3.in" as Connection547
+        connect From31 Junction112 as Connection548
+        connect Junction112 "1D look-up table28.addr" as Connection549
+        connect "1D look-up table29.addr" Junction112 as Connection550
+        connect "Multiport signal switch3.ctrl" From32 as Connection551
+    }
+
+    logically_deleted {
+        "Battery Cell1"
+        "Isp1"
+        "1D look-up table1"
+        "Clock1"
+        "temp_45"
+        "Battery Cell2"
+        "Isp2"
+        "1D look-up table2"
+        "Battery Cell3"
+        "Isp3"
+        "1D look-up table3"
+        "Battery Cell4"
+        "Isp4"
+        "1D look-up table4"
+        "temp_25"
+        "Battery Cell5"
+        "Isp5"
+        "1D look-up table5"
+        "Battery Cell6"
+        "Isp6"
+        "1D look-up table6"
+        "Battery Cell7"
+        "Isp7"
+        "1D look-up table7"
+        "temp_5"
+        "Battery Cell8"
+        "Isp8"
+        "1D look-up table8"
+        "Battery Cell9"
+        "Isp9"
+        "1D look-up table9"
+        "Battery Cell10"
+        "Isp10"
+        "1D look-up table10"
+        "Battery Cell11"
+        "Isp11"
+        "1D look-up table11"
+        "Battery Cell12"
+        "Isp12"
+        "1D look-up table12"
+        "1D look-up table13"
+        "Battery Cell13"
+        "Isp13"
+        "Battery Cell14"
+        "Isp14"
+        "1D look-up table14"
+        "Battery Cell15"
+        "Isp15"
+        "1D look-up table15"
+        "Battery Cell16"
+        "Isp16"
+        "1D look-up table16"
+        "1D look-up table17"
+        "Battery Cell17"
+        "Isp17"
+        "Battery Cell18"
+        "Isp18"
+        "1D look-up table18"
+        "Battery Cell19"
+        "Isp19"
+        "1D look-up table19"
+        "Battery Cell20"
+        "Isp20"
+        "1D look-up table20"
+        "1D look-up table21"
+        "Battery Cell21"
+        "Isp21"
+        "Junction1"
+        "Junction2"
+        "Junction3"
+        "Junction4"
+        "Junction5"
+        "Junction6"
+        "Junction7"
+        "Junction8"
+        "Junction9"
+        "Junction10"
+        "Junction11"
+        "Junction12"
+        "Junction13"
+        "Junction14"
+        "Junction16"
+        "Junction18"
+        "Junction26"
+        "Junction27"
+        "Junction32"
+        "Junction33"
+        "Junction34"
+        "Junction35"
+        "Junction37"
+        "Junction38"
+        "Junction39"
+        "Junction40"
+        "Junction42"
+        "Junction43"
+        "Junction44"
+        "Junction45"
+        "Junction46"
+        "Junction47"
+        "Junction48"
+        "Junction49"
+        "Junction50"
+        "Junction51"
+        "Junction52"
+        "Junction53"
+        "Junction54"
+        "Junction55"
+        "Junction56"
+        "Junction57"
+        "Junction58"
+        "Junction59"
+        "Junction60"
+        "Junction61"
+        "Junction62"
+        "Junction63"
+        "Junction64"
+        "Junction65"
+        "Junction66"
+        "Junction67"
+        "Junction68"
+        "Junction69"
+        "Junction70"
+        "Junction71"
+        "Junction72"
+        "Junction73"
+        "Junction74"
+        "Junction75"
+        "Junction76"
+        "Junction77"
+        "Junction78"
+        "Junction79"
+        "Junction80"
+        "Junction81"
+        "Junction82"
+        "Junction83"
+        "Junction84"
+        "Junction85"
+        "Junction86"
+        "Junction87"
+        "Comment1"
+        "Comment2"
+        "Comment3"
+        "Comment4"
+        "Comment5"
+        "Comment6"
+        "Connection2"
+        "Connection3"
+        "Connection8"
+        "Connection11"
+        "Connection13"
+        "Connection15"
+        "Connection16"
+        "Connection19"
+        "Connection20"
+        "Connection23"
+        "Connection25"
+        "Connection26"
+        "Connection29"
+        "Connection30"
+        "Connection33"
+        "Connection36"
+        "Connection37"
+        "Connection38"
+        "Connection40"
+        "Connection41"
+        "Connection43"
+        "Connection44"
+        "Connection47"
+        "Connection50"
+        "Connection51"
+        "Connection52"
+        "Connection54"
+        "Connection55"
+        "Connection57"
+        "Connection61"
+        "Connection62"
+        "Connection63"
+        "Connection64"
+        "Connection65"
+        "Connection66"
+        "Connection70"
+        "Connection71"
+        "Connection73"
+        "Connection76"
+        "Connection79"
+        "Connection82"
+        "Connection87"
+        "Connection89"
+        "Connection133"
+        "Connection134"
+        "Connection135"
+        "Connection136"
+        "Connection137"
+        "Connection150"
+        "Connection151"
+        "Connection152"
+        "Connection153"
+        "Connection158"
+        "Connection159"
+        "Connection160"
+        "Connection161"
+        "Connection162"
+        "Connection164"
+        "Connection167"
+        "Connection170"
+        "Connection171"
+        "Connection172"
+        "Connection176"
+        "Connection177"
+        "Connection178"
+        "Connection179"
+        "Connection181"
+        "Connection182"
+        "Connection183"
+        "Connection184"
+        "Connection187"
+        "Connection190"
+        "Connection193"
+        "Connection194"
+        "Connection195"
+        "Connection199"
+        "Connection200"
+        "Connection201"
+        "Connection202"
+        "Connection204"
+        "Connection205"
+        "Connection206"
+        "Connection207"
+        "Connection208"
+        "Connection209"
+        "Connection210"
+        "Connection211"
+        "Connection212"
+        "Connection213"
+        "Connection214"
+        "Connection215"
+        "Connection216"
+        "Connection217"
+        "Connection218"
+        "Connection219"
+        "Connection220"
+        "Connection221"
+        "Connection222"
+        "Connection223"
+        "Connection224"
+        "Connection226"
+        "Connection227"
+        "Connection228"
+        "Connection229"
+        "Connection231"
+        "Connection232"
+        "Connection233"
+        "Connection234"
+        "Connection235"
+        "Connection236"
+        "Connection237"
+        "Connection238"
+        "Connection239"
+        "Connection240"
+        "Connection241"
+        "Connection242"
+        "Connection243"
+        "Connection244"
+        "Connection245"
+        "Connection246"
+        "Connection247"
+        "Connection248"
+        "Connection249"
+        "Connection250"
+        "Connection251"
+        "Connection252"
+        "Connection253"
+        "Connection254"
+        "Connection255"
+        "Connection256"
+        "Connection257"
+        "Connection258"
+        "Connection259"
+        "Connection260"
+        "Connection261"
+        "Connection262"
+        "Connection263"
+        "Connection264"
+        "Connection265"
+        "Connection266"
+        "Connection267"
+        "Connection268"
+        "Connection269"
+        "Connection270"
+        "Connection271"
+        "Connection272"
+        "Connection273"
+        "Connection274"
+        "Connection275"
+        "Connection276"
+        "Connection277"
+        "Connection278"
+        "Connection279"
+        "Connection280"
+        "Connection281"
+        "Connection282"
+        "Connection283"
+        "Connection284"
+        "Connection285"
+        "Connection286"
+        "Connection287"
+        "Connection288"
+        "Connection289"
+        "Connection290"
+        "Connection291"
+        "Connection292"
+        "Connection293"
+        "Connection294"
+        "Connection295"
+        "Connection296"
+        "Connection297"
+        "Connection298"
+        "Connection299"
+        "Connection300"
+        "Connection301"
+        "Connection302"
+        "Connection303"
+        "Connection304"
+        "Connection305"
+        "Connection306"
+        "Connection307"
+        "Connection308"
+        "Connection309"
+        "Connection310"
+        "Connection311"
+        "Connection312"
+        "Connection313"
+        "Connection314"
+        "Connection315"
+        "Connection316"
+        "Connection317"
+        "Connection318"
+        "Connection327"
+        "Connection328"
+        "Connection365"
+    }
+
+    default {
+        gen_c_function {
+            input_terminals = "real in;"
+            input_terminals_show_labels = "False;"
+            input_terminals_feedthrough = "True;"
+            input_terminals_dimensions = "inherit;"
+            output_terminals = "real out;"
+            output_terminals_show_labels = "False;"
+            output_terminals_feedthrough = "True;"
+            output_terminals_dimensions = "inherit;"
+            output_fnc = ""
+            update_fnc = ""
+            init_fnc = ""
+            global_variables = ""
+            parameters = ""
+            execution_rate = "inherit"
+        }
+
+        gen_comparator {
+            execution_rate = "inherit"
+        }
+
+        gen_integrator {
+            show_reset = "none"
+            reset_type = "asynchronous"
+            show_init_condition = "internal"
+            init_value = "0"
+            limit_output = "False"
+            limit_upper = "inf"
+            limit_lower = "-inf"
+            show_state = "False"
+            state_port_type = "inherit"
+            execution_rate = "inherit"
+        }
+
+        gen_probe {
+            addr = "0"
+            override_signal_name = "False"
+            signal_name = ""
+            signal_type = "generic"
+            streaming_en = "False"
+            streaming_er_idx = "0"
+            execution_rate = "inherit"
+        }
+
+        lut_1d {
+            in_vec_x = "np.arange(-5,6)"
+            out_vec_f_x = "np.arange(-5,6)**2"
+            table_impl = "Equidistant"
+            ext_mode = "Clip"
+            execution_rate = "inherit"
+        }
+
+        src_clock {
+            enb_reset = "False"
+            reset_at = "1.0"
+            execution_rate = "100e-6"
+        }
+
+        src_constant {
+            value = "1"
+            signal_type = "real"
+            execution_rate = "100e-6"
+            _tunable = "False"
+        }
+
+        src_scada_input {
+            addr = "0"
+            format = "real"
+            override_signal_name = "False"
+            signal_name = ""
+            signal_type = "real"
+            min = "-1e6"
+            max = "1e6"
+            def_value = "0"
+            unit = " "
+            execution_rate = "100e-6"
+        }
+
+        sys_mp_signal_switch {
+            number_of_input_terminals = "2"
+            execution_rate = "inherit"
+        }
+
+        tm_delay {
+            init_value = "0"
+            signal_out_type = "inherit"
+            execution_rate = "inherit"
+        }
+
+        "core/Battery Cell" {
+            SOC_vector = "[0.00000, 0.00500, 0.01000, 0.01500, 0.02000, 0.02500, 0.03000, 0.03500, 0.04000, 0.04500, 0.05000, 0.05500, 0.06000, 0.06500, 0.07000, 0.07500, 0.08000, 0.08500, 0.09000, 0.09500, 0.10000, 0.10500, 0.11000, 0.11500, 0.12000, 0.12500, 0.13000, 0.13500, 0.14000, 0.14500, 0.15000, 0.15500, 0.16000, 0.16500, 0.17000, 0.17500, 0.18000, 0.18500, 0.19000, 0.19500, 0.20000, 0.20500, 0.21000, 0.21500, 0.22000, 0.22500, 0.23000, 0.23500, 0.24000, 0.24500, 0.25000, 0.25500, 0.26000, 0.26500, 0.27000, 0.27500, 0.28000, 0.28500, 0.29000, 0.29500, 0.30000, 0.30500, 0.31000, 0.31500, 0.32000, 0.32500, 0.33000, 0.33500, 0.34000, 0.34500, 0.35000, 0.35500, 0.36000, 0.36500, 0.37000, 0.37500, 0.38000, 0.38500, 0.39000, 0.39500, 0.40000, 0.40500, 0.41000, 0.41500, 0.42000, 0.42500, 0.43000, 0.43500, 0.44000, 0.44500, 0.45000, 0.45500, 0.46000, 0.46500, 0.47000, 0.47500, 0.48000, 0.48500, 0.49000, 0.49500, 0.50000, 0.50500, 0.51000, 0.51500, 0.52000, 0.52500, 0.53000, 0.53500, 0.54000, 0.54500, 0.55000, 0.55500, 0.56000, 0.56500, 0.57000, 0.57500, 0.58000, 0.58500, 0.59000, 0.59500, 0.60000, 0.60500, 0.61000, 0.61500, 0.62000, 0.62500, 0.63000, 0.63500, 0.64000, 0.64500, 0.65000, 0.65500, 0.66000, 0.66500, 0.67000, 0.67500, 0.68000, 0.68500, 0.69000, 0.69500, 0.70000, 0.70500, 0.71000, 0.71500, 0.72000, 0.72500, 0.73000, 0.73500, 0.74000, 0.74500, 0.75000, 0.75500, 0.76000, 0.76500, 0.77000, 0.77500, 0.78000, 0.78500, 0.79000, 0.79500, 0.80000, 0.80500, 0.81000, 0.81500, 0.82000, 0.82500, 0.83000, 0.83500, 0.84000, 0.84500, 0.85000, 0.85500, 0.86000, 0.86500, 0.87000, 0.87500, 0.88000, 0.88500, 0.89000, 0.89500, 0.90000, 0.90500, 0.91000, 0.91500, 0.92000, 0.92500, 0.93000, 0.93500, 0.94000, 0.94500, 0.95000, 0.95500, 0.96000, 0.96500, 0.97000, 0.97500, 0.98000, 0.98500, 0.99000, 0.99500, 1.00000]"
+            Init_SOC = "100"
+            SOH_vector = "0"
+            T_vector = "[5, 25, 45]"
+            OCV = "[[ 2.81376455, 2.934249, 3.01131295, 3.0707406, 3.12232055, 3.1679386999999997, 3.20864785, 3.2450991, 3.27819715, 3.30856405, 3.3362725999999996, 3.3618633499999997, 3.38570235, 3.40775795, 3.42830425, 3.4476403500000004, 3.4655972, 3.48235125, 3.4982734000000004, 3.5123286499999997, 3.52428065, 3.5322503000000003, 3.536190725, 3.538614355, 3.5410027349999997, 3.543410505, 3.54570155, 3.548176695, 3.55074616, 3.55332738, 3.5560948150000002, 3.5590690300000003, 3.5622155269999998, 3.5656399850000002, 3.569116135, 3.5732180099999997, 3.57727722, 3.5820934199999996, 3.58702369, 3.5923769, 3.5981162299999996, 3.60387865, 3.6098619999999997, 3.61578425, 3.6219618000000002, 3.6279250050000003, 3.633843695, 3.6400532699999997, 3.646100845, 3.6525218749999997, 3.659006475, 3.6658932699999998, 3.6723717, 3.67845187, 3.6843657899999998, 3.690319095, 3.696598375, 3.70317101, 3.7103087649999997, 3.71751191, 3.72478503, 3.7312556949999998, 3.737126875, 3.7421215, 3.746753425, 3.7512470799999997, 3.7557191, 3.759948005, 3.7641692570000003, 3.7683243400000004, 3.77226982, 3.776130865, 3.77996065, 3.7834905, 3.78724775, 3.79068595, 3.79405435, 3.79739885, 3.8008169, 3.8037784, 3.80672915, 3.80976375, 3.81294495, 3.8155956, 3.81841755, 3.8211345, 3.82375915, 3.826463, 3.8289732, 3.83148675, 3.8339139, 3.8364958500000004, 3.8389766, 3.84130125, 3.8436186, 3.84593155, 3.8484112, 3.8508698999999997, 3.853017, 3.8553768, 3.8575925, 3.8597776, 3.8618757, 3.8639596, 3.8662289, 3.8684966, 3.8704239, 3.8727584, 3.8746679, 3.8767636000000003, 3.8789283, 3.88108645, 3.88336145, 3.88554035, 3.8876272999999997, 3.88979185, 3.8919731499999997, 3.89423455, 3.89660415, 3.89878675, 3.9010609, 3.9034554999999997, 3.9058273, 3.9083077999999998, 3.9107870499999997, 3.9134431, 3.91605185, 3.9188395000000003, 3.92173155, 3.9245562, 3.9278719, 3.93123635, 3.93501795, 3.9392118, 3.9434215, 3.9476625, 3.9522793, 3.956863, 3.9614228, 3.9661213500000003, 3.97056845, 3.97496085, 3.97923145, 3.98304985, 3.9867527999999997, 3.990355, 3.9938599000000004, 3.997107, 4.0001812, 4.0032136000000005, 4.0059932, 4.0087594499999994, 4.011432500000001, 4.0139152, 4.0163138, 4.0185217, 4.02070895, 4.022900900000001, 4.0249913, 4.0268188, 4.02872455, 4.03070295, 4.0323274, 4.0341031, 4.03572435, 4.0374238, 4.03904715, 4.0406617, 4.0421721999999995, 4.04385255, 4.04555215, 4.0469809, 4.048781399999999, 4.05039585, 4.052104, 4.05390415, 4.0557043, 4.057513849999999, 4.0593374, 4.0614338, 4.0635322, 4.0657283, 4.0680112, 4.0704244, 4.07274935, 4.075507399999999, 4.0782211, 4.0812930000000005, 4.08431865, 4.08759685, 4.0910807, 4.0947777499999995, 4.0989474, 4.10329865, 4.10799, 4.1129271, 4.1185746, 4.1244995, 4.1311105999999995, 4.138731625, 4.14890576], [2.8100227500000003, 2.916445, 2.99576475, 3.057303, 3.11000275, 3.1564935, 3.19803925, 3.2350955, 3.26858575, 3.2992202500000003, 3.3273629999999996, 3.35331675, 3.37731175, 3.39958975, 3.4203212499999998, 3.4398017500000004, 3.457986, 3.47495625, 3.4909670000000004, 3.50564325, 3.51860325, 3.5288515, 3.535353625, 3.539071775, 3.5418136749999998, 3.544252525, 3.54650775, 3.5488834750000002, 3.5513308, 3.5538369, 3.556474075, 3.55934515, 3.5622776349999996, 3.565399925, 3.5687806749999997, 3.57249005, 3.5763861, 3.5808671, 3.5855184500000004, 3.5906845, 3.5961811499999996, 3.60179325, 3.60771, 3.6137212499999998, 3.619809, 3.626025025, 3.632018475, 3.63826635, 3.644504225, 3.6510093749999997, 3.657832375, 3.66466635, 3.6710585, 3.67705935, 3.6830289499999997, 3.689195475, 3.6957918750000003, 3.70265505, 3.709943825, 3.71715955, 3.72392515, 3.729878475, 3.735234375, 3.7402075, 3.744967125, 3.7498354, 3.7545954999999998, 3.759340025, 3.764046285, 3.7688217, 3.7733491, 3.777854325, 3.78220325, 3.7862525, 3.7902387500000003, 3.79382975, 3.79747175, 3.80099425, 3.8044845, 3.807692, 3.81084575, 3.81401875, 3.81712475, 3.819978, 3.82288775, 3.8256725, 3.82839575, 3.831115, 3.833666, 3.83623375, 3.8387695, 3.8412792500000004, 3.843683, 3.84610625, 3.848493, 3.85085775, 3.853256, 3.8555495, 3.857885, 3.860084, 3.8623624999999997, 3.864488, 3.8665785, 3.868598, 3.8707445, 3.872883, 3.8749195, 3.876992, 3.8789395, 3.881018, 3.8830415, 3.88503225, 3.88720725, 3.88930175, 3.8913365, 3.89335925, 3.8954657499999996, 3.89757275, 3.89982075, 3.90193375, 3.9041045000000003, 3.9064775, 3.9087365, 3.911139, 3.91353525, 3.9160155, 3.91865925, 3.9213975000000003, 3.92425775, 3.927181, 3.9305595, 3.93418175, 3.93828975, 3.942859, 3.9479075, 3.9531125, 3.9585965, 3.9639149999999996, 3.968714, 3.97340675, 3.9776422499999997, 3.98160425, 3.98535725, 3.98884925, 3.992164, 3.995375, 3.9984995000000003, 4.001535, 4.004506, 4.007268, 4.0099659999999995, 4.01259725, 4.015162500000001, 4.017576, 4.019969, 4.0222085, 4.02434475, 4.026504500000001, 4.0285565, 4.030494, 4.03242275, 4.03431475, 4.036036999999999, 4.0377155, 4.03942175, 4.041119, 4.04283575, 4.0445085, 4.046061, 4.047662750000001, 4.04936075, 4.050904500000001, 4.052707, 4.05437925, 4.05612, 4.05792075, 4.0597215, 4.06156925, 4.063487, 4.065569, 4.067661, 4.0698415, 4.072056, 4.074522, 4.07694675, 4.079536999999999, 4.0823055, 4.085265000000001, 4.08839325, 4.0915842499999995, 4.0950035, 4.09868875, 4.102737, 4.106893250000001, 4.11155, 4.1162355, 4.1216729999999995, 4.1272975, 4.133553, 4.140458125, 4.149328799999999], [2.80628095, 2.898641, 2.98021655, 3.0438654, 3.09768495, 3.1450483, 3.18743065, 3.2250919, 3.2589743500000004, 3.2898764500000004, 3.3184533999999997, 3.34477015, 3.36892115, 3.39142155, 3.41233825, 3.43196315, 3.4503747999999996, 3.46756125, 3.4836606000000003, 3.4989578499999996, 3.5129258500000002, 3.5254527, 3.534516525, 3.539529195, 3.542624615, 3.545094545, 3.54731395, 3.549590255, 3.55191544, 3.55434642, 3.556853335, 3.55962127, 3.562339743, 3.565159865, 3.568445215, 3.57176209, 3.57549498, 3.5796407799999996, 3.58401321, 3.5889921, 3.5942460699999996, 3.59970785, 3.605558, 3.6116582499999996, 3.6176562, 3.624125045, 3.630193255, 3.63647943, 3.642907605, 3.6494968749999996, 3.656658275, 3.66343943, 3.6697452999999998, 3.67566683, 3.6816921099999997, 3.688071855, 3.694985375, 3.70213909, 3.709578885, 3.71680719, 3.72306527, 3.728501255, 3.7333418750000003, 3.7382934999999997, 3.743180825, 3.74842372, 3.7534718999999996, 3.758732045, 3.7639233130000003, 3.7693190600000004, 3.77442838, 3.779577785, 3.78444585, 3.7890145, 3.79322975, 3.7969735499999997, 3.80088915, 3.80458965, 3.8081521, 3.8116056, 3.81496235, 3.81827375, 3.8213045500000002, 3.8243603999999998, 3.82735795, 3.8302104999999997, 3.83303235, 3.8357669999999997, 3.8383588, 3.84098075, 3.8436251, 3.8460626500000004, 3.8483894000000003, 3.8509112500000002, 3.8533674, 3.85578395, 3.8581008, 3.8602290999999997, 3.862753, 3.8647912, 3.8671325, 3.8691984, 3.8712813, 3.8732364, 3.8752600999999998, 3.8772694, 3.8794151, 3.8812256, 3.8832111, 3.8852724000000003, 3.8871547, 3.88897805, 3.89105305, 3.8930631499999997, 3.8950457, 3.89692665, 3.8989583499999996, 3.90091095, 3.90303735, 3.90508075, 3.9071481, 3.9094995, 3.9116457000000002, 3.9139702, 3.91628345, 3.9185879, 3.92126665, 3.9239555, 3.92678395, 3.9298058, 3.9332471, 3.93712715, 3.9415615500000003, 3.9465062, 3.9523935, 3.9585624999999998, 3.9649137, 3.970967, 3.9760052, 3.9806921500000003, 3.98471605, 3.98824765, 3.99148305, 3.99464865, 3.9975752, 4.000395, 4.0031391, 4.005963, 4.0088308, 4.0113224, 4.0139388, 4.016435049999999, 4.018892500000001, 4.0212368, 4.0236241999999995, 4.0258953, 4.02798055, 4.0301081000000005, 4.032121699999999, 4.0341692, 4.03612095, 4.03792655, 4.0397466, 4.0413279, 4.04311915, 4.0448142, 4.04662435, 4.0483553, 4.0499498, 4.05147295, 4.05316935, 4.0548281, 4.0566325999999995, 4.05836265, 4.060136, 4.06193735, 4.0637387, 4.06562465, 4.0676366, 4.069704199999999, 4.0717898, 4.0739547, 4.0761008, 4.0786196, 4.08114415, 4.083566599999999, 4.0863899, 4.089237000000001, 4.09246785, 4.09557165, 4.0989263, 4.1025997499999995, 4.1065266, 4.11048785, 4.11511, 4.1195439, 4.1247714, 4.1300955, 4.1359954, 4.1421846250000005, 4.1497518399999995]]"
+            R0 = "[4.6198e-3, 1.7810e-3, 1.1351e-3]"
+            eta = "[0.98174, 0.99102, 0.98965]"
+            cell_NO = "1"
+            nom_Q_combo = "Total capacity"
+            Q_discharge = "[14.592, 14.532, 14.444]"
+            V_min = "2.81"
+            I_dis = "15"
+            Q_total = "[14.592, 14.532, 14.444]"
+            Ts = "100e-6"
+            visualize_luts = "Visualize Lookup Tables"
+            RC_NO = "1"
+            R1 = "0.64769e-3"
+            C1 = "7.9598e3"
+            R2 = "0.64769e-3"
+            C2 = "7.9598e3"
+            R3 = "0.64769e-3"
+            C3 = "7.9598e3"
+            H_type = "One state"
+            T_vector_h = "[5, 25, 45]"
+            SOC_vector_h = "0"
+            M0 = "[0.0031315, 0.0023535, 0.0011502]"
+            M = "[0.039929, 0.020018, 0.020545]"
+            gamma = "[67.207e-3, 92.645e-3, 67.840e-3]"
+            visualize_luts = "Visualize Lookup Tables"
+            balancing = "None"
+            R_balance = "0"
+            meas_SOH = "True"
+            meas_SOC = "True"
+            meas_OCV = "True"
+            meas_Rint = "True"
+            meas_Q = "True"
+            meas_Ibal = "True"
+            meas_Icell = "True"
+            meas_T = "True"
+            meas_hyst = "True"
+        }
+
+        "core/Current Measurement" {
+            bw_limit = "False"
+            frequency = "10e3"
+            comparator_enable = "False"
+            operator = "greater"
+            threshold = "0"
+            cmp_abs_value = "False"
+            feed_forward = "false"
+            sig_output = "False"
+            sig_output_filt_and_full_bw = "False"
+            execution_rate = "100e-6"
+            addr = "0"
+            nd_msr_estimation = "false"
+            dev_cpl_msr = "false"
+            host_device = "0"
+            output_to_device = "0"
+            dev_cpl_index = "0"
+            dev_cpl_var_nb = "0"
+            visible = "True"
+            override_signal_name = "False"
+            signal_name = ""
+        }
+
+        "core/Signal Controlled Current Source" {
+            execution_rate = "inherit"
+        }
+
+        "core/Voltage Measurement" {
+            bw_limit = "False"
+            frequency = "10e3"
+            comparator_enable = "False"
+            operator = "greater"
+            threshold = "0"
+            cmp_abs_value = "False"
+            feed_forward = "false"
+            sig_output = "False"
+            sig_output_filt_and_full_bw = "False"
+            execution_rate = "100e-6"
+            addr = "0"
+            nd_msr_estimation = "false"
+            dev_cpl_msr = "false"
+            host_device = "0"
+            output_to_device = "0"
+            dev_cpl_index = "0"
+            dev_cpl_var_nb = "0"
+            visible = "True"
+            override_signal_name = "False"
+            signal_name = ""
+        }
+    }
+
+    CODE model_init
+        # Numpy module is imported as 'np'
+        # Scipy module is imported as 'sp'
+        # The Schematic API is imported as 'mdl'
+        # To get the model file path, use 'mdl.get_model_file_path()'
+        # To print information to the console, use info()
+        Ts = 100e-6
+        cooldown_time_in_sec = 360
+        Vmax = 4.1497   # Volts
+        Vmin = 2.8060   # Volts
+        
+        import pickle
+        filename = 'c:\\PROJECT\\battery_cell_testing\\Scripts and data\\current_profiles.pickle'
+        file = open(filename, 'rb')
+        current_profiles_dict = pickle.load(file)
+        
+        DISCHG_RATE =  50 # 0.5 if its normal battery discharg speed
+        CHG_RATE = -DISCHG_RATE
+        
+        OCV_25_SCRIPT_2_TIME_TITHER     = current_profiles_dict['OCV_25_SCRIPT_2_TIME_TITHER']
+        OCV_25_SCRIPT_4_TIME_TITHER     = current_profiles_dict['OCV_25_SCRIPT_4_TIME_TITHER']
+        OCV_25_SCRIPT_2_CURRENT_TITHER  = current_profiles_dict['OCV_25_SCRIPT_2_CURRENT_TITHER']
+        OCV_25_SCRIPT_4_CURRENT_TITHER  = current_profiles_dict['OCV_25_SCRIPT_4_CURRENT_TITHER']
+        OCV_25_SCRIPT_2_TIME_STOP       = current_profiles_dict['OCV_25_SCRIPT_2_TIME_STOP']
+        OCV_25_SCRIPT_4_TIME_STOP       = current_profiles_dict['OCV_25_SCRIPT_4_TIME_STOP']
+        
+        
+        info('ready')
+    ENDCODE
+}
