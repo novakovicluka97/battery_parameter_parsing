@@ -2,45 +2,6 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <content url="file://$MODULE_DIR$/../t_sw/api">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/api" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/common/typhoon-env-api">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/common/typhoon-env-api" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/common/typhoon-eventbus">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/common/typhoon-eventbus" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/common/typhoon-hwdesc">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/common/typhoon-hwdesc" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/common/typhoon-lang">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/common/typhoon-lang" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/common/typhoon-licensing">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/common/typhoon-licensing" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/common/typhoon-messaging">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/common/typhoon-messaging" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/common/typhoon-path">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/common/typhoon-path" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/common/typhoon-utilities">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/common/typhoon-utilities" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/esw/fw/projects/common_scripts">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/esw/fw/projects/common_scripts" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/internal_tools">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/internal_tools" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/thcc">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/thcc" isTestSource="false" />
-    </content>
-    <content url="file://$MODULE_DIR$/../t_sw/typhoontest/src">
-      <sourceFolder url="file://$MODULE_DIR$/../t_sw/typhoontest/src" isTestSource="false" />
-    </content>
     <orderEntry type="jdk" jdkName="Python 3.8 (t_sw)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
