@@ -18,7 +18,8 @@ import time
 
 output_data_filename = 'cell_all_data.mat'
 model_name = "Battery_parametrization_model.tse"
-flag_show = False  # if True, certain graphs used for debugging will be shown
+flag_show = True  # if True, certain graphs used for debugging will be shown
+capture_duration = 30 * 60 * 60
 
 # script directory
 # Path to model file and to compiled model file
@@ -82,10 +83,18 @@ if __name__ == "__main__":  # If this script is instantiated manually...
                    [OCV_25_SCRIPT_2_CURRENT_TITHER, OCV_25_SCRIPT_4_CURRENT_TITHER],
                    ["OCV_25_SCRIPT_2_CURRENT_TITHER", "OCV_25_SCRIPT_4_CURRENT_TITHER"],
                    flag_show=flag_show)
-    # data.plot_func([OCV_25_SCRIPT_2_TIME, OCV_45_SCRIPT_2_TIME],
-    #                [OCV_25_SCRIPT_2_CURRENT, OCV_45_SCRIPT_2_CURRENT],
-    #                ["OCV_25_SCRIPT_2_CURRENT_TITHER", "OCV_45_SCRIPT_4_CURRENT_TITHER"],
-    #                flag_show=flag_show)
+    data.plot_func([DYN_25_SCRIPT_1_TIME, DYN_25_SCRIPT_2_TIME, DYN_25_SCRIPT_3_TIME],
+                   [DYN_25_SCRIPT_1_CURRENT, DYN_25_SCRIPT_2_CURRENT, DYN_25_SCRIPT_3_CURRENT],
+                   ["DYN_25_SCRIPT_1_CURRENT", "DYN_25_SCRIPT_2_CURRENT", "DYN_25_SCRIPT_3_CURRENT"],
+                   flag_show=flag_show)
+    data.plot_func([P14_OCV_P25.script1.time, P14_OCV_P25.script2.time, P14_OCV_P25.script3.time, P14_OCV_P25.script4.time],
+                   [P14_OCV_P25.script1.current, P14_OCV_P25.script2.current, P14_OCV_P25.script3.current, P14_OCV_P25.script4.current],
+                   ["P14_OCV_P25.script1.current", "P14_OCV_P25.script2.current", "P14_OCV_P25.script3.current", "P14_OCV_P25.script4.current"],
+                   flag_show=flag_show)
+    data.plot_func([P14_OCV_P25.script1.time, P14_OCV_P25.script2.time, P14_OCV_P25.script3.time, P14_OCV_P25.script4.time],
+                   [P14_OCV_P25.script1.voltage, P14_OCV_P25.script2.voltage, P14_OCV_P25.script3.voltage, P14_OCV_P25.script4.voltage],
+                   ["P14_OCV_P25.script1.current", "P14_OCV_P25.script2.current", "P14_OCV_P25.script3.current", "P14_OCV_P25.script4.current"],
+                   flag_show=flag_show)
 
     current_profiles_dict = {
         'OCV_25_SCRIPT_2_TIME_TITHER': OCV_25_SCRIPT_2_TIME_TITHER,
@@ -122,17 +131,19 @@ channel_signals = ["temperature_1", "voltage_1", "current_1", "chgAh_1", "disAh_
                    "temperature_2", "voltage_2", "current_2", "chgAh_2", "disAh_2", "script_no_2",
                    "temperature_3", "voltage_3", "current_3", "chgAh_3", "disAh_3", "script_no_3"]
 
-
-capture.start_capture(duration=30 * 60 * 60,
+capture.start_capture(duration=capture_duration,
                       rate=256,  # Todo try lower rate
                       signals=channel_signals,
                       executeAt=0.0)
 
 hil.start_simulation()
 print('STEP 3: Starting simulation and capture')
+print('     This may take up to an hour')
 st = time.time()  # measuring the starting time
 
-capture.wait_capture_finish()
+# Todo make the capture stop once the signal reaches a certain value
+capture.wait_until("script_no_1", 'above', 4.5, timeout=capture_duration)
+capture.wait(100)  # Wait 100 more seconds
 
 et = time.time()  # get the end time
 elapsed_time = et - st  # get the execution time
@@ -142,9 +153,9 @@ cap_data = capture.get_capture_results()
 hil.stop_simulation()  # Stopping the simulation
 
 print('STEP 4: Manipulating the captured data')
-time = []
+time_vec = []
 for i in range(len(cap_data.T)):  # converting data-series to time
-    time.append(list(cap_data.T)[i].total_seconds())
+    time_vec.append(list(cap_data.T)[i].total_seconds())
 
 # Assigning to variables
 current_1 = list(cap_data["current_1"])
@@ -186,44 +197,54 @@ scr_start_5_05 = script_no_3.index(5)
 
 # Packing the data into class script
 # TEMPERATURE 25 STATIC TEST
-Script1_25 = Script(time[0:scr_start_2_25], temperature_1[0:scr_start_2_25], voltage_1[0:scr_start_2_25],
+Script1_25 = Script(time_vec[0:scr_start_2_25], temperature_1[0:scr_start_2_25], voltage_1[0:scr_start_2_25],
                     current_1[0:scr_start_2_25], chgAh_1[0:scr_start_2_25], disAh_1[0:scr_start_2_25])
-Script2_25 = Script(time[scr_start_2_25:scr_start_3_25], temperature_1[scr_start_2_25:scr_start_3_25],
+Script2_25 = Script(time_vec[scr_start_2_25:scr_start_3_25], temperature_1[scr_start_2_25:scr_start_3_25],
                     voltage_1[scr_start_2_25:scr_start_3_25], current_1[scr_start_2_25:scr_start_3_25],
                     chgAh_1[scr_start_2_25:scr_start_3_25], disAh_1[scr_start_2_25:scr_start_3_25])
-Script3_25 = Script(time[scr_start_3_25:scr_start_4_25], temperature_1[scr_start_3_25:scr_start_4_25],
+Script3_25 = Script(time_vec[scr_start_3_25:scr_start_4_25], temperature_1[scr_start_3_25:scr_start_4_25],
                     voltage_1[scr_start_3_25:scr_start_4_25], current_1[scr_start_3_25:scr_start_4_25],
                     chgAh_1[scr_start_3_25:scr_start_4_25], disAh_1[scr_start_3_25:scr_start_4_25])
-Script4_25 = Script(time[scr_start_4_25:scr_start_5_25], temperature_1[scr_start_4_25:scr_start_5_25],
+Script4_25 = Script(time_vec[scr_start_4_25:scr_start_5_25], temperature_1[scr_start_4_25:scr_start_5_25],
                     voltage_1[scr_start_4_25:scr_start_5_25], current_1[scr_start_4_25:scr_start_5_25],
                     chgAh_1[scr_start_4_25:scr_start_5_25], disAh_1[scr_start_4_25:scr_start_5_25])
 
 # TEMPERATURE 45 STATIC TEST
-Script1_45 = Script(time[0:scr_start_2_45], temperature_2[0:scr_start_2_45], voltage_2[0:scr_start_2_45],
+Script1_45 = Script(time_vec[0:scr_start_2_45], temperature_2[0:scr_start_2_45], voltage_2[0:scr_start_2_45],
                     current_2[0:scr_start_2_45], chgAh_2[0:scr_start_2_45], disAh_2[0:scr_start_2_45])
-Script2_45 = Script(time[scr_start_2_45:scr_start_3_45], temperature_2[scr_start_2_45:scr_start_3_45],
+Script2_45 = Script(time_vec[scr_start_2_45:scr_start_3_45], temperature_2[scr_start_2_45:scr_start_3_45],
                     voltage_2[scr_start_2_45:scr_start_3_45], current_2[scr_start_2_45:scr_start_3_45],
                     chgAh_2[scr_start_2_45:scr_start_3_45], disAh_2[scr_start_2_45:scr_start_3_45])
-Script3_45 = Script(time[scr_start_3_45:scr_start_4_45], temperature_2[scr_start_3_45:scr_start_4_45],
+Script3_45 = Script(time_vec[scr_start_3_45:scr_start_4_45], temperature_2[scr_start_3_45:scr_start_4_45],
                     voltage_2[scr_start_3_45:scr_start_4_45], current_2[scr_start_3_45:scr_start_4_45],
                     chgAh_2[scr_start_3_45:scr_start_4_45], disAh_2[scr_start_3_45:scr_start_4_45])
-Script4_45 = Script(time[scr_start_4_45:scr_start_5_45], temperature_2[scr_start_4_45:scr_start_5_45],
+Script4_45 = Script(time_vec[scr_start_4_45:scr_start_5_45], temperature_2[scr_start_4_45:scr_start_5_45],
                     voltage_2[scr_start_4_45:scr_start_5_45], current_2[scr_start_4_45:scr_start_5_45],
                     chgAh_2[scr_start_4_45:scr_start_5_45], disAh_2[scr_start_4_45:scr_start_5_45])
 
 # TEMPERATURE 05 STATIC TEST
-Script1_05 = Script(time[0:scr_start_2_05], temperature_3[0:scr_start_2_05], voltage_3[0:scr_start_2_05],
+Script1_05 = Script(time_vec[0:scr_start_2_05], temperature_3[0:scr_start_2_05], voltage_3[0:scr_start_2_05],
                     current_3[0:scr_start_2_05], chgAh_3[0:scr_start_2_05], disAh_3[0:scr_start_2_05])
-Script2_05 = Script(time[scr_start_2_05:scr_start_3_05], temperature_3[scr_start_2_05:scr_start_3_05],
+Script2_05 = Script(time_vec[scr_start_2_05:scr_start_3_05], temperature_3[scr_start_2_05:scr_start_3_05],
                     voltage_3[scr_start_2_05:scr_start_3_05], current_3[scr_start_2_05:scr_start_3_05],
                     chgAh_3[scr_start_2_05:scr_start_3_05], disAh_3[scr_start_2_05:scr_start_3_05])
-Script3_05 = Script(time[scr_start_3_05:scr_start_4_05], temperature_3[scr_start_3_05:scr_start_4_05],
+Script3_05 = Script(time_vec[scr_start_3_05:scr_start_4_05], temperature_3[scr_start_3_05:scr_start_4_05],
                     voltage_3[scr_start_3_05:scr_start_4_05], current_3[scr_start_3_05:scr_start_4_05],
                     chgAh_3[scr_start_3_05:scr_start_4_05], disAh_3[scr_start_3_05:scr_start_4_05])
-Script4_05 = Script(time[scr_start_4_05:scr_start_5_05], temperature_3[scr_start_4_05:scr_start_5_05],
+Script4_05 = Script(time_vec[scr_start_4_05:scr_start_5_05], temperature_3[scr_start_4_05:scr_start_5_05],
                     voltage_3[scr_start_4_05:scr_start_5_05], current_3[scr_start_4_05:scr_start_5_05],
                     chgAh_3[scr_start_4_05:scr_start_5_05], disAh_3[scr_start_4_05:scr_start_5_05])
 
+data.plot_func([time_vec], [voltage_3], ["Script4_05"], flag_show=True)
+
+
+
+
+
+
+
+
+# Saving the data
 data = {
     "OCVData_25": [Script1_25, Script2_25, Script3_25, Script4_25],
     "OCVData_05": [Script1_05, Script2_05, Script3_05, Script4_05],
