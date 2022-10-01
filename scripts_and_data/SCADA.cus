@@ -26,42 +26,160 @@ SETTINGS_DIR = get_settings_dir_path()
 ]]></initialization_code>
     <components>
         <component_data>
-                <id>ab54a5fc161311ed94d3f47b097fe03f</id>
+                <id>f391c3bb417111ed99abf47b097fe03f</id>
                 <name><![CDATA[Capture/Scope]]></name>
                 <type>Capture/Scope</type>
                 <description><![CDATA[]]></description>
-                <working_mode>embedded</working_mode>
+                <working_mode>windowed</working_mode>
                 <widget_settings>
-                    <x>680.0</x>
-                    <y>8.0</y>
-                    <width>736</width>
-                    <height>480</height>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>120</width>
+                    <height>120</height>
                     <hierarchy_position>1</hierarchy_position>
                     <label><![CDATA[]]></label>
                     <use_label>False</use_label>
                     <appearance><![CDATA[Flat]]></appearance>
-                    <state>Scope</state>
-                    <layout>None</layout>
+                    <state>Capture</state>
+                    <layout></layout>
+                    <virtual_signals_definitions>
+                    </virtual_signals_definitions>
                     <presets>
                         <active_capture_preset><![CDATA[Default]]></active_capture_preset>
                         <active_scope_preset><![CDATA[Default]]></active_scope_preset>
                         <capture name="Default">
-                            <time_interval>300.0</time_interval>
-                            <sample_rate>50000.0</sample_rate>
+                            <time_interval>100000.0</time_interval>
+                            <sample_rate>1</sample_rate>
                             <background_color>white</background_color>
-                            <layout>Grid</layout>
+                            <layout>Vertical</layout>
                             <legend>True</legend>
                             <analog_signals>
+                                <analog>
+                                    <channel>0</channel>
+                                    <name><![CDATA[voltage_1]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>0</row>
+                                    <viewports>
+                                        <num_viewport>1</num_viewport>
+                                   </viewports>
+                               </analog>
+                                <analog>
+                                    <channel>1</channel>
+                                    <name><![CDATA[voltage_3]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>1</row>
+                                    <viewports>
+                                   </viewports>
+                               </analog>
+                                <analog>
+                                    <channel>2</channel>
+                                    <name><![CDATA[voltage_2]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>2</row>
+                                    <viewports>
+                                   </viewports>
+                               </analog>
+                                <analog>
+                                    <channel>3</channel>
+                                    <name><![CDATA[current_1]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>3</row>
+                                    <viewports>
+                                        <num_viewport>3</num_viewport>
+                                   </viewports>
+                               </analog>
+                                <analog>
+                                    <channel>4</channel>
+                                    <name><![CDATA[current_2]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>4</row>
+                                    <viewports>
+                                        <num_viewport>3</num_viewport>
+                                   </viewports>
+                               </analog>
+                                <analog>
+                                    <channel>5</channel>
+                                    <name><![CDATA[script_no_1]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>5</row>
+                                    <viewports>
+                                        <num_viewport>4</num_viewport>
+                                   </viewports>
+                               </analog>
+                                <analog>
+                                    <channel>6</channel>
+                                    <name><![CDATA[script_no_2]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>6</row>
+                                    <viewports>
+                                   </viewports>
+                               </analog>
+                                <analog>
+                                    <channel>7</channel>
+                                    <name><![CDATA[Battery Cell_05.Cell voltage]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>9</row>
+                                    <viewports>
+                                   </viewports>
+                               </analog>
+                                <analog>
+                                    <channel>8</channel>
+                                    <name><![CDATA[time_1]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>7</row>
+                                    <viewports>
+                                        <num_viewport>2</num_viewport>
+                                   </viewports>
+                               </analog>
+                                <analog>
+                                    <channel>9</channel>
+                                    <name><![CDATA[sw_select_1]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>8</row>
+                                    <viewports>
+                                        <num_viewport>2</num_viewport>
+                                   </viewports>
+                               </analog>
                             </analog_signals>
                             <digital_signals>
                             </digital_signals>
                             <virtual_signals>
                             </virtual_signals>
                             <trigger>
-                                <device>-1</device>
-                                <is_force>False</is_force>
+                                <device>0</device>
+                                <is_force>True</is_force>
                                 <type>Analog</type>
-                                <source><![CDATA[None]]></source>
+                                <source><![CDATA[voltage_1]]></source>
                                 <edge>Rising edge</edge>
                                 <treshold>0.0</treshold>
                                 <offset>0.0</offset>
@@ -77,93 +195,17 @@ SETTINGS_DIR = get_settings_dir_path()
                             <layout>Grid</layout>
                             <legend>True</legend>
                             <show_viewports>1</show_viewports>
-                            <decimation>25</decimation>
-                            <time_base>1</time_base>
+                            <decimation>1</decimation>
+                            <time_base>0.005</time_base>
                             <analog_signals>
-                                <analog>
-                                    <channel>0</channel>
-                                    <name><![CDATA[Battery Cell_05.Balancing current]]></name>
-                                    <is_locked>False</is_locked>
-                                    <vertical_scale>Auto</vertical_scale>
-                                    <vertical_offset>0</vertical_offset>
-                                    <coupling>False</coupling>
-                                    <row>0</row>
-                                    <viewports>
-                                        
-                                   </viewports>
-                               </analog>
-                                <analog>
-                                    <channel>1</channel>
-                                    <name><![CDATA[Battery Cell_05.Cell current]]></name>
-                                    <is_locked>False</is_locked>
-                                    <vertical_scale>Auto</vertical_scale>
-                                    <vertical_offset>0</vertical_offset>
-                                    <coupling>False</coupling>
-                                    <row>1</row>
-                                    <viewports>
-                                        
-                                        <num_viewport>1</num_viewport>
-                                        
-                                   </viewports>
-                               </analog>
-                                <analog>
-                                    <channel>2</channel>
-                                    <name><![CDATA[Battery Cell_05.Cell voltage]]></name>
-                                    <is_locked>False</is_locked>
-                                    <vertical_scale>Auto</vertical_scale>
-                                    <vertical_offset>0</vertical_offset>
-                                    <coupling>False</coupling>
-                                    <row>2</row>
-                                    <viewports>
-                                        
-                                        <num_viewport>1</num_viewport>
-                                        
-                                   </viewports>
-                               </analog>
-                                <analog>
-                                    <channel>3</channel>
-                                    <name><![CDATA[Battery Cell_05.Hysteresis voltage]]></name>
-                                    <is_locked>False</is_locked>
-                                    <vertical_scale>Auto</vertical_scale>
-                                    <vertical_offset>0</vertical_offset>
-                                    <coupling>False</coupling>
-                                    <row>3</row>
-                                    <viewports>
-                                        
-                                   </viewports>
-                               </analog>
-                                <analog>
-                                    <channel>4</channel>
-                                    <name><![CDATA[Battery Cell_05.Internal resistance]]></name>
-                                    <is_locked>False</is_locked>
-                                    <vertical_scale>Auto</vertical_scale>
-                                    <vertical_offset>0</vertical_offset>
-                                    <coupling>False</coupling>
-                                    <row>4</row>
-                                    <viewports>
-                                        
-                                   </viewports>
-                               </analog>
-                                <analog>
-                                    <channel>5</channel>
-                                    <name><![CDATA[Battery Cell_05.It]]></name>
-                                    <is_locked>False</is_locked>
-                                    <vertical_scale>Auto</vertical_scale>
-                                    <vertical_offset>0</vertical_offset>
-                                    <coupling>False</coupling>
-                                    <row>5</row>
-                                    <viewports>
-                                        
-                                   </viewports>
-                               </analog>
                             </analog_signals>
                             <digital_signals>
                             </digital_signals>
                             <trigger>
-                                <device>0</device>
+                                <device>-1</device>
                                 <is_force>False</is_force>
                                 <type>Analog</type>
-                                <source>Battery Cell_05.Balancing current</source>
+                                <source>None</source>
                                 <edge>Rising edge</edge>
                                 <treshold>0.0</treshold>
                                 <offset>50.0</offset>
@@ -172,114 +214,154 @@ SETTINGS_DIR = get_settings_dir_path()
                         </scope>
                         </presets>
                     <capture>
-                        <time_interval>300.0</time_interval>
-                        <sample_rate>50000.0</sample_rate>
+                        <time_interval>100000.0</time_interval>
+                        <sample_rate>1</sample_rate>
                         <background_color>white</background_color>
-                        <layout>Grid</layout>
+                        <layout>Vertical</layout>
                         <legend>True</legend>
                         <trigger>
                             <type>Analog</type>
-                            <source>None</source>
+                            <source>voltage_1</source>
                             <edge>Rising edge</edge>
                             <treshold>0.0</treshold>
                             <offset>0.0</offset>
                             <useFirstTrigger>False</useFirstTrigger>
                         </trigger>
                         <analog_signals>
-                        </analog_signals>
-                         <digital_signals>
-                         </digital_signals>
-                    </capture>
-                    <scope>
-                        <time_base>1 </time_base>
-                        <background_color>white</background_color>
-                        <layout>Grid</layout>
-                        <legend>True</legend>
-                        <trigger>
-                            <mode>Auto</mode>
-                            <type>Analog</type>
-                            <source>Battery Cell_05.Balancing current</source>
-                            <edge>Rising edge</edge>
-                            <treshold>0.0</treshold>
-                            <offset>50.0</offset>
-                        </trigger>
-                         <analog_signals>
                             <analog>
                                     <channel>0</channel>
-                                    <name><![CDATA[Battery Cell_05.Balancing current]]></name>
+                                    <name><![CDATA[voltage_1]]></name>
                                     <is_locked>False</is_locked>
                                     <vertical_scale>Auto</vertical_scale>
                                     <vertical_offset>0</vertical_offset>
                                     <coupling>False</coupling>
                                     <row>0</row>
                                     <viewports>
-                                        
+                                        <num_viewport>1</num_viewport>
                                    </viewports>
                                </analog>
                             <analog>
                                     <channel>1</channel>
-                                    <name><![CDATA[Battery Cell_05.Cell current]]></name>
+                                    <name><![CDATA[voltage_3]]></name>
                                     <is_locked>False</is_locked>
                                     <vertical_scale>Auto</vertical_scale>
                                     <vertical_offset>0</vertical_offset>
                                     <coupling>False</coupling>
                                     <row>1</row>
                                     <viewports>
-                                        
-                                        <num_viewport>1</num_viewport>
-                                        
                                    </viewports>
                                </analog>
                             <analog>
                                     <channel>2</channel>
-                                    <name><![CDATA[Battery Cell_05.Cell voltage]]></name>
+                                    <name><![CDATA[voltage_2]]></name>
                                     <is_locked>False</is_locked>
                                     <vertical_scale>Auto</vertical_scale>
                                     <vertical_offset>0</vertical_offset>
                                     <coupling>False</coupling>
                                     <row>2</row>
                                     <viewports>
-                                        
-                                        <num_viewport>1</num_viewport>
-                                        
                                    </viewports>
                                </analog>
                             <analog>
                                     <channel>3</channel>
-                                    <name><![CDATA[Battery Cell_05.Hysteresis voltage]]></name>
+                                    <name><![CDATA[current_1]]></name>
                                     <is_locked>False</is_locked>
                                     <vertical_scale>Auto</vertical_scale>
                                     <vertical_offset>0</vertical_offset>
                                     <coupling>False</coupling>
                                     <row>3</row>
                                     <viewports>
-                                        
+                                        <num_viewport>3</num_viewport>
                                    </viewports>
                                </analog>
                             <analog>
                                     <channel>4</channel>
-                                    <name><![CDATA[Battery Cell_05.Internal resistance]]></name>
+                                    <name><![CDATA[current_2]]></name>
                                     <is_locked>False</is_locked>
                                     <vertical_scale>Auto</vertical_scale>
                                     <vertical_offset>0</vertical_offset>
                                     <coupling>False</coupling>
                                     <row>4</row>
                                     <viewports>
-                                        
+                                        <num_viewport>3</num_viewport>
                                    </viewports>
                                </analog>
                             <analog>
                                     <channel>5</channel>
-                                    <name><![CDATA[Battery Cell_05.It]]></name>
+                                    <name><![CDATA[script_no_1]]></name>
                                     <is_locked>False</is_locked>
                                     <vertical_scale>Auto</vertical_scale>
                                     <vertical_offset>0</vertical_offset>
                                     <coupling>False</coupling>
                                     <row>5</row>
                                     <viewports>
-                                        
+                                        <num_viewport>4</num_viewport>
                                    </viewports>
                                </analog>
+                            <analog>
+                                    <channel>6</channel>
+                                    <name><![CDATA[script_no_2]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>6</row>
+                                    <viewports>
+                                   </viewports>
+                               </analog>
+                            <analog>
+                                    <channel>7</channel>
+                                    <name><![CDATA[Battery Cell_05.Cell voltage]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>9</row>
+                                    <viewports>
+                                   </viewports>
+                               </analog>
+                            <analog>
+                                    <channel>8</channel>
+                                    <name><![CDATA[time_1]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>7</row>
+                                    <viewports>
+                                        <num_viewport>2</num_viewport>
+                                   </viewports>
+                               </analog>
+                            <analog>
+                                    <channel>9</channel>
+                                    <name><![CDATA[sw_select_1]]></name>
+                                    <is_locked>False</is_locked>
+                                    <vertical_scale>Auto</vertical_scale>
+                                    <vertical_offset>0</vertical_offset>
+                                    <coupling>False</coupling>
+                                    <row>8</row>
+                                    <viewports>
+                                        <num_viewport>2</num_viewport>
+                                   </viewports>
+                               </analog>
+                        </analog_signals>
+                         <digital_signals>
+                         </digital_signals>
+                    </capture>
+                    <scope>
+                        <time_base>0.005 </time_base>
+                        <background_color>white</background_color>
+                        <layout>Grid</layout>
+                        <legend>True</legend>
+                        <trigger>
+                            <mode>Auto</mode>
+                            <type>Analog</type>
+                            <source>None</source>
+                            <edge>Rising edge</edge>
+                            <treshold>0.0</treshold>
+                            <offset>50.0</offset>
+                        </trigger>
+                         <analog_signals>
                         </analog_signals>
                         <digital_signals>
                         </digital_signals>
@@ -291,338 +373,6 @@ SETTINGS_DIR = get_settings_dir_path()
                     </plotting_options>
                 </widget_settings>
 
-            </component_data>
-        <component_data>
-                <id>b1ec0c5f161311ed98a8f47b097fe03f</id>
-                <name><![CDATA[Signal data logger]]></name>
-                <type>SignalDataLogger</type>
-                <description><![CDATA[]]></description>
-                <data_type>Signals</data_type>
-                <expression_code><![CDATA[# HIL API is imported as 'hil'
-# NOTE: Only read functions are available from the HIL API
-
-# SCADA API is imported as 'panel'
-# SCADA API constants are imported as 'api_const'
-# 'WIDGET_HANDLE' constant holds the WidgetHandle object of this widget.
-# This object can be used as an argument in SCADA API functions.
-
-# mandatory variable used for storing values that will be logged into the data file
-# specify logging data ("names" and "values" parts are mandatory)
-data = {
-    # signals/data names: ["Signal 1 name","Signal 2 name","Signal 3 name"]
-    "names": [],
-
-    # signals/data values: [sigVal1,sigVal2,sigVal3]
-    "values": [],
-    }
-]]></expression_code>
-                <analog_signals><![CDATA[['time', 'Battery Cell22.Cell current', 'Vcell1', 'Battery Cell22.Temperature', 'done_flag_1']]]></analog_signals>
-                <digital_signals><![CDATA[[]]]></digital_signals>
-                <update_rate>1000</update_rate>
-                <use_slower_update_rate>True</use_slower_update_rate>
-                <slower_update_rate>60</slower_update_rate>
-                <widget_settings>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>120</width>
-                    <height>120</height>
-                    <appearance><![CDATA[Flat]]></appearance>
-                    <hierarchy_position><![CDATA[1]]></hierarchy_position>
-                    <is_background><![CDATA[False]]></is_background>
-                    <label><![CDATA[]]></label>
-                    <use_label>False</use_label>
-                </widget_settings>
-                <data_file_settings>
-                    <data_file_dir><![CDATA[None]]></data_file_dir>
-                    <data_file_name><![CDATA[signals_data]]></data_file_name>
-                    <use_panel_file_dir>True</use_panel_file_dir>
-                    <data_file_format><![CDATA[csv]]></data_file_format>
-                    <use_file_name_suffix><![CDATA[True]]></use_file_name_suffix>
-                    <start_logging_on_sim_start><![CDATA[True]]></start_logging_on_sim_start>
-                </data_file_settings>
-            </component_data>
-        <component_data>
-                <id>a6146b321ba911ed806bf47b097fe03f</id>
-                <name><![CDATA[Text note]]></name>
-                <type>TextNote</type>
-                <description><![CDATA[]]></description>
-                <text><![CDATA[<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-<html><head><meta name="qrichtext" content="1" /><style type="text/css">
-p, li { white-space: pre-wrap; }
-</style></head><body style=" font-family:'Arial'; font-size:8pt; font-weight:400; font-style:normal;">
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Roughly 28 hours to charge and to discharge the E2 cell.</p></body></html>]]></text>
-                <widget_settings>
-                    <x>128.0</x>
-                    <y>0.0</y>
-                    <width>344</width>
-                    <height>72</height>
-                    <background_color><![CDATA[#f0f0f0]]></background_color>
-                    <background_type><![CDATA[Transparent]]></background_type>
-                    <appearance><![CDATA[Flat]]></appearance>
-                    <hierarchy_position>1</hierarchy_position>
-                    <label><![CDATA[]]></label>
-                    <use_label>False</use_label>
-                </widget_settings>
-            </component_data>
-        <component_data>
-                <id>baf9d4641ba911eda8e2f47b097fe03f</id>
-                <name><![CDATA[Text display]]></name>
-                <type>TextDisplay</type>
-                <description><![CDATA[]]></description>
-                <code><![CDATA[# HIL API is imported as 'hil'
-# NOTE: Only read functions are available from the HIL API
-
-# SCADA API is imported as 'panel'
-# SCADA API constants are imported as 'api_const'
-# 'WIDGET_HANDLE' constant holds the WidgetHandle object of this widget.
-# This object can be used as an argument in SCADA API functions.
-
-# specify Text Display options ('text' part is mandatory)
-textDisplayData_dischg = {
-    # label text
-    "text": "Discharging",
-    # text color: 'red', 'green', 'blue', 'orange', 'black'
-    "text_color": 'red',
-}
-textDisplayData_chg = {
-    # label text
-    "text": "Charging",
-    # text color: 'red', 'green', 'blue', 'orange', 'black'
-    "text_color": 'green',
-}
-textDisplayData_tither = {
-    # label text
-    "text": "Tither Profile",
-    # text color: 'red', 'green', 'blue', 'orange', 'black'
-    "text_color": 'orange',
-}
-textDisplayData_resting = {
-    # label text
-    "text": "Resting the battery",
-    # text color: 'red', 'green', 'blue', 'orange', 'black'
-    "text_color": 'blue',
-}
-textDisplayData_done = {
-    # label text
-    "text": "Done",
-    # text color: 'red', 'green', 'blue', 'orange', 'black'
-    "text_color": 'black',
-}
-
-done_flag = hil.read_analog_signal(name='done_flag')
-script_no = hil.read_analog_signal(name='script_no')
-
-if (done_flag == True):
-    displayValue = textDisplayData_done
-elif (script_no == 1):
-    displayValue = textDisplayData_dischg
-elif (script_no == 2 or script_no == 4):
-    displayValue = textDisplayData_tither
-elif (script_no == 3):
-    displayValue = textDisplayData_chg
-elif (script_no == 0):
-    displayValue = textDisplayData_resting
-]]></code>
-                <updateRate>500</updateRate>
-                <widget_settings>
-                    <x>128</x>
-                    <y>64</y>
-                    <width>272</width>
-                    <height>56</height>
-                    <appearance><![CDATA[Flat]]></appearance>
-                    <hierarchy_position><![CDATA[1]]></hierarchy_position>
-                    <is_background><![CDATA[False]]></is_background>
-                    <label><![CDATA[]]></label>
-                    <use_label>False</use_label>
-                </widget_settings>
-            </component_data>
-        <component_data>
-                <id>ef65e2ef1bea11ed888cf47b097fe03f</id>
-                <name><![CDATA[Trace graph]]></name>
-                <type>TraceDisplay</type>
-                <description><![CDATA[]]></description>
-                <data_type>Signals</data_type>
-                <code><![CDATA[# HIL API is imported as 'hil'
-# NOTE: Only read functions are available from the HIL API
-
-# SCADA API is imported as 'panel'
-# SCADA API constants are imported as 'api_const'
-# 'WIDGET_HANDLE' constant holds the WidgetHandle object of this widget.
-# This object can be used as an argument in SCADA API functions.
-
-# mandatory variable used for storing values that will be displayed
-# specify data (one pairs of "names" and "values" parts are mandatory)
-data = {
-    # analog like signals/data names: ["Analog 1 name","Analog 2 name","Analog N name"]
-    "analog_names": [],
-    
-    # analog data values: [aVal1,aVal2,aVal3]
-    "analog_values": [],
-    
-    # digital like signals/data names: ["Digital 1 name","Digital 2 name","Digital 3 name"]
-    "digital_names": [],
-    
-    # digital data values: [dVal1,dVal2,aVal3]
-    "digital_values": [],
-    }
-displayValue = data
-]]></code>
-                <analog_signals><![CDATA[['Battery Cell22.Cell current']]]></analog_signals>
-                <digital_signals><![CDATA[[]]]></digital_signals>
-                <streaming_analog_signals><![CDATA[[]]]></streaming_analog_signals>
-                <streaming_digital_signals><![CDATA[[]]]></streaming_digital_signals>
-                <update_rate>1000</update_rate>
-                <execution_rate>None</execution_rate>
-                <background_color>white</background_color>
-                <widget_settings>
-                    <x>0</x>
-                    <y>128</y>
-                    <width>344</width>
-                    <height>280</height>
-                    <appearance><![CDATA[Flat]]></appearance>
-                    <hierarchy_position><![CDATA[1]]></hierarchy_position>
-                    <is_background><![CDATA[False]]></is_background>
-                    <label><![CDATA[]]></label>
-                    <use_label>False</use_label>
-                </widget_settings>
-                <advance_widget_settings>
-                    <x_title><![CDATA[x axes]]></x_title>
-                    <y_title><![CDATA[y axes]]></y_title>
-                    <y_range_min>-100.0</y_range_min>
-                    <y_range_max>100.0</y_range_max>
-                    <time_window>500</time_window>
-                    <auto_scale_enabled>True</auto_scale_enabled>
-                    <legend_enabled>True</legend_enabled>
-                    <x_axis_title_enabled>False</x_axis_title_enabled>
-                    <y_axis_title_enabled>False</y_axis_title_enabled>
-                    <use_reference_curve>False</use_reference_curve>
-                    <reference_curve_code><![CDATA[# NOTE: Global namespace variables are available
-# Selected time window is available through variable 'timeWindow'
-# Selected update rate is available through variable 'updateRate'
-
-# reference curve data point
-curveData = 12.0
-
-# specify curve options ('data' part is mandatory)
-refCurveData1 = {
-    # reference curve data point
-    "data": curveData,
-
-    # curve line style: 'solid', 'dashed', 'dashdot', 'dotted'
-    "line_style": "dashed",
-
-    # curve line color: 'red', 'green', 'blue', 'cyan', 'magenta', 'yellow'
-    "line_color": 'red',
-
-    # curve line width: float number
-    "line_width": 2.0,
-    
-    # reference curve title
-    "title": "Reference curve",
-
-    # show a title in the legend
-    "show_in_legend": True
-}
-
-# list of reference curves data: [ref1, ref2,...refN]
-referenceCurves = [refCurveData1]
-
-]]></reference_curve_code>
-                </advance_widget_settings>
-            </component_data>
-        <component_data>
-                <id>6f0190cd1beb11ed9299f47b097fe03f</id>
-                <name><![CDATA[Trace graph1]]></name>
-                <type>TraceDisplay</type>
-                <description><![CDATA[]]></description>
-                <data_type>Signals</data_type>
-                <code><![CDATA[# HIL API is imported as 'hil'
-# NOTE: Only read functions are available from the HIL API
-
-# SCADA API is imported as 'panel'
-# SCADA API constants are imported as 'api_const'
-# 'WIDGET_HANDLE' constant holds the WidgetHandle object of this widget.
-# This object can be used as an argument in SCADA API functions.
-
-# mandatory variable used for storing values that will be displayed
-# specify data (one pairs of "names" and "values" parts are mandatory)
-data = {
-    # analog like signals/data names: ["Analog 1 name","Analog 2 name","Analog N name"]
-    "analog_names": [],
-    
-    # analog data values: [aVal1,aVal2,aVal3]
-    "analog_values": [],
-    
-    # digital like signals/data names: ["Digital 1 name","Digital 2 name","Digital 3 name"]
-    "digital_names": [],
-    
-    # digital data values: [dVal1,dVal2,aVal3]
-    "digital_values": [],
-    }
-displayValue = data
-]]></code>
-                <analog_signals><![CDATA[['Battery Cell22.Cell voltage']]]></analog_signals>
-                <digital_signals><![CDATA[[]]]></digital_signals>
-                <streaming_analog_signals><![CDATA[[]]]></streaming_analog_signals>
-                <streaming_digital_signals><![CDATA[[]]]></streaming_digital_signals>
-                <update_rate>1000</update_rate>
-                <execution_rate>None</execution_rate>
-                <background_color>white</background_color>
-                <widget_settings>
-                    <x>352.0</x>
-                    <y>128.0</y>
-                    <width>328</width>
-                    <height>280</height>
-                    <appearance><![CDATA[Flat]]></appearance>
-                    <hierarchy_position><![CDATA[1]]></hierarchy_position>
-                    <is_background><![CDATA[False]]></is_background>
-                    <label><![CDATA[]]></label>
-                    <use_label>False</use_label>
-                </widget_settings>
-                <advance_widget_settings>
-                    <x_title><![CDATA[x axes]]></x_title>
-                    <y_title><![CDATA[y axes]]></y_title>
-                    <y_range_min>-100.0</y_range_min>
-                    <y_range_max>100.0</y_range_max>
-                    <time_window>500</time_window>
-                    <auto_scale_enabled>True</auto_scale_enabled>
-                    <legend_enabled>True</legend_enabled>
-                    <x_axis_title_enabled>False</x_axis_title_enabled>
-                    <y_axis_title_enabled>False</y_axis_title_enabled>
-                    <use_reference_curve>False</use_reference_curve>
-                    <reference_curve_code><![CDATA[# NOTE: Global namespace variables are available
-# Selected time window is available through variable 'timeWindow'
-# Selected update rate is available through variable 'updateRate'
-
-# reference curve data point
-curveData = 12.0
-
-# specify curve options ('data' part is mandatory)
-refCurveData1 = {
-    # reference curve data point
-    "data": curveData,
-
-    # curve line style: 'solid', 'dashed', 'dashdot', 'dotted'
-    "line_style": "dashed",
-
-    # curve line color: 'red', 'green', 'blue', 'cyan', 'magenta', 'yellow'
-    "line_color": 'red',
-
-    # curve line width: float number
-    "line_width": 2.0,
-    
-    # reference curve title
-    "title": "Reference curve",
-
-    # show a title in the legend
-    "show_in_legend": True
-}
-
-# list of reference curves data: [ref1, ref2,...refN]
-referenceCurves = [refCurveData1]
-
-]]></reference_curve_code>
-                </advance_widget_settings>
             </component_data>
         </components>
 </ui_settings>
