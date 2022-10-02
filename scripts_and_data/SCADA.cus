@@ -109,7 +109,6 @@ SETTINGS_DIR = get_settings_dir_path()
                                     <coupling>False</coupling>
                                     <row>4</row>
                                     <viewports>
-                                        <num_viewport>3</num_viewport>
                                    </viewports>
                                </analog>
                                 <analog>
@@ -283,7 +282,6 @@ SETTINGS_DIR = get_settings_dir_path()
                                     <coupling>False</coupling>
                                     <row>4</row>
                                     <viewports>
-                                        <num_viewport>3</num_viewport>
                                    </viewports>
                                </analog>
                             <analog>

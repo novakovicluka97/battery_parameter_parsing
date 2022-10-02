@@ -5,6 +5,7 @@ import typhoon.api.hil as hil
 from typhoon.api.schematic_editor import model
 import typhoon.test.reporting.messages as report
 import typhoon.test.capture as capture
+import typhoon.test.signals as signals
 import battery_cell_data_functions as data
 import pickle
 from scipy.interpolate import interp1d
@@ -18,7 +19,7 @@ import time
 
 output_data_filename = 'cell_all_data.mat'
 model_name = "Battery_parametrization_model.tse"
-flag_show = True  # if True, certain graphs used for debugging will be shown
+flag_show = False  # if True, certain graphs used for debugging will be shown
 capture_duration = 30 * 60 * 60
 
 # script directory
@@ -104,6 +105,12 @@ if __name__ == "__main__":  # If this script is instantiated manually...
         # the tither signal in a way that it is still negative in average so I omitted the minus sign
         'OCV_25_SCRIPT_2_TIME_STOP': OCV_25_SCRIPT_2_TIME_STOP,
         'OCV_25_SCRIPT_4_TIME_STOP': OCV_25_SCRIPT_4_TIME_STOP,
+
+        'DYN_25_SCRIPT_1_CURRENT': DYN_25_SCRIPT_1_CURRENT[1930:3380],  # mean is 1.981
+        'DYN_25_SCRIPT_1_TIME': DYN_25_SCRIPT_1_TIME[0:(3380-1930)],
+        'DYN_SCRIPT_1_STOP': DYN_25_SCRIPT_1_TIME[(3380-1930)],
+        'DYN_DIS_CHG_TITHER_STOP_TIME': 00,
+        'DYN_CHG_TITHER_STOP_TIME': 00
     }
 
     print("Saving the current load profiles that will be injected into batteries")
@@ -129,10 +136,14 @@ battery_cell_name = "Battery Cell_25"
 # signals for capturing
 channel_signals = ["temperature_1", "voltage_1", "current_1", "chgAh_1", "disAh_1", "script_no_1",
                    "temperature_2", "voltage_2", "current_2", "chgAh_2", "disAh_2", "script_no_2",
-                   "temperature_3", "voltage_3", "current_3", "chgAh_3", "disAh_3", "script_no_3"]
+                   "temperature_3", "voltage_3", "current_3", "chgAh_3", "disAh_3", "script_no_3",
+                   "dyn_temperature_1", "dyn_voltage_1", "dyn_current_1", "dyn_chgAh_1", "dyn_disAh_1", "dyn_script_no_1",
+                   "dyn_temperature_2", "dyn_voltage_2", "dyn_current_2", "dyn_chgAh_2", "dyn_disAh_2", "dyn_script_no_2",
+                   "dyn_temperature_3", "dyn_voltage_3", "dyn_current_3", "dyn_chgAh_3", "dyn_disAh_3", "dyn_script_no_3",
+                   "Time"]
 
 capture.start_capture(duration=capture_duration,
-                      rate=256,  # Todo try lower rate
+                      rate=1,
                       signals=channel_signals,
                       executeAt=0.0)
 
@@ -143,7 +154,7 @@ st = time.time()  # measuring the starting time
 
 # Todo make the capture stop once the signal reaches a certain value
 capture.wait_until("script_no_1", 'above', 4.5, timeout=capture_duration)
-capture.wait(100)  # Wait 100 more seconds
+# capture.wait(100)  # Wait 100 more seconds #Todo EXCEPTION HERE
 
 et = time.time()  # get the end time
 elapsed_time = et - st  # get the execution time
@@ -153,11 +164,9 @@ cap_data = capture.get_capture_results()
 hil.stop_simulation()  # Stopping the simulation
 
 print('STEP 4: Manipulating the captured data')
-time_vec = []
-for i in range(len(cap_data.T)):  # converting data-series to time
-    time_vec.append(list(cap_data.T)[i].total_seconds())
-
 # Assigning to variables
+time_vec = list(cap_data["Time"])
+
 current_1 = list(cap_data["current_1"])
 voltage_1 = list(cap_data["voltage_1"])
 script_no_1 = list(cap_data["script_no_1"])
@@ -238,6 +247,27 @@ Script4_05 = Script(time_vec[scr_start_4_05:scr_start_5_05], temperature_3[scr_s
 data.plot_func([time_vec], [voltage_3], ["Script4_05"], flag_show=True)
 
 
+# DYNAMIC TESTS
+dyn_current_1       = list(cap_data["dyn_current_1"])
+dyn_voltage_1       = list(cap_data["dyn_voltage_1"])
+dyn_script_no_1     = list(cap_data["dyn_script_no_1"])
+dyn_temperature_1   = list(cap_data["dyn_temperature_1"])
+dyn_chgAh_1         = list(cap_data["dyn_chgAh_1"])
+dyn_disAh_1         = list(cap_data["dyn_disAh_1"])
+
+dyn_current_2       = list(cap_data["dyn_current_2"])
+dyn_voltage_2       = list(cap_data["dyn_voltage_2"])
+dyn_script_no_2     = list(cap_data["dyn_script_no_2"])
+dyn_temperature_2   = list(cap_data["dyn_temperature_2"])
+dyn_chgAh_2         = list(cap_data["dyn_chgAh_2"])
+dyn_disAh_2         = list(cap_data["dyn_disAh_2"])
+
+dyn_current_3       = list(cap_data["dyn_current_3"])
+dyn_voltage_3       = list(cap_data["dyn_voltage_3"])
+dyn_script_no_3     = list(cap_data["dyn_script_no_3"])
+dyn_temperature_3   = list(cap_data["dyn_temperature_3"])
+dyn_chgAh_3         = list(cap_data["dyn_chgAh_3"])
+dyn_disAh_3         = list(cap_data["dyn_disAh_3"])
 
 
 

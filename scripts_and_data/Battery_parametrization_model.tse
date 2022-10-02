@@ -4,7 +4,7 @@ version = 4.2
 // Saved by sw version: 2022.4 DEV
 //
 
-model "Battery_parametrization_model" {
+model "battery_parametrization_model" {
     configuration {
         hil_device = "VHIL+"
         hil_configuration_id = 1
@@ -76,79 +76,76 @@ script_no = 1;  // start with the first script
 sw_select = 1;  // start with first sw permutation (1st script)
 timer = 0;
 k_time_step = 1/Ts;
-counter_cooldown = k_time_step*cooldown_time_in_sec;  // wait an hour for the
+counter_cooldown = counter_cooldown_max;  // wait an hour for the
 // battery to go back to its original temperature [instant with typhoon] 
-// and to discharge the capacitors
-// 1000 is there because the execution rate is 1e-4
+// and to discharge the RC capacitors
 first_time_step_flag = 1;  // This flag exists because vcell measurement
 // will always start with 0. We need to prevent even looking at that false vcell.
 temperature = input_temp;
 /*End code section*/"
-            input_terminals = "real input_temp;real Vcell;int time_reset_script_2;int time_reset_script_4;"
-            input_terminals_dimensions = "inherit;inherit;inherit;inherit"
-            input_terminals_feedthrough = "True;True;True;True"
-            input_terminals_show_labels = "True;True;True;True"
+            input_terminals = "real input_temp;real Vcell;"
+            input_terminals_dimensions = "inherit;inherit"
+            input_terminals_feedthrough = "True;True"
+            input_terminals_show_labels = "True;True"
             output_fnc = "/*Begin code section*/
 // The model starts immediately with time and script_no 1
 // sw_select = 1
 // script_no = 1
 
-
-if (Vcell < Vmin && sw_select == 1 && first_time_step_flag != 1) {
-    // Start second script countdown
-    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
-    script_no = 2;  // second script
-    sw_select = 0;  // zero current
-    next_sw = 2;
-    temperature = 25;  // default temperature
+if (sw_select == 0) {
+    counter_cooldown--;
+    if (counter_cooldown <= 0) {
+        sw_select = next_sw;
+        counter_cooldown = counter_cooldown_max;
+    }
 }
-else if (Vcell < Vmin && sw_select == 2) {
-    // Start third script
-    script_no = 3;
-    sw_select = 3;
-    temperature = input_temp;
-    timer = 0;
-}
-else if (Vcell > Vmax && sw_select == 3) {
-    // Start forth script countdown
-    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
-    script_no = 4;
-    sw_select = 0;  // zero current
-    next_sw = 4;
-}
-else if (Vcell > Vmax && sw_select == 4) {
-    // Start forth script countdown
-    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
-    sw_select = 0;  // zero current
-    script_no = 5;
-    next_sw = 0;
+else {  // (sw_select != 0)
+    timer += Ts;
+    if (Vcell < Vmin && sw_select == 1 && first_time_step_flag != 1) {
+        // Start second script countdown
+        // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+        script_no = 2;  // second script
+        sw_select = 0;  // zero current
+        next_sw = 2;
+        temperature = 25;  // default temperature
+        timer = 0;
+    }
+    else if (timer > OCV_25_SCRIPT_2_TIME_STOP && sw_select == 2){
+        timer = 0;
+        if (Vcell < Vmin) {
+            // Start third script
+            script_no = 3;
+            sw_select = 3;
+            temperature = input_temp;
+        }
+    }
+    else if (Vcell > Vmax && sw_select == 3) {
+        // Start forth script countdown
+        // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+        script_no = 4;
+        sw_select = 0;  // zero current
+        next_sw = 4;
+        timer = 0;
+    }
+    else if (timer > OCV_25_SCRIPT_4_TIME_STOP && sw_select == 4){
+        timer = 0;
+        if (Vcell > Vmax) {
+            // Start forth script countdown
+            // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+            sw_select = 0;  // zero current
+            script_no = 5;
+            next_sw = 0;
+        }
+    }
 }
 
 first_time_step_flag = 0;
-if (sw_select == 0) {
-    counter_cooldown--;
-    timer = 0;
-    if (counter_cooldown == 0) {
-        sw_select = next_sw;
-        counter_cooldown = k_time_step*cooldown_time_in_sec;
-    }
-}
-if (sw_select != 0) {
-    timer += Ts;
-}
-
-if (time_reset_script_2 > 0 && sw_select == 2){
-    timer = 0;
-}
-else if (time_reset_script_4 > 0 && sw_select == 4){
-    timer = 0;
-}
 /*End code section*/"
             output_terminals = "real sw_select;inherit temperature;inherit timer;inherit script_no;"
             output_terminals_dimensions = "inherit;inherit;inherit;inherit"
             output_terminals_feedthrough = "True;True;True;True"
             output_terminals_show_labels = "True;True;True;True"
-            parameters = "real Vmin;real Vmax;real cooldown_time_in_sec;real Ts;"
+            parameters = "real Vmin;real Vmax;real Ts;real OCV_25_SCRIPT_4_TIME_STOP;real OCV_25_SCRIPT_2_TIME_STOP;real counter_cooldown_max;"
         }
         [
             position = 7888, 7912
@@ -215,7 +212,7 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             unit = ""
         }
         [
-            position = 7664, 7848
+            position = 6960, 8720
         ]
 
         component gen_probe time_1 {
@@ -224,57 +221,13 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             position = 8128, 7968
         ]
 
-        component gen_comparator Comparator1 {
-        }
-        [
-            position = 7648, 7976
-            hide_name = True
-        ]
-
-        component src_constant SCRIPT_4_STOP {
-            execution_rate = "Ts"
-            value = "OCV_25_SCRIPT_4_TIME_STOP"
-        }
-        [
-            position = 7248, 8592
-        ]
-
-        component gen_comparator Comparator2 {
-        }
-        [
-            position = 7584, 7928
-            hide_name = True
-        ]
-
-        component src_constant SCRIPT_2_STOP {
-            execution_rate = "Ts"
-            value = "OCV_25_SCRIPT_2_TIME_STOP"
-        }
-        [
-            position = 7248, 8528
-        ]
-
-        component tm_delay "Unit Delay1" {
-        }
-        [
-            position = 7712, 7928
-            hide_name = True
-        ]
-
-        component tm_delay "Unit Delay2" {
-        }
-        [
-            position = 7712, 7976
-            hide_name = True
-        ]
-
         component src_scada_input DISCHG {
             def_value = "DISCHG_RATE"
             execution_rate = "Ts"
             unit = ""
         }
         [
-            position = 7240, 8656
+            position = 7240, 8568
         ]
 
         component src_scada_input CHG {
@@ -283,7 +236,7 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             unit = ""
         }
         [
-            position = 7240, 8720
+            position = 7240, 8632
         ]
 
         component "core/Current Measurement" current_1 {
@@ -420,47 +373,10 @@ else if (current<0) {
             size = 32, 64
         ]
 
-        component src_scada_input "battery temp 2" {
-            def_value = "45"
-            execution_rate = "Ts"
-            unit = ""
-        }
-        [
-            position = 8520, 7840
-        ]
-
         component gen_probe time_2 {
         }
         [
             position = 8984, 7960
-        ]
-
-        component gen_comparator Comparator3 {
-        }
-        [
-            position = 8504, 7968
-            hide_name = True
-        ]
-
-        component gen_comparator Comparator4 {
-        }
-        [
-            position = 8440, 7920
-            hide_name = True
-        ]
-
-        component tm_delay "Unit Delay3" {
-        }
-        [
-            position = 8568, 7920
-            hide_name = True
-        ]
-
-        component tm_delay "Unit Delay4" {
-        }
-        [
-            position = 8568, 7968
-            hide_name = True
         ]
 
         component "core/Current Measurement" current_2 {
@@ -603,41 +519,13 @@ else if (current<0) {
             unit = ""
         }
         [
-            position = 9392, 7816
+            position = 6960, 8848
         ]
 
         component gen_probe time_3 {
         }
         [
             position = 9856, 7936
-        ]
-
-        component gen_comparator Comparator5 {
-        }
-        [
-            position = 9376, 7944
-            hide_name = True
-        ]
-
-        component gen_comparator Comparator6 {
-        }
-        [
-            position = 9312, 7896
-            hide_name = True
-        ]
-
-        component tm_delay "Unit Delay5" {
-        }
-        [
-            position = 9440, 7896
-            hide_name = True
-        ]
-
-        component tm_delay "Unit Delay6" {
-        }
-        [
-            position = 9440, 7944
-            hide_name = True
         ]
 
         component "core/Current Measurement" current_3 {
@@ -715,71 +603,62 @@ else if (current<0) {
             position = 8144, 7720
         ]
 
-        component "core/Battery Cell" "Battery Cell_25_dyn" {
+        component "core/Battery Cell" "Dyn Battery Cell_25" {
+            Init_SOC = "init_dynamic"
             Q_total = "total_Q"
             Ts = "Ts"
         }
         [
-            position = 7760, 9192
+            position = 7856, 9056
             size = 32, 64
         ]
 
-        component "core/Voltage Measurement" voltage_4 {
+        component "core/Voltage Measurement" dyn_voltage_1 {
             execution_rate = "Ts"
             sig_output = "True"
             signal_access = "Inherit"
         }
         [
-            position = 7600, 9184
+            position = 7696, 9048
             rotation = right
             scale = -1, 1
             size = 64, 32
         ]
 
         component sys_mp_signal_switch "Multiport signal switch4" {
-            number_of_input_terminals = "4"
+            number_of_input_terminals = "5"
         }
         [
-            position = 7736, 9048
+            position = 7832, 8912
             hide_name = True
         ]
 
         component lut_1d "1D look-up table30" {
-            in_vec_x = "OCV_25_SCRIPT_2_TIME_TITHER"
-            out_vec_f_x = "OCV_25_SCRIPT_2_CURRENT_TITHER"
+            in_vec_x = "DYN_25_SCRIPT_1_TIME"
+            out_vec_f_x = "DYN_25_SCRIPT_1_CURRENT"
             table_impl = "Non-equidistant"
         }
         [
-            position = 7592, 9048
-            hide_name = True
-        ]
-
-        component lut_1d "1D look-up table31" {
-            in_vec_x = "OCV_25_SCRIPT_4_TIME_TITHER"
-            out_vec_f_x = "OCV_25_SCRIPT_4_CURRENT_TITHER"
-            table_impl = "Non-equidistant"
-        }
-        [
-            position = 7592, 9080
+            position = 7688, 8888
             hide_name = True
         ]
 
         component "core/Signal Controlled Current Source" Isp25 {
         }
         [
-            position = 7904, 9184
+            position = 8000, 9048
             rotation = left
             hide_name = True
             scale = -1, 1
             size = 64, 32
         ]
 
-        component "core/Current Measurement" current_4 {
+        component "core/Current Measurement" dyn_current_1 {
             execution_rate = "Ts"
             sig_output = "True"
         }
         [
-            position = 7840, 9144
+            position = 7936, 9008
             rotation = down
             scale = 1, -1
             size = 64, 32
@@ -788,27 +667,27 @@ else if (current<0) {
         component gen_integrator Integrator7 {
         }
         [
-            position = 7992, 8960
+            position = 8088, 8824
             hide_name = True
         ]
 
-        component gen_probe chgAh_4 {
+        component gen_probe dyn_chgAh_1 {
         }
         [
-            position = 8088, 8960
+            position = 8184, 8808
         ]
 
         component gen_integrator Integrator8 {
         }
         [
-            position = 7992, 9024
+            position = 8088, 8888
             hide_name = True
         ]
 
-        component gen_probe disAh_4 {
+        component gen_probe dyn_disAh_1 {
         }
         [
-            position = 8088, 9024
+            position = 8184, 8888
         ]
 
         component gen_c_function "C function7" {
@@ -832,181 +711,785 @@ else if (current<0) {
             output_terminals_show_labels = "False;False"
         }
         [
-            position = 7896, 8992
+            position = 7992, 8856
             hide_name = True
             size = 48, 48
         ]
 
-        component gen_c_function "C function8" {
+        component src_clock Clock1 {
+            execution_rate = "Ts"
+        }
+        [
+            position = 6960, 8672
+            hide_name = True
+        ]
+
+        component gen_probe Time {
+        }
+        [
+            position = 7120, 8672
+        ]
+
+        component gen_c_function "C function10" {
+            global_variables = "real next_sw;real first_time_step_flag;real counter_cooldown;"
+            init_fnc = "/*Begin code section*/
+script_no = 1;  // start with the first script
+sw_select = 1;  // start with first sw permutation (1st script)
+timer = 0;
+counter_cooldown = counter_cooldown_max;
+ // wait an \"hour\" for the
+// battery to go back to its original temperature [instant with typhoon] 
+// and to discharge the RC capacitors
+first_time_step_flag = 1;  // This flag exists because vcell measurement
+// will always start with 0. We need to prevent even looking at that false vcell.
+temperature = input_temp;
+/*End code section*/"
+            input_terminals = "real input_temp;real Vcell;"
+            input_terminals_dimensions = "inherit;inherit"
+            input_terminals_feedthrough = "True;True"
+            input_terminals_show_labels = "True;True"
+            output_fnc = "/*Begin code section*/
+if (sw_select == 0) {  // Resting the battery cell
+    counter_cooldown--;
+    if (counter_cooldown <= 0) {
+        sw_select = next_sw;
+        counter_cooldown = counter_cooldown_max;
+    }
+}
+else {  //  (sw_select != 0) 
+    timer += Ts;
+    if (timer >= DYN_SCRIPT_1_STOP_TIME && sw_select == 1){
+        // This part triggers when the LUT attached to sw_select finishes with its dynamic profile
+        // Consequently, the profile starts again by resetting the timer to 0
+        timer = 0;
+        if (Vcell < V_end_script_1 && first_time_step_flag != 1){
+            // If battery cell reached less than roughly 10% of SOC, stop the dynamic profile injection
+            // This is to prevent possible undervoltage with high current peaks
+            sw_select = 0;
+            next_sw = 2;
+            temperature = 25;  // And remains so for the rest of the scripts
+            script_no = 2;
+        }
+    }
+    else if (Vcell <= Vmin && sw_select == 2){
+        sw_select = 3;  // Tither profiles
+        timer = 0;  // Refresh timer
+    }
+    else if (timer >= DYN_DIS_CHG_TITHER_STOP_TIME && sw_select == 3){
+        timer = 0;
+        if (Vcell < Vmin) {
+            // If battery cell reached less than Vmin, stop the tither profile injection
+            sw_select = 4;
+            script_no = 3;
+            // No need to rest the battery cell
+            // Constant current charging of the battery cell with C/1
+        }
+    }
+    else if (sw_select == 4 && Vcell > Vmax){  // Constant current charge reached Vmax
+        sw_select = 5;  // Tither profiles
+        timer = 0;  // Refresh timer
+    }
+    else if (sw_select == 5 && timer >= DYN_CHG_TITHER_STOP_TIME){
+        timer = 0;  // Refresh timer
+        if (Vcell > Vmax){
+            sw_select = 0;
+            script_no = 4;
+            next_sw = 0;
+        }
+    }
+}
+
+first_time_step_flag = 0;
+/*End code section*/"
+            output_terminals = "real sw_select;inherit temperature;inherit timer;inherit script_no;"
+            output_terminals_dimensions = "inherit;inherit;inherit;inherit"
+            output_terminals_feedthrough = "True;True;True;True"
+            output_terminals_show_labels = "True;True;True;True"
+            parameters = "real Vmin;real Vmax;real V_end_script_1;real counter_cooldown_max;real DYN_SCRIPT_1_STOP_TIME;real DYN_CHG_TITHER_STOP_TIME;real DYN_DIS_CHG_TITHER_STOP_TIME;real Ts;"
+        }
+        [
+            position = 7824, 8656
+            hide_name = True
+            size = 176, 160
+        ]
+
+        component src_scada_input "battery temp 2" {
+            def_value = "45"
+            execution_rate = "Ts"
+            unit = ""
+        }
+        [
+            position = 6960, 8784
+        ]
+
+        component gen_probe dyn_script_no_1 {
+        }
+        [
+            position = 7992, 8720
+        ]
+
+        component src_constant DYN_DIS_CHG {
+            execution_rate = "Ts"
+            value = "DYN_DIS_CHG"
+        }
+        [
+            position = 7240, 8976
+        ]
+
+        component lut_1d "1D look-up table31" {
+            in_vec_x = "OCV_25_SCRIPT_2_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_2_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7688, 8920
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table32" {
+            in_vec_x = "OCV_25_SCRIPT_4_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_4_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 7688, 8952
+            hide_name = True
+        ]
+
+        component src_constant DYN_CHG {
+            execution_rate = "Ts"
+            value = "DYN_CHG"
+        }
+        [
+            position = 7240, 9040
+        ]
+
+        component "core/Battery Cell" "Dyn Battery Cell_45" {
+            Init_SOC = "init_dynamic"
+            Q_total = "total_Q"
+            Ts = "Ts"
+        }
+        [
+            position = 8688, 9056
+            size = 32, 64
+        ]
+
+        component "core/Voltage Measurement" dyn_voltage_2 {
+            execution_rate = "Ts"
+            sig_output = "True"
+            signal_access = "Inherit"
+        }
+        [
+            position = 8528, 9048
+            rotation = right
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component sys_mp_signal_switch "Multiport signal switch5" {
+            number_of_input_terminals = "5"
+        }
+        [
+            position = 8664, 8912
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table33" {
+            in_vec_x = "DYN_25_SCRIPT_1_TIME"
+            out_vec_f_x = "DYN_25_SCRIPT_1_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8520, 8888
+            hide_name = True
+        ]
+
+        component "core/Signal Controlled Current Source" Isp26 {
+        }
+        [
+            position = 8832, 9048
+            rotation = left
+            hide_name = True
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component "core/Current Measurement" dyn_current_2 {
+            execution_rate = "Ts"
+            sig_output = "True"
+        }
+        [
+            position = 8768, 9008
+            rotation = down
+            scale = 1, -1
+            size = 64, 32
+        ]
+
+        component gen_integrator Integrator9 {
+        }
+        [
+            position = 8920, 8824
+            hide_name = True
+        ]
+
+        component gen_probe dyn_chgAh_2 {
+        }
+        [
+            position = 9016, 8808
+        ]
+
+        component gen_integrator Integrator10 {
+        }
+        [
+            position = 8920, 8888
+            hide_name = True
+        ]
+
+        component gen_probe dyn_disAh_2 {
+        }
+        [
+            position = 9016, 8888
+        ]
+
+        component gen_c_function "C function11" {
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = current;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 8824, 8856
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_c_function "C function12" {
+            global_variables = "real next_sw;real first_time_step_flag;real counter_cooldown;"
+            init_fnc = "/*Begin code section*/
+script_no = 1;  // start with the first script
+sw_select = 1;  // start with first sw permutation (1st script)
+timer = 0;
+counter_cooldown = counter_cooldown_max;
+ // wait an \"hour\" for the
+// battery to go back to its original temperature [instant with typhoon] 
+// and to discharge the RC capacitors
+first_time_step_flag = 1;  // This flag exists because vcell measurement
+// will always start with 0. We need to prevent even looking at that false vcell.
+temperature = input_temp;
+/*End code section*/"
+            input_terminals = "real input_temp;real Vcell;"
+            input_terminals_dimensions = "inherit;inherit"
+            input_terminals_feedthrough = "True;True"
+            input_terminals_show_labels = "True;True"
+            output_fnc = "/*Begin code section*/
+if (sw_select == 0) {  // Resting the battery cell
+    counter_cooldown--;
+    if (counter_cooldown <= 0) {
+        sw_select = next_sw;
+        counter_cooldown = counter_cooldown_max;
+    }
+}
+else {  //  (sw_select != 0) 
+    timer += Ts;
+    if (timer >= DYN_SCRIPT_1_STOP_TIME && sw_select == 1){
+        // This part triggers when the LUT attached to sw_select finishes with its dynamic profile
+        // Consequently, the profile starts again by resetting the timer to 0
+        timer = 0;
+        if (Vcell < V_end_script_1 && first_time_step_flag != 1){
+            // If battery cell reached less than roughly 10% of SOC, stop the dynamic profile injection
+            // This is to prevent possible undervoltage with high current peaks
+            sw_select = 0;
+            next_sw = 2;
+            temperature = 25;  // And remains so for the rest of the scripts
+            script_no = 2;
+        }
+    }
+    else if (Vcell <= Vmin && sw_select == 2){
+        sw_select = 3;  // Tither profiles
+        timer = 0;  // Refresh timer
+    }
+    else if (timer >= DYN_DIS_CHG_TITHER_STOP_TIME && sw_select == 3){
+        timer = 0;
+        if (Vcell < Vmin) {
+            // If battery cell reached less than Vmin, stop the tither profile injection
+            sw_select = 4;
+            script_no = 3;
+            // No need to rest the battery cell
+            // Constant current charging of the battery cell with C/1
+        }
+    }
+    else if (sw_select == 4 && Vcell > Vmax){  // Constant current charge reached Vmax
+        sw_select = 5;  // Tither profiles
+        timer = 0;  // Refresh timer
+    }
+    else if (sw_select == 5 && timer >= DYN_CHG_TITHER_STOP_TIME){
+        timer = 0;  // Refresh timer
+        if (Vcell > Vmax){
+            sw_select = 0;
+            script_no = 4;
+            next_sw = 0;
+        }
+    }
+}
+
+first_time_step_flag = 0;
+/*End code section*/"
+            output_terminals = "real sw_select;inherit temperature;inherit timer;inherit script_no;"
+            output_terminals_dimensions = "inherit;inherit;inherit;inherit"
+            output_terminals_feedthrough = "True;True;True;True"
+            output_terminals_show_labels = "True;True;True;True"
+            parameters = "real Vmin;real Vmax;real V_end_script_1;real counter_cooldown_max;real DYN_SCRIPT_1_STOP_TIME;real DYN_CHG_TITHER_STOP_TIME;real DYN_DIS_CHG_TITHER_STOP_TIME;real Ts;"
+        }
+        [
+            position = 8656, 8656
+            hide_name = True
+            size = 176, 160
+        ]
+
+        component gen_probe dyn_script_no_2 {
+        }
+        [
+            position = 8824, 8720
+        ]
+
+        component lut_1d "1D look-up table34" {
+            in_vec_x = "OCV_25_SCRIPT_2_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_2_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8520, 8920
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table35" {
+            in_vec_x = "OCV_25_SCRIPT_4_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_4_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 8520, 8952
+            hide_name = True
+        ]
+
+        component "core/Battery Cell" "Dyn Battery Cell_05" {
+            Init_SOC = "init_dynamic"
+            Q_total = "total_Q"
+            Ts = "Ts"
+        }
+        [
+            position = 9552, 9056
+            size = 32, 64
+        ]
+
+        component "core/Voltage Measurement" dyn_voltage_3 {
+            execution_rate = "Ts"
+            sig_output = "True"
+            signal_access = "Inherit"
+        }
+        [
+            position = 9392, 9048
+            rotation = right
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component sys_mp_signal_switch "Multiport signal switch6" {
+            number_of_input_terminals = "5"
+        }
+        [
+            position = 9528, 8912
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table36" {
+            in_vec_x = "DYN_25_SCRIPT_1_TIME"
+            out_vec_f_x = "DYN_25_SCRIPT_1_CURRENT"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 9384, 8888
+            hide_name = True
+        ]
+
+        component "core/Signal Controlled Current Source" Isp27 {
+        }
+        [
+            position = 9696, 9048
+            rotation = left
+            hide_name = True
+            scale = -1, 1
+            size = 64, 32
+        ]
+
+        component "core/Current Measurement" dyn_current_3 {
+            execution_rate = "Ts"
+            sig_output = "True"
+        }
+        [
+            position = 9632, 9008
+            rotation = down
+            scale = 1, -1
+            size = 64, 32
+        ]
+
+        component gen_integrator Integrator11 {
+        }
+        [
+            position = 9784, 8824
+            hide_name = True
+        ]
+
+        component gen_probe dyn_chgAh_3 {
+        }
+        [
+            position = 9880, 8808
+        ]
+
+        component gen_integrator Integrator12 {
+        }
+        [
+            position = 9784, 8888
+            hide_name = True
+        ]
+
+        component gen_probe dyn_disAh_3 {
+        }
+        [
+            position = 9880, 8888
+        ]
+
+        component gen_c_function "C function13" {
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = current;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 9688, 8856
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_c_function "C function14" {
+            global_variables = "real next_sw;real first_time_step_flag;real counter_cooldown;"
+            init_fnc = "/*Begin code section*/
+script_no = 1;  // start with the first script
+sw_select = 1;  // start with first sw permutation (1st script)
+timer = 0;
+counter_cooldown = counter_cooldown_max;
+ // wait an \"hour\" for the
+// battery to go back to its original temperature [instant with typhoon] 
+// and to discharge the RC capacitors
+first_time_step_flag = 1;  // This flag exists because vcell measurement
+// will always start with 0. We need to prevent even looking at that false vcell.
+temperature = input_temp;
+/*End code section*/"
+            input_terminals = "real input_temp;real Vcell;"
+            input_terminals_dimensions = "inherit;inherit"
+            input_terminals_feedthrough = "True;True"
+            input_terminals_show_labels = "True;True"
+            output_fnc = "/*Begin code section*/
+if (sw_select == 0) {  // Resting the battery cell
+    counter_cooldown--;
+    if (counter_cooldown <= 0) {
+        sw_select = next_sw;
+        counter_cooldown = counter_cooldown_max;
+    }
+}
+else {  //  (sw_select != 0) 
+    timer += Ts;
+    if (timer >= DYN_SCRIPT_1_STOP_TIME && sw_select == 1){
+        // This part triggers when the LUT attached to sw_select finishes with its dynamic profile
+        // Consequently, the profile starts again by resetting the timer to 0
+        timer = 0;
+        if (Vcell < V_end_script_1 && first_time_step_flag != 1){
+            // If battery cell reached less than roughly 10% of SOC, stop the dynamic profile injection
+            // This is to prevent possible undervoltage with high current peaks
+            sw_select = 0;
+            next_sw = 2;
+            temperature = 25;  // And remains so for the rest of the scripts
+            script_no = 2;
+        }
+    }
+    else if (Vcell <= Vmin && sw_select == 2){
+        sw_select = 3;  // Tither profiles
+        timer = 0;  // Refresh timer
+    }
+    else if (timer >= DYN_DIS_CHG_TITHER_STOP_TIME && sw_select == 3){
+        timer = 0;
+        if (Vcell < Vmin) {
+            // If battery cell reached less than Vmin, stop the tither profile injection
+            sw_select = 4;
+            script_no = 3;
+            // No need to rest the battery cell
+            // Constant current charging of the battery cell with C/1
+        }
+    }
+    else if (sw_select == 4 && Vcell > Vmax){  // Constant current charge reached Vmax
+        sw_select = 5;  // Tither profiles
+        timer = 0;  // Refresh timer
+    }
+    else if (sw_select == 5 && timer >= DYN_CHG_TITHER_STOP_TIME){
+        timer = 0;  // Refresh timer
+        if (Vcell > Vmax){
+            sw_select = 0;
+            script_no = 4;
+            next_sw = 0;
+        }
+    }
+}
+
+first_time_step_flag = 0;
+/*End code section*/"
+            output_terminals = "real sw_select;inherit temperature;inherit timer;inherit script_no;"
+            output_terminals_dimensions = "inherit;inherit;inherit;inherit"
+            output_terminals_feedthrough = "True;True;True;True"
+            output_terminals_show_labels = "True;True;True;True"
+            parameters = "real Vmin;real Vmax;real V_end_script_1;real counter_cooldown_max;real DYN_SCRIPT_1_STOP_TIME;real DYN_CHG_TITHER_STOP_TIME;real DYN_DIS_CHG_TITHER_STOP_TIME;real Ts;"
+        }
+        [
+            position = 9520, 8656
+            hide_name = True
+            size = 176, 160
+        ]
+
+        component gen_probe dyn_script_no_3 {
+        }
+        [
+            position = 9688, 8720
+        ]
+
+        component lut_1d "1D look-up table37" {
+            in_vec_x = "OCV_25_SCRIPT_2_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_2_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 9384, 8920
+            hide_name = True
+        ]
+
+        component lut_1d "1D look-up table38" {
+            in_vec_x = "OCV_25_SCRIPT_4_TIME_TITHER"
+            out_vec_f_x = "OCV_25_SCRIPT_4_CURRENT_TITHER"
+            table_impl = "Non-equidistant"
+        }
+        [
+            position = 9384, 8952
+            hide_name = True
+        ]
+
+        component gen_probe dyn_temperature_1 {
+        }
+        [
+            position = 8120, 8616
+        ]
+
+        component gen_probe dyn_temperature_2 {
+        }
+        [
+            position = 9000, 8616
+        ]
+
+        component gen_probe dyn_temperature_3 {
+        }
+        [
+            position = 9848, 8608
+        ]
+
+        component gen_c_function "C function15" {
             global_variables = "real next_sw;real counter_cooldown;real first_time_step_flag;real k_time_step;"
             init_fnc = "/*Begin code section*/
 script_no = 1;  // start with the first script
 sw_select = 1;  // start with first sw permutation (1st script)
 timer = 0;
 k_time_step = 1/Ts;
-counter_cooldown = k_time_step*cooldown_time_in_sec;  // wait an hour for the
+counter_cooldown = counter_cooldown_max;  // wait an hour for the
 // battery to go back to its original temperature [instant with typhoon] 
-// and to discharge the capacitors
-// 1000 is there because the execution rate is 1e-4
+// and to discharge the RC capacitors
 first_time_step_flag = 1;  // This flag exists because vcell measurement
 // will always start with 0. We need to prevent even looking at that false vcell.
 temperature = input_temp;
 /*End code section*/"
-            input_terminals = "real input_temp;real Vcell;int time_reset_script_2;int time_reset_script_4;"
-            input_terminals_dimensions = "inherit;inherit;inherit;inherit"
-            input_terminals_feedthrough = "True;True;True;True"
-            input_terminals_show_labels = "True;True;True;True"
+            input_terminals = "real input_temp;real Vcell;"
+            input_terminals_dimensions = "inherit;inherit"
+            input_terminals_feedthrough = "True;True"
+            input_terminals_show_labels = "True;True"
             output_fnc = "/*Begin code section*/
 // The model starts immediately with time and script_no 1
 // sw_select = 1
 // script_no = 1
 
-
-if (Vcell < Vmin && sw_select == 1 && first_time_step_flag != 1) {
-    // Start second script countdown
-    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
-    script_no = 2;  // second script
-    sw_select = 0;  // zero current
-    next_sw = 2;
-    temperature = 25;  // default temperature
+if (sw_select == 0) {
+    counter_cooldown--;
+    if (counter_cooldown <= 0) {
+        sw_select = next_sw;
+        counter_cooldown = counter_cooldown_max;
+    }
 }
-else if (Vcell < Vmin && sw_select == 2) {
-    // Start third script
-    script_no = 3;
-    sw_select = 3;
-    temperature = input_temp;
-    timer = 0;
-}
-else if (Vcell > Vmax && sw_select == 3) {
-    // Start forth script countdown
-    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
-    script_no = 4;
-    sw_select = 0;  // zero current
-    next_sw = 4;
-}
-else if (Vcell > Vmax && sw_select == 4) {
-    // Start forth script countdown
-    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
-    sw_select = 0;  // zero current
-    script_no = 5;
-    next_sw = 0;
+else {  // (sw_select != 0)
+    timer += Ts;
+    if (Vcell < Vmin && sw_select == 1 && first_time_step_flag != 1) {
+        // Start second script countdown
+        // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+        script_no = 2;  // second script
+        sw_select = 0;  // zero current
+        next_sw = 2;
+        temperature = 25;  // default temperature
+        timer = 0;
+    }
+    else if (timer > OCV_25_SCRIPT_2_TIME_STOP && sw_select == 2){
+        timer = 0;
+        if (Vcell < Vmin) {
+            // Start third script
+            script_no = 3;
+            sw_select = 3;
+            temperature = input_temp;
+        }
+    }
+    else if (Vcell > Vmax && sw_select == 3) {
+        // Start forth script countdown
+        // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+        script_no = 4;
+        sw_select = 0;  // zero current
+        next_sw = 4;
+        timer = 0;
+    }
+    else if (timer > OCV_25_SCRIPT_4_TIME_STOP && sw_select == 4){
+        timer = 0;
+        if (Vcell > Vmax) {
+            // Start forth script countdown
+            // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+            sw_select = 0;  // zero current
+            script_no = 5;
+            next_sw = 0;
+        }
+    }
 }
 
 first_time_step_flag = 0;
-if (sw_select == 0) {
-    counter_cooldown--;
-    timer = 0;
-    if (counter_cooldown == 0) {
-        sw_select = next_sw;
-        counter_cooldown = k_time_step*cooldown_time_in_sec;
-    }
-}
-if (sw_select != 0) {
-    timer += Ts;
-}
-
-if (time_reset_script_2 > 0 && sw_select == 2){
-    timer = 0;
-}
-else if (time_reset_script_4 > 0 && sw_select == 4){
-    timer = 0;
-}
 /*End code section*/"
             output_terminals = "real sw_select;inherit temperature;inherit timer;inherit script_no;"
             output_terminals_dimensions = "inherit;inherit;inherit;inherit"
             output_terminals_feedthrough = "True;True;True;True"
             output_terminals_show_labels = "True;True;True;True"
-            parameters = "real Vmin;real Vmax;real cooldown_time_in_sec;real Ts;"
+            parameters = "real Vmin;real Vmax;real Ts;real OCV_25_SCRIPT_4_TIME_STOP;real OCV_25_SCRIPT_2_TIME_STOP;real counter_cooldown_max;"
         }
         [
-            position = 8760, 7880
+            position = 8736, 7904
             hide_name = True
             size = 264, 160
         ]
 
-        component gen_c_function "C function9" {
+        component gen_c_function "C function16" {
             global_variables = "real next_sw;real counter_cooldown;real first_time_step_flag;real k_time_step;"
             init_fnc = "/*Begin code section*/
 script_no = 1;  // start with the first script
 sw_select = 1;  // start with first sw permutation (1st script)
 timer = 0;
 k_time_step = 1/Ts;
-counter_cooldown = k_time_step*cooldown_time_in_sec;  // wait an hour for the
+counter_cooldown = counter_cooldown_max;  // wait an hour for the
 // battery to go back to its original temperature [instant with typhoon] 
-// and to discharge the capacitors
-// 1000 is there because the execution rate is 1e-4
+// and to discharge the RC capacitors
 first_time_step_flag = 1;  // This flag exists because vcell measurement
 // will always start with 0. We need to prevent even looking at that false vcell.
 temperature = input_temp;
 /*End code section*/"
-            input_terminals = "real input_temp;real Vcell;int time_reset_script_2;int time_reset_script_4;"
-            input_terminals_dimensions = "inherit;inherit;inherit;inherit"
-            input_terminals_feedthrough = "True;True;True;True"
-            input_terminals_show_labels = "True;True;True;True"
+            input_terminals = "real input_temp;real Vcell;"
+            input_terminals_dimensions = "inherit;inherit"
+            input_terminals_feedthrough = "True;True"
+            input_terminals_show_labels = "True;True"
             output_fnc = "/*Begin code section*/
 // The model starts immediately with time and script_no 1
 // sw_select = 1
 // script_no = 1
 
-
-if (Vcell < Vmin && sw_select == 1 && first_time_step_flag != 1) {
-    // Start second script countdown
-    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
-    script_no = 2;  // second script
-    sw_select = 0;  // zero current
-    next_sw = 2;
-    temperature = 25;  // default temperature
+if (sw_select == 0) {
+    counter_cooldown--;
+    if (counter_cooldown <= 0) {
+        sw_select = next_sw;
+        counter_cooldown = counter_cooldown_max;
+    }
 }
-else if (Vcell < Vmin && sw_select == 2) {
-    // Start third script
-    script_no = 3;
-    sw_select = 3;
-    temperature = input_temp;
-    timer = 0;
-}
-else if (Vcell > Vmax && sw_select == 3) {
-    // Start forth script countdown
-    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
-    script_no = 4;
-    sw_select = 0;  // zero current
-    next_sw = 4;
-}
-else if (Vcell > Vmax && sw_select == 4) {
-    // Start forth script countdown
-    // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
-    sw_select = 0;  // zero current
-    script_no = 5;
-    next_sw = 0;
+else {  // (sw_select != 0)
+    timer += Ts;
+    if (Vcell < Vmin && sw_select == 1 && first_time_step_flag != 1) {
+        // Start second script countdown
+        // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+        script_no = 2;  // second script
+        sw_select = 0;  // zero current
+        next_sw = 2;
+        temperature = 25;  // default temperature
+        timer = 0;
+    }
+    else if (timer > OCV_25_SCRIPT_2_TIME_STOP && sw_select == 2){
+        timer = 0;
+        if (Vcell < Vmin) {
+            // Start third script
+            script_no = 3;
+            sw_select = 3;
+            temperature = input_temp;
+        }
+    }
+    else if (Vcell > Vmax && sw_select == 3) {
+        // Start forth script countdown
+        // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+        script_no = 4;
+        sw_select = 0;  // zero current
+        next_sw = 4;
+        timer = 0;
+    }
+    else if (timer > OCV_25_SCRIPT_4_TIME_STOP && sw_select == 4){
+        timer = 0;
+        if (Vcell > Vmax) {
+            // Start forth script countdown
+            // Usually we would wait for the batteries and the chamber to cool off back to 25 degrees 
+            sw_select = 0;  // zero current
+            script_no = 5;
+            next_sw = 0;
+        }
+    }
 }
 
 first_time_step_flag = 0;
-if (sw_select == 0) {
-    counter_cooldown--;
-    timer = 0;
-    if (counter_cooldown == 0) {
-        sw_select = next_sw;
-        counter_cooldown = k_time_step*cooldown_time_in_sec;
-    }
-}
-if (sw_select != 0) {
-    timer += Ts;
-}
-
-if (time_reset_script_2 > 0 && sw_select == 2){
-    timer = 0;
-}
-else if (time_reset_script_4 > 0 && sw_select == 4){
-    timer = 0;
-}
 /*End code section*/"
             output_terminals = "real sw_select;inherit temperature;inherit timer;inherit script_no;"
             output_terminals_dimensions = "inherit;inherit;inherit;inherit"
             output_terminals_feedthrough = "True;True;True;True"
             output_terminals_show_labels = "True;True;True;True"
-            parameters = "real Vmin;real Vmax;real cooldown_time_in_sec;real Ts;"
+            parameters = "real Vmin;real Vmax;real Ts;real OCV_25_SCRIPT_4_TIME_STOP;real OCV_25_SCRIPT_2_TIME_STOP;real counter_cooldown_max;"
         }
         [
-            position = 9624, 7888
+            position = 9592, 7888
             hide_name = True
             size = 264, 160
         ]
@@ -1047,30 +1530,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             size = 60, 20
         ]
 
-        tag From2 {
-            value = "timer_1"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 7496, 7968
-            hide_name = True
-            size = 60, 20
-        ]
-
-        tag From3 {
-            value = "timer_1"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 7496, 7904
-            hide_name = True
-            size = 60, 20
-        ]
-
         tag Goto3 {
             value = "vcell_1"
             scope = local
@@ -1091,7 +1550,7 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             direction = out
         }
         [
-            position = 7664, 7896
+            position = 7664, 7976
             hide_name = True
             size = 60, 20
         ]
@@ -1132,54 +1591,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             size = 60, 20
         ]
 
-        tag Goto9 {
-            value = "sc_2_stop"
-            scope = local
-            kind = sp
-            direction = in
-        }
-        [
-            position = 7384, 8528
-            hide_name = True
-            size = 60, 20
-        ]
-
-        tag Goto10 {
-            value = "sc_4_stop"
-            scope = local
-            kind = sp
-            direction = in
-        }
-        [
-            position = 7384, 8592
-            hide_name = True
-            size = 60, 20
-        ]
-
-        tag From13 {
-            value = "sc_2_stop"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 7496, 7936
-            hide_name = True
-            size = 60, 20
-        ]
-
-        tag From14 {
-            value = "sc_4_stop"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 7496, 8000
-            hide_name = True
-            size = 60, 20
-        ]
-
         tag Goto11 {
             value = "dischg"
             scope = local
@@ -1187,7 +1598,7 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             direction = in
         }
         [
-            position = 7384, 8656
+            position = 7384, 8568
             hide_name = True
             size = 60, 20
         ]
@@ -1199,7 +1610,7 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             direction = in
         }
         [
-            position = 7384, 8720
+            position = 7384, 8632
             hide_name = True
             size = 60, 20
         ]
@@ -1264,30 +1675,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             size = 60, 20
         ]
 
-        tag From18 {
-            value = "timer_2"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 8352, 7960
-            hide_name = True
-            size = 60, 20
-        ]
-
-        tag From19 {
-            value = "timer_2"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 8352, 7896
-            hide_name = True
-            size = 60, 20
-        ]
-
         tag Goto15 {
             value = "vcell_2"
             scope = local
@@ -1308,7 +1695,7 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             direction = out
         }
         [
-            position = 8520, 7888
+            position = 8512, 7968
             hide_name = True
             size = 60, 20
         ]
@@ -1345,30 +1732,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         }
         [
             position = 8488, 8192
-            hide_name = True
-            size = 60, 20
-        ]
-
-        tag From23 {
-            value = "sc_2_stop"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 8352, 7928
-            hide_name = True
-            size = 60, 20
-        ]
-
-        tag From24 {
-            value = "sc_4_stop"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 8352, 7992
             hide_name = True
             size = 60, 20
         ]
@@ -1433,30 +1796,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             size = 60, 20
         ]
 
-        tag From28 {
-            value = "timer_3"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 9224, 7936
-            hide_name = True
-            size = 60, 20
-        ]
-
-        tag From29 {
-            value = "timer_3"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 9224, 7872
-            hide_name = True
-            size = 60, 20
-        ]
-
         tag Goto19 {
             value = "vcell_3"
             scope = local
@@ -1477,7 +1816,7 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             direction = out
         }
         [
-            position = 9392, 7864
+            position = 9384, 7952
             hide_name = True
             size = 60, 20
         ]
@@ -1518,30 +1857,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             size = 60, 20
         ]
 
-        tag From33 {
-            value = "sc_2_stop"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 9224, 7904
-            hide_name = True
-            size = 60, 20
-        ]
-
-        tag From34 {
-            value = "sc_4_stop"
-            scope = local
-            kind = sp
-            direction = out
-        }
-        [
-            position = 9224, 7968
-            hide_name = True
-            size = 60, 20
-        ]
-
         tag From35 {
             value = "dischg"
             scope = local
@@ -1567,74 +1882,496 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         ]
 
         tag From37 {
-            value = "temp_1_dyn"
+            value = "dyn_temperature_1"
             scope = local
             kind = sp
             direction = out
         }
         [
-            position = 7672, 9184
+            position = 7768, 9048
             hide_name = True
             size = 60, 20
         ]
 
         tag Goto21 {
-            value = "vcell_1"
+            value = "dyn_vcell_1"
             scope = local
             kind = sp
             direction = in
         }
         [
-            position = 7496, 9248
+            position = 7592, 9112
             rotation = down
             hide_name = True
             size = 60, 20
         ]
 
         tag From38 {
-            value = "timer_1"
+            value = "dyn_timer_1"
             scope = local
             kind = sp
             direction = out
         }
         [
-            position = 7496, 9064
+            position = 7592, 8920
             hide_name = True
             size = 60, 20
         ]
 
         tag From39 {
-            value = "sw_select_1"
+            value = "dyn_sw_select_1"
             scope = local
             kind = sp
             direction = out
         }
         [
-            position = 7584, 9016
+            position = 7680, 8800
             hide_name = True
             size = 60, 20
         ]
 
-        tag From40 {
-            value = "dischg"
+        tag Goto22 {
+            value = "test_temp_1"
             scope = local
             kind = sp
-            direction = out
+            direction = in
         }
         [
-            position = 7656, 9032
+            position = 7104, 8720
             hide_name = True
             size = 60, 20
         ]
 
-        tag From41 {
-            value = "chg"
+        tag From42 {
+            value = "test_temp_1"
             scope = local
             kind = sp
             direction = out
         }
         [
-            position = 7656, 9064
+            position = 7664, 7848
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto23 {
+            value = "test_temp_2"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7104, 8784
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto24 {
+            value = "test_temp_3"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7104, 8848
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From43 {
+            value = "test_temp_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8504, 7840
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From44 {
+            value = "test_temp_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9376, 7824
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From45 {
+            value = "test_temp_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7576, 8592
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto25 {
+            value = "dyn_sw_select_1"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8056, 8592
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From46 {
+            value = "dyn_vcell_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7576, 8720
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto27 {
+            value = "dyn_timer_1"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8000, 8672
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto28 {
+            value = "dyn_temperature_1"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8000, 8640
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto29 {
+            value = "dyn_dis_chg"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7384, 8976
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From47 {
+            value = "dyn_dis_chg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7736, 8904
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From48 {
+            value = "dyn_chg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7736, 8936
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto30 {
+            value = "dyn_chg"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 7384, 9040
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From49 {
+            value = "dyn_temperature_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8600, 9048
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto31 {
+            value = "dyn_vcell_2"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8424, 9112
+            rotation = down
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From50 {
+            value = "dyn_timer_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8424, 8920
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From51 {
+            value = "dyn_sw_select_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8512, 8800
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From52 {
+            value = "test_temp_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8408, 8592
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto32 {
+            value = "dyn_sw_select_2"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8888, 8592
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From53 {
+            value = "dyn_vcell_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8408, 8720
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto33 {
+            value = "dyn_timer_2"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8832, 8672
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto34 {
+            value = "dyn_temperature_2"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 8832, 8640
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From54 {
+            value = "dyn_dis_chg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8568, 8904
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From55 {
+            value = "dyn_chg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8568, 8936
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From56 {
+            value = "dyn_temperature_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9464, 9048
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto35 {
+            value = "dyn_vcell_3"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 9288, 9112
+            rotation = down
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From57 {
+            value = "dyn_timer_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9288, 8920
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From58 {
+            value = "dyn_sw_select_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9376, 8800
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From59 {
+            value = "test_temp_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9272, 8592
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto36 {
+            value = "dyn_sw_select_3"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 9752, 8592
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From60 {
+            value = "dyn_vcell_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9272, 8720
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto37 {
+            value = "dyn_timer_3"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 9696, 8672
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag Goto38 {
+            value = "dyn_temperature_3"
+            scope = local
+            kind = sp
+            direction = in
+        }
+        [
+            position = 9696, 8640
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From61 {
+            value = "dyn_dis_chg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9432, 8904
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From62 {
+            value = "dyn_chg"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9432, 8936
             hide_name = True
             size = 60, 20
         ]
@@ -1684,54 +2421,99 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             position = 8056, 7800
         ]
 
-        junction Junction115 sp
-        [
-            position = 7560, 9064
-        ]
-
         junction Junction116 pe
         [
-            position = 7760, 9144
+            position = 7856, 9008
         ]
 
-        junction Junction117 sp
+        junction Junction121 sp
         [
-            position = 9792, 7896
+            position = 7640, 8920
         ]
 
-        junction Junction118 sp
+        junction Junction122 sp
         [
-            position = 9792, 7856
+            position = 7640, 8920
         ]
 
-        junction Junction119 sp
+        junction Junction123 pe
         [
-            position = 8920, 7864
+            position = 8688, 9008
         ]
 
-        junction Junction120 sp
+        junction Junction124 sp
         [
-            position = 8920, 7920
+            position = 8472, 8920
         ]
 
-        comment Comment4 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 45 DEG </p></body></html> ENDCOMMENT 
+        junction Junction125 sp
+        [
+            position = 8472, 8920
+        ]
+
+        junction Junction126 pe
+        [
+            position = 9552, 9008
+        ]
+
+        junction Junction127 sp
+        [
+            position = 9336, 8920
+        ]
+
+        junction Junction128 sp
+        [
+            position = 9336, 8920
+        ]
+
+        junction Junction129 sp
+        [
+            position = 7952, 8640
+        ]
+
+        junction Junction130 sp
+        [
+            position = 8784, 8640
+        ]
+
+        junction Junction131 sp
+        [
+            position = 9640, 8640
+        ]
+
+        junction Junction132 sp
+        [
+            position = 9800, 7896
+        ]
+
+        junction Junction133 sp
+        [
+            position = 9792, 7864
+        ]
+
+        junction Junction134 sp
+        [
+            position = 8904, 7888
+        ]
+
+        junction Junction135 sp
+        [
+            position = 8904, 7920
+        ]
+
+        comment Comment4 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 45 DEG  </p><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">DYNAMIC TEST </p></body></html> ENDCOMMENT 
         [
             position = 8520, 8464
         ]
 
-        comment Comment5 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 25 DEG </p></body></html> ENDCOMMENT 
+        comment Comment5 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 25 DEG  </p><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">DYNAMIC TEST </p></body></html> ENDCOMMENT 
         [
             position = 7696, 8464
         ]
 
-        comment Comment6 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 5 DEG  </p></body></html> ENDCOMMENT 
+        comment Comment6 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 5 DEG   </p><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">DYNAMIC TEST </p></body></html> ENDCOMMENT 
         [
             position = 9440, 8432
-        ]
-
-        comment Comment7 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">DYNAMIC TEST<br />TEMP 25 DEG  </p></body></html> ENDCOMMENT 
-        [
-            position = 7648, 9280
         ]
 
         connect "1D look-up table23.value" "Multiport signal switch1.in1" as Connection331
@@ -1745,24 +2527,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         connect voltage_1.p_node Junction91 as Connection341
         connect Junction91 "Battery Cell_25.P" as Connection342
         connect From1 "Battery Cell_25.T" as Connection351
-        connect "battery temp 1.out" "C function1.input_temp" as Connection356
-        connect From3 Comparator2.in1 as Connection381
-        connect Comparator2.out "Unit Delay1.in" as Connection384
-        [
-            hide_name = True
-        ]
-        connect "Unit Delay1.out" "C function1.time_reset_script_2" as Connection385
-        [
-            hide_name = True
-        ]
-        connect Comparator1.out "Unit Delay2.in" as Connection386
-        [
-            hide_name = True
-        ]
-        connect "Unit Delay2.out" "C function1.time_reset_script_4" as Connection387
-        [
-            hide_name = True
-        ]
         connect Isp22.n_node current_1.p_node as Connection390
         connect current_1.n_node Junction91 as Connection391
         connect Integrator1.out chgAh_1.in as Connection392
@@ -1774,16 +2538,10 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         connect temperature_1.in Junction98 as Connection400
         connect script_no_1.in "C function1.script_no" as Connection402
         connect Goto3 voltage_1.out as Connection403
-        connect From4 "C function1.Vcell" as Connection404
         connect Goto2 Junction100 as Connection412
         connect Junction100 "C function1.timer" as Connection413
         connect time_1.in Junction100 as Connection414
         connect Integrator2.in "C function2.out2" as Connection417
-        connect Goto9 SCRIPT_2_STOP.out as Connection458
-        connect Goto10 SCRIPT_4_STOP.out as Connection459
-        connect From13 Comparator2.in2 as Connection460
-        connect From14 Comparator1.in2 as Connection461
-        connect From2 Comparator1.in1 as Connection462
         connect Goto12 CHG.out as Connection463
         connect DISCHG.out Goto11 as Connection464
         connect From16 "Multiport signal switch1.in2" as Connection465
@@ -1803,15 +2561,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         connect voltage_2.p_node Junction105 as Connection477
         connect Junction105 "Battery Cell_45.P" as Connection478
         connect From17 "Battery Cell_45.T" as Connection479
-        connect From19 Comparator4.in1 as Connection481
-        connect Comparator4.out "Unit Delay3.in" as Connection482
-        [
-            hide_name = True
-        ]
-        connect Comparator3.out "Unit Delay4.in" as Connection484
-        [
-            hide_name = True
-        ]
         connect Isp23.n_node current_2.p_node as Connection486
         connect current_2.n_node Junction105 as Connection487
         connect Integrator3.out chgAh_2.in as Connection488
@@ -1820,9 +2569,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         connect "C function4.out" Integrator3.in as Connection491
         connect Goto15 voltage_2.out as Connection496
         connect Integrator4.in "C function4.out2" as Connection502
-        connect From23 Comparator4.in2 as Connection503
-        connect From24 Comparator3.in2 as Connection504
-        connect From18 Comparator3.in1 as Connection505
         connect From26 "Multiport signal switch2.in2" as Connection506
         connect From25 "Multiport signal switch2.in" as Connection507
         connect From21 Junction108 as Connection508
@@ -1840,15 +2586,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         connect voltage_3.p_node Junction109 as Connection517
         connect Junction109 "Battery Cell_05.P" as Connection518
         connect From27 "Battery Cell_05.T" as Connection519
-        connect From29 Comparator6.in1 as Connection521
-        connect Comparator6.out "Unit Delay5.in" as Connection522
-        [
-            hide_name = True
-        ]
-        connect Comparator5.out "Unit Delay6.in" as Connection524
-        [
-            hide_name = True
-        ]
         connect Isp24.n_node current_3.p_node as Connection526
         connect current_3.n_node Junction109 as Connection527
         connect Integrator5.out chgAh_3.in as Connection528
@@ -1857,9 +2594,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         connect "C function6.out" Integrator5.in as Connection531
         connect Goto19 voltage_3.out as Connection536
         connect Integrator6.in "C function6.out2" as Connection542
-        connect From33 Comparator6.in2 as Connection543
-        connect From34 Comparator5.in2 as Connection544
-        connect From28 Comparator5.in1 as Connection545
         connect From36 "Multiport signal switch3.in2" as Connection546
         connect From35 "Multiport signal switch3.in" as Connection547
         connect From31 Junction112 as Connection548
@@ -1872,124 +2606,178 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             breakpoints = 8064, 7800; 8040, 7800
         ]
         connect sw_select_1.in Junction113 as Connection554
-        connect "1D look-up table30.value" "Multiport signal switch4.in1" as Connection555
-        connect "1D look-up table31.value" "Multiport signal switch4.in3" as Connection556
         connect Isp25.in "Multiport signal switch4.out" as Connection557
-        connect Isp25.n_node current_4.p_node as Connection563
-        connect Integrator7.out chgAh_4.in as Connection565
-        connect Integrator8.out disAh_4.in as Connection566
-        connect "C function7.current" current_4.out as Connection567
+        connect Isp25.n_node dyn_current_1.p_node as Connection563
+        connect Integrator7.out dyn_chgAh_1.in as Connection565
+        connect Integrator8.out dyn_disAh_1.in as Connection566
+        connect "C function7.current" dyn_current_1.out as Connection567
+        [
+            breakpoints = 7936, 8984; 7936, 8984
+        ]
         connect "C function7.out" Integrator7.in as Connection568
-        connect Goto21 voltage_4.out as Connection569
+        connect Goto21 dyn_voltage_1.out as Connection569
         connect Integrator8.in "C function7.out2" as Connection570
-        connect From41 "Multiport signal switch4.in2" as Connection571
-        connect From40 "Multiport signal switch4.in" as Connection572
-        connect From38 Junction115 as Connection573
-        connect Junction115 "1D look-up table30.addr" as Connection574
-        connect "1D look-up table31.addr" Junction115 as Connection575
         connect "Multiport signal switch4.ctrl" From39 as Connection576
-        connect "Battery Cell_25_dyn.N" voltage_4.n_node as Connection578
-        connect Isp25.p_node "Battery Cell_25_dyn.N" as Connection579
-        connect current_4.n_node Junction116 as Connection580
-        connect Junction116 voltage_4.p_node as Connection581
         [
-            breakpoints = 7760, 9144
+            breakpoints = 7792, 8864; 7792, 8864; 7792, 8800
         ]
-        connect "Battery Cell_25_dyn.P" Junction116 as Connection582
-        connect "Battery Cell_25_dyn.T" From37 as Connection583
-        connect script_no_3.in "C function9.script_no" as Connection588
-        connect Goto18 Junction117 as Connection589
-        connect Junction117 time_3.in as Connection590
+        connect "Dyn Battery Cell_25.N" dyn_voltage_1.n_node as Connection578
+        connect Isp25.p_node "Dyn Battery Cell_25.N" as Connection579
+        connect dyn_current_1.n_node Junction116 as Connection580
+        connect Junction116 dyn_voltage_1.p_node as Connection581
         [
-            breakpoints = 9840, 7896; 9792, 7896
+            breakpoints = 7856, 9008
         ]
-        connect "C function9.timer" Junction117 as Connection591
-        connect temperature_3.in Junction118 as Connection592
-        connect Junction118 Goto17 as Connection593
+        connect "Dyn Battery Cell_25.P" Junction116 as Connection582
+        connect "Dyn Battery Cell_25.T" From37 as Connection583
+        connect Time.in Clock1.out as Connection612
+        connect Goto22 "battery temp 1.out" as Connection614
+        connect From42 "C function1.input_temp" as Connection615
+        connect Goto23 "battery temp 2.out" as Connection616
+        connect "battery temp 3.out" Goto24 as Connection617
+        connect From45 "C function10.input_temp" as Connection620
+        connect Goto25 "C function10.sw_select" as Connection621
+        connect "Multiport signal switch4.in" "1D look-up table30.value" as Connection627
+        connect From46 "C function10.Vcell" as Connection628
+        connect Goto27 "C function10.timer" as Connection634
+        connect dyn_script_no_1.in "C function10.script_no" as Connection636
+        connect Goto29 DYN_DIS_CHG.out as Connection637
+        connect From47 "Multiport signal switch4.in1" as Connection638
+        connect "1D look-up table30.addr" Junction121 as Connection640
+        connect Junction121 From38 as Connection641
+        connect "1D look-up table31.addr" Junction122 as Connection643
+        connect Junction122 Junction121 as Connection644
+        connect "1D look-up table32.addr" Junction122 as Connection645
+        connect "1D look-up table32.value" "Multiport signal switch4.in4" as Connection646
+        connect "1D look-up table31.value" "Multiport signal switch4.in2" as Connection647
+        connect From48 "Multiport signal switch4.in3" as Connection648
+        connect Goto30 DYN_CHG.out as Connection650
+        connect Isp26.in "Multiport signal switch5.out" as Connection651
+        connect Isp26.n_node dyn_current_2.p_node as Connection652
+        connect Integrator9.out dyn_chgAh_2.in as Connection653
+        connect Integrator10.out dyn_disAh_2.in as Connection654
+        connect "C function11.current" dyn_current_2.out as Connection655
         [
-            breakpoints = 9792, 7864
+            breakpoints = 8768, 8984; 8768, 8984
         ]
-        connect "C function9.temperature" Junction118 as Connection594
-        connect "C function9.sw_select" Goto20 as Connection595
+        connect "C function11.out" Integrator9.in as Connection656
+        connect Goto31 dyn_voltage_2.out as Connection657
+        connect Integrator10.in "C function11.out2" as Connection658
+        connect "Multiport signal switch5.ctrl" From51 as Connection659
         [
-            breakpoints = 9784, 7824; 9784, 7768
+            breakpoints = 8624, 8864; 8624, 8864; 8624, 8800
         ]
-        connect "Unit Delay5.out" "C function9.time_reset_script_2" as Connection596
-        connect "Unit Delay6.out" "C function9.time_reset_script_4" as Connection597
-        connect "C function9.Vcell" From30 as Connection598
-        connect "C function9.input_temp" "battery temp 3.out" as Connection599
-        connect temperature_2.in Junction119 as Connection600
-        connect Junction119 Goto13 as Connection601
+        connect "Dyn Battery Cell_45.N" dyn_voltage_2.n_node as Connection660
+        connect Isp26.p_node "Dyn Battery Cell_45.N" as Connection661
+        connect dyn_current_2.n_node Junction123 as Connection662
+        connect Junction123 dyn_voltage_2.p_node as Connection663
         [
-            breakpoints = 8920, 7888
+            breakpoints = 8688, 9008
         ]
-        connect "C function8.temperature" Junction119 as Connection602
-        connect Goto14 Junction120 as Connection603
-        connect Junction120 time_2.in as Connection604
+        connect "Dyn Battery Cell_45.P" Junction123 as Connection664
+        connect "Dyn Battery Cell_45.T" From49 as Connection665
+        connect From52 "C function12.input_temp" as Connection666
+        connect Goto32 "C function12.sw_select" as Connection667
+        connect "Multiport signal switch5.in" "1D look-up table33.value" as Connection668
+        connect From53 "C function12.Vcell" as Connection669
+        connect Goto33 "C function12.timer" as Connection670
+        connect dyn_script_no_2.in "C function12.script_no" as Connection671
+        connect From54 "Multiport signal switch5.in1" as Connection672
+        connect "1D look-up table33.addr" Junction124 as Connection673
+        connect Junction124 From50 as Connection674
+        connect "1D look-up table34.addr" Junction125 as Connection675
+        connect Junction125 Junction124 as Connection676
+        connect "1D look-up table35.addr" Junction125 as Connection677
+        connect "1D look-up table35.value" "Multiport signal switch5.in4" as Connection678
+        connect "1D look-up table34.value" "Multiport signal switch5.in2" as Connection679
+        connect From55 "Multiport signal switch5.in3" as Connection680
+        connect Isp27.in "Multiport signal switch6.out" as Connection682
+        connect Isp27.n_node dyn_current_3.p_node as Connection683
+        connect Integrator11.out dyn_chgAh_3.in as Connection684
+        connect Integrator12.out dyn_disAh_3.in as Connection685
+        connect "C function13.current" dyn_current_3.out as Connection686
         [
-            breakpoints = 8968, 7920; 8920, 7920
+            breakpoints = 9632, 8984; 9632, 8984
         ]
-        connect "C function8.timer" Junction120 as Connection605
-        connect "C function8.script_no" script_no_2.in as Connection606
+        connect "C function13.out" Integrator11.in as Connection687
+        connect Goto35 dyn_voltage_3.out as Connection688
+        connect Integrator12.in "C function13.out2" as Connection689
+        connect "Multiport signal switch6.ctrl" From58 as Connection690
         [
-            breakpoints = 8904, 7944; 8904, 8056
+            breakpoints = 9488, 8864; 9488, 8864; 9488, 8800
         ]
-        connect "C function8.sw_select" Goto16 as Connection607
+        connect "Dyn Battery Cell_05.N" dyn_voltage_3.n_node as Connection691
+        connect Isp27.p_node "Dyn Battery Cell_05.N" as Connection692
+        connect dyn_current_3.n_node Junction126 as Connection693
+        connect Junction126 dyn_voltage_3.p_node as Connection694
         [
-            breakpoints = 8928, 7792
+            breakpoints = 9552, 9008
         ]
-        connect "battery temp 2.out" "C function8.input_temp" as Connection608
-        connect "C function8.Vcell" From20 as Connection609
-        connect "Unit Delay3.out" "C function8.time_reset_script_2" as Connection610
-        connect "Unit Delay4.out" "C function8.time_reset_script_4" as Connection611
+        connect "Dyn Battery Cell_05.P" Junction126 as Connection695
+        connect "Dyn Battery Cell_05.T" From56 as Connection696
+        connect From59 "C function14.input_temp" as Connection697
+        connect Goto36 "C function14.sw_select" as Connection698
+        connect "Multiport signal switch6.in" "1D look-up table36.value" as Connection699
+        connect From60 "C function14.Vcell" as Connection700
+        connect Goto37 "C function14.timer" as Connection701
+        connect dyn_script_no_3.in "C function14.script_no" as Connection702
+        connect From61 "Multiport signal switch6.in1" as Connection703
+        connect "1D look-up table36.addr" Junction127 as Connection704
+        connect Junction127 From57 as Connection705
+        connect "1D look-up table37.addr" Junction128 as Connection706
+        connect Junction128 Junction127 as Connection707
+        connect "1D look-up table38.addr" Junction128 as Connection708
+        connect "1D look-up table38.value" "Multiport signal switch6.in4" as Connection709
+        connect "1D look-up table37.value" "Multiport signal switch6.in2" as Connection710
+        connect From62 "Multiport signal switch6.in3" as Connection711
+        connect From4 "C function1.Vcell" as Connection713
+        connect Goto28 Junction129 as Connection714
+        connect Junction129 "C function10.temperature" as Connection715
+        connect dyn_temperature_1.in Junction129 as Connection716
+        connect Goto34 Junction130 as Connection717
+        connect Junction130 "C function12.temperature" as Connection718
+        connect dyn_temperature_2.in Junction130 as Connection719
+        connect Goto38 Junction131 as Connection720
+        connect Junction131 "C function14.temperature" as Connection721
+        connect dyn_temperature_3.in Junction131 as Connection722
+        connect From30 "C function16.Vcell" as Connection727
+        connect From44 "C function16.input_temp" as Connection728
+        connect "C function16.script_no" script_no_3.in as Connection729
+        connect Goto18 Junction132 as Connection731
+        connect Junction132 "C function16.timer" as Connection732
+        connect time_3.in Junction132 as Connection733
+        connect temperature_3.in Junction133 as Connection734
+        connect Junction133 Goto17 as Connection735
+        [
+            breakpoints = 9792, 7856; 9792, 7864
+        ]
+        connect "C function16.temperature" Junction133 as Connection736
+        connect "C function16.sw_select" Goto20 as Connection737
+        [
+            breakpoints = 9760, 7824; 9760, 7768
+        ]
+        connect "C function15.temperature" Junction134 as Connection739
+        connect Junction134 Goto13 as Connection740
+        connect temperature_2.in Junction134 as Connection741
+        connect "C function15.sw_select" Goto16 as Connection742
+        [
+            breakpoints = 8888, 7840; 8888, 7792
+        ]
+        connect "C function15.timer" Junction135 as Connection744
+        connect Junction135 Goto14 as Connection745
+        connect time_2.in Junction135 as Connection746
+        connect "C function15.script_no" script_no_2.in as Connection747
+        [
+            breakpoints = 8888, 7968; 8888, 8056
+        ]
+        connect From20 "C function15.Vcell" as Connection748
+        connect From43 "C function15.input_temp" as Connection749
     }
 
     logically_deleted {
         "Comment4"
         "Comment5"
         "Comment6"
-        "Battery Cell_25_dyn"
-        "voltage_4"
-        "Multiport signal switch4"
-        "1D look-up table30"
-        "1D look-up table31"
-        "Isp25"
-        "current_4"
-        "Integrator7"
-        "chgAh_4"
-        "Integrator8"
-        "disAh_4"
-        "C function7"
-        "From37"
-        "Goto21"
-        "From38"
-        "From39"
-        "From40"
-        "From41"
-        "Junction115"
-        "Connection555"
-        "Connection556"
-        "Connection557"
-        "Connection563"
-        "Connection565"
-        "Connection566"
-        "Connection567"
-        "Connection568"
-        "Connection569"
-        "Connection570"
-        "Connection571"
-        "Connection572"
-        "Connection573"
-        "Connection574"
-        "Connection575"
-        "Connection576"
-        "Connection578"
-        "Connection579"
-        "Junction116"
-        "Connection580"
-        "Connection581"
-        "Connection582"
-        "Connection583"
     }
 
     default {
@@ -2007,10 +2795,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             init_fnc = ""
             global_variables = ""
             parameters = ""
-            execution_rate = "inherit"
-        }
-
-        gen_comparator {
             execution_rate = "inherit"
         }
 
@@ -2046,6 +2830,12 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
             execution_rate = "inherit"
         }
 
+        src_clock {
+            enb_reset = "False"
+            reset_at = "1.0"
+            execution_rate = "100e-6"
+        }
+
         src_constant {
             value = "1"
             signal_type = "real"
@@ -2068,12 +2858,6 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
 
         sys_mp_signal_switch {
             number_of_input_terminals = "2"
-            execution_rate = "inherit"
-        }
-
-        tm_delay {
-            init_value = "0"
-            signal_out_type = "inherit"
             execution_rate = "inherit"
         }
 
@@ -2180,14 +2964,23 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         # To get the model file path, use 'mdl.get_model_file_path()'
         # To print information to the console, use info()
         Ts = 100e-3
-        cooldown_time_in_sec = 3600  # 3600
+        k_time_step = 1/Ts
+        rest_time_for_temperature_equilibrium = 3600  # 7200s or 2h
+        counter_cooldown_max = k_time_step*rest_time_for_temperature_equilibrium
+        
         Vmax = 4.1497   # Volts
         Vmin = 2.8060   # Volts
         total_Q = [1.4592, 1.4532, 1.4444]
         total_Q = [14.592, 14.532, 14.444]
+        C = 14.532
         DISCHG_RATE =  0.5 # 0.5 if its normal battery discharg speed
         CHG_RATE = -DISCHG_RATE
-        
+        init_dynamic = 90  # 90% initial state of charge for dynamic scripts so that
+        # when the dynamic script executes, current profiles don't push the cell voltage
+        # over the intended Vmax
+        V_end_script_1 = (Vmax-Vmin)*0.1+Vmin  # ends dynamic script 1 when SOC is roughly at 10%
+        DYN_DIS_CHG = C/30
+        DYN_CHG = -C
         
         import pickle
         filename = 'c:\\PROJECT\\battery_cell_testing\\scripts_and_data\\current_profiles.pickle'
@@ -2201,6 +2994,14 @@ else if (time_reset_script_4 > 0 && sw_select == 4){
         OCV_25_SCRIPT_2_TIME_STOP       = current_profiles_dict['OCV_25_SCRIPT_2_TIME_STOP']
         OCV_25_SCRIPT_4_TIME_STOP       = current_profiles_dict['OCV_25_SCRIPT_4_TIME_STOP']
         
+        DYN_25_SCRIPT_1_TIME            = current_profiles_dict['DYN_25_SCRIPT_1_TIME']
+        DYN_25_SCRIPT_1_CURRENT         = current_profiles_dict['DYN_25_SCRIPT_1_CURRENT']
+        DYN_SCRIPT_1_STOP_TIME          = current_profiles_dict['DYN_SCRIPT_1_STOP']
+        # DYN_CHG_TITHER_STOP_TIME        = current_profiles_dict['DYN_CHG_TITHER_STOP_TIME']
+        # DYN_DIS_CHG_TITHER_STOP_TIME    = current_profiles_dict['DYN_DIS_CHG_TITHER_STOP_TIME']
+        # Tither profiles are assumed to be the same as for the static scripts, check later
+        DYN_DIS_CHG_TITHER_STOP_TIME    = OCV_25_SCRIPT_2_TIME_STOP
+        DYN_CHG_TITHER_STOP_TIME        = OCV_25_SCRIPT_4_TIME_STOP
         
         info('ready')
     ENDCODE
