@@ -172,7 +172,7 @@ first_time_step_flag = 0;
             table_impl = "Non-equidistant"
         }
         [
-            position = 7640, 8232
+            position = 7560, 8232
             hide_name = True
         ]
 
@@ -182,7 +182,7 @@ first_time_step_flag = 0;
             table_impl = "Non-equidistant"
         }
         [
-            position = 7640, 8264
+            position = 7560, 8264
             hide_name = True
         ]
 
@@ -4336,7 +4336,7 @@ V_h = M0*current_sign + M*h;
             position = 7216, 8560
         ]
 
-        component "core/Current Measurement" current_1 {
+        component "core/Current Measurement" current_1_ {
             execution_rate = "Ts"
             sig_output = "True"
         }
@@ -4348,32 +4348,38 @@ V_h = M0*current_sign + M*h;
         ]
 
         component gen_integrator Integrator1 {
+            show_reset = "either"
         }
         [
-            position = 8080, 8144
+            position = 8104, 8120
             hide_name = True
         ]
 
         component gen_probe chgAh_1 {
         }
         [
-            position = 8176, 8144
+            position = 8200, 8120
         ]
 
         component gen_integrator Integrator2 {
+            show_reset = "either"
         }
         [
-            position = 8080, 8208
+            position = 8104, 8184
             hide_name = True
         ]
 
         component gen_probe disAh_1 {
         }
         [
-            position = 8176, 8208
+            position = 8200, 8184
         ]
 
         component gen_c_function "C function2" {
+            init_fnc = "/*Begin code section*/
+out = 0;
+out2 = 0;
+/*End code section*/"
             input_terminals = "real current;"
             input_terminals_dimensions = "inherit"
             input_terminals_feedthrough = "True"
@@ -4384,7 +4390,11 @@ if (current>0) {
     out2 = 0;
 }
 else if (current<0) {
-    out2 = current;
+    out2 = -current;
+    out = 0;
+}
+else {
+    out2 = 0;
     out = 0;
 }
 /*End code section*/"
@@ -4394,7 +4404,7 @@ else if (current<0) {
             output_terminals_show_labels = "False;False"
         }
         [
-            position = 7984, 8176
+            position = 8008, 8152
             hide_name = True
             size = 48, 48
         ]
@@ -8592,7 +8602,7 @@ V_h = M0*current_sign + M*h;
             size = 32, 64
         ]
 
-        component "core/Current Measurement" current_2 {
+        component "core/Current Measurement" current_2_ {
             execution_rate = "Ts"
             sig_output = "True"
         }
@@ -8604,55 +8614,31 @@ V_h = M0*current_sign + M*h;
         ]
 
         component gen_integrator Integrator3 {
+            show_reset = "either"
         }
         [
-            position = 8936, 8144
+            position = 8936, 8112
             hide_name = True
         ]
 
         component gen_probe chgAh_2 {
         }
         [
-            position = 9032, 8144
+            position = 9032, 8112
         ]
 
         component gen_integrator Integrator4 {
+            show_reset = "either"
         }
         [
-            position = 8936, 8208
+            position = 8936, 8176
             hide_name = True
         ]
 
         component gen_probe disAh_2 {
         }
         [
-            position = 9032, 8208
-        ]
-
-        component gen_c_function "C function4" {
-            input_terminals = "real current;"
-            input_terminals_dimensions = "inherit"
-            input_terminals_feedthrough = "True"
-            input_terminals_show_labels = "False"
-            output_fnc = "/*Begin code section*/
-if (current>0) {
-    out = current;
-    out2 = 0;
-}
-else if (current<0) {
-    out2 = current;
-    out = 0;
-}
-/*End code section*/"
-            output_terminals = "real out;inherit out2;"
-            output_terminals_dimensions = "inherit;inherit"
-            output_terminals_feedthrough = "True;True"
-            output_terminals_show_labels = "False;False"
-        }
-        [
-            position = 8840, 8176
-            hide_name = True
-            size = 48, 48
+            position = 9032, 8176
         ]
 
         component gen_probe temperature_2 {
@@ -8676,7 +8662,7 @@ else if (current<0) {
         component gen_probe script_no_3 {
         }
         [
-            position = 9856, 8032
+            position = 9920, 8040
         ]
 
         component sys_mp_signal_switch "Multiport signal switch3" {
@@ -12857,7 +12843,7 @@ V_h = M0*current_sign + M*h;
             position = 7216, 8688
         ]
 
-        component "core/Current Measurement" current_3 {
+        component "core/Current Measurement" current_3_ {
             execution_rate = "Ts"
             sig_output = "True"
         }
@@ -12869,55 +12855,31 @@ V_h = M0*current_sign + M*h;
         ]
 
         component gen_integrator Integrator5 {
+            show_reset = "either"
         }
         [
-            position = 9792, 8112
+            position = 9976, 8112
             hide_name = True
         ]
 
         component gen_probe chgAh_3 {
         }
         [
-            position = 9888, 8112
+            position = 10072, 8112
         ]
 
         component gen_integrator Integrator6 {
+            show_reset = "either"
         }
         [
-            position = 9792, 8176
+            position = 9976, 8176
             hide_name = True
         ]
 
         component gen_probe disAh_3 {
         }
         [
-            position = 9888, 8176
-        ]
-
-        component gen_c_function "C function6" {
-            input_terminals = "real current;"
-            input_terminals_dimensions = "inherit"
-            input_terminals_feedthrough = "True"
-            input_terminals_show_labels = "False"
-            output_fnc = "/*Begin code section*/
-if (current>0) {
-    out = current;
-    out2 = 0;
-}
-else if (current<0) {
-    out2 = current;
-    out = 0;
-}
-/*End code section*/"
-            output_terminals = "real out;inherit out2;"
-            output_terminals_dimensions = "inherit;inherit"
-            output_terminals_feedthrough = "True;True"
-            output_terminals_show_labels = "False;False"
-        }
-        [
-            position = 9696, 8144
-            hide_name = True
-            size = 48, 48
+            position = 10072, 8176
         ]
 
         component gen_probe temperature_3 {
@@ -17103,7 +17065,7 @@ V_h = M0*current_sign + M*h;
             size = 64, 32
         ]
 
-        component "core/Current Measurement" dyn_current_1 {
+        component "core/Current Measurement" dyn_current_1_ {
             execution_rate = "Ts"
             sig_output = "True"
         }
@@ -17115,6 +17077,7 @@ V_h = M0*current_sign + M*h;
         ]
 
         component gen_integrator Integrator7 {
+            show_reset = "either"
         }
         [
             position = 8168, 8824
@@ -17128,6 +17091,7 @@ V_h = M0*current_sign + M*h;
         ]
 
         component gen_integrator Integrator8 {
+            show_reset = "either"
         }
         [
             position = 8168, 8888
@@ -17138,32 +17102,6 @@ V_h = M0*current_sign + M*h;
         }
         [
             position = 8264, 8888
-        ]
-
-        component gen_c_function "C function7" {
-            input_terminals = "real current;"
-            input_terminals_dimensions = "inherit"
-            input_terminals_feedthrough = "True"
-            input_terminals_show_labels = "False"
-            output_fnc = "/*Begin code section*/
-if (current>0) {
-    out = current;
-    out2 = 0;
-}
-else if (current<0) {
-    out2 = current;
-    out = 0;
-}
-/*End code section*/"
-            output_terminals = "real out;inherit out2;"
-            output_terminals_dimensions = "inherit;inherit"
-            output_terminals_feedthrough = "True;True"
-            output_terminals_show_labels = "False;False"
-        }
-        [
-            position = 8072, 8856
-            hide_name = True
-            size = 48, 48
         ]
 
         component src_clock Clock1 {
@@ -17275,7 +17213,7 @@ first_time_step_flag = 0;
         component gen_probe dyn_script_no_1 {
         }
         [
-            position = 7992, 8720
+            position = 8056, 8720
         ]
 
         component src_constant DYN_DIS_CHG {
@@ -21485,7 +21423,7 @@ V_h = M0*current_sign + M*h;
             size = 64, 32
         ]
 
-        component "core/Current Measurement" dyn_current_2 {
+        component "core/Current Measurement" dyn_current_2_ {
             execution_rate = "Ts"
             sig_output = "True"
         }
@@ -21497,55 +21435,31 @@ V_h = M0*current_sign + M*h;
         ]
 
         component gen_integrator Integrator9 {
+            show_reset = "either"
         }
         [
-            position = 8952, 8824
+            position = 8992, 8824
             hide_name = True
         ]
 
         component gen_probe dyn_chgAh_2 {
         }
         [
-            position = 9048, 8808
+            position = 9088, 8808
         ]
 
         component gen_integrator Integrator10 {
+            show_reset = "either"
         }
         [
-            position = 8952, 8888
+            position = 8992, 8888
             hide_name = True
         ]
 
         component gen_probe dyn_disAh_2 {
         }
         [
-            position = 9048, 8888
-        ]
-
-        component gen_c_function "C function11" {
-            input_terminals = "real current;"
-            input_terminals_dimensions = "inherit"
-            input_terminals_feedthrough = "True"
-            input_terminals_show_labels = "False"
-            output_fnc = "/*Begin code section*/
-if (current>0) {
-    out = current;
-    out2 = 0;
-}
-else if (current<0) {
-    out2 = current;
-    out = 0;
-}
-/*End code section*/"
-            output_terminals = "real out;inherit out2;"
-            output_terminals_dimensions = "inherit;inherit"
-            output_terminals_feedthrough = "True;True"
-            output_terminals_show_labels = "False;False"
-        }
-        [
-            position = 8856, 8856
-            hide_name = True
-            size = 48, 48
+            position = 9088, 8888
         ]
 
         component gen_c_function "C function12" {
@@ -21634,7 +21548,7 @@ first_time_step_flag = 0;
         component gen_probe dyn_script_no_2 {
         }
         [
-            position = 8824, 8720
+            position = 8872, 8720
         ]
 
         component lut_1d "1D look-up table34" {
@@ -25828,7 +25742,7 @@ V_h = M0*current_sign + M*h;
             size = 64, 32
         ]
 
-        component "core/Current Measurement" dyn_current_3 {
+        component "core/Current Measurement" dyn_current_3_ {
             execution_rate = "Ts"
             sig_output = "True"
         }
@@ -25840,55 +25754,31 @@ V_h = M0*current_sign + M*h;
         ]
 
         component gen_integrator Integrator11 {
+            show_reset = "either"
         }
         [
-            position = 9824, 8824
+            position = 9960, 8816
             hide_name = True
         ]
 
         component gen_probe dyn_chgAh_3 {
         }
         [
-            position = 9920, 8808
+            position = 10056, 8800
         ]
 
         component gen_integrator Integrator12 {
+            show_reset = "either"
         }
         [
-            position = 9824, 8888
+            position = 9960, 8880
             hide_name = True
         ]
 
         component gen_probe dyn_disAh_3 {
         }
         [
-            position = 9920, 8888
-        ]
-
-        component gen_c_function "C function13" {
-            input_terminals = "real current;"
-            input_terminals_dimensions = "inherit"
-            input_terminals_feedthrough = "True"
-            input_terminals_show_labels = "False"
-            output_fnc = "/*Begin code section*/
-if (current>0) {
-    out = current;
-    out2 = 0;
-}
-else if (current<0) {
-    out2 = current;
-    out = 0;
-}
-/*End code section*/"
-            output_terminals = "real out;inherit out2;"
-            output_terminals_dimensions = "inherit;inherit"
-            output_terminals_feedthrough = "True;True"
-            output_terminals_show_labels = "False;False"
-        }
-        [
-            position = 9728, 8856
-            hide_name = True
-            size = 48, 48
+            position = 10056, 8880
         ]
 
         component gen_c_function "C function14" {
@@ -25977,7 +25867,7 @@ first_time_step_flag = 0;
         component gen_probe dyn_script_no_3 {
         }
         [
-            position = 9688, 8720
+            position = 9800, 8720
         ]
 
         component lut_1d "1D look-up table37" {
@@ -26196,7 +26086,7 @@ first_time_step_flag = 0;
             gain = "SIMULATION_SPEED_UP"
         }
         [
-            position = 7544, 8248
+            position = 7464, 8248
             hide_name = True
         ]
 
@@ -26204,7 +26094,7 @@ first_time_step_flag = 0;
             gain = "SIMULATION_SPEED_UP"
         }
         [
-            position = 7920, 8176
+            position = 7944, 8152
             hide_name = True
         ]
 
@@ -26228,7 +26118,7 @@ first_time_step_flag = 0;
             gain = "SIMULATION_SPEED_UP"
         }
         [
-            position = 8784, 8176
+            position = 8776, 8144
             hide_name = True
         ]
 
@@ -26236,7 +26126,7 @@ first_time_step_flag = 0;
             gain = "SIMULATION_SPEED_UP"
         }
         [
-            position = 9664, 8856
+            position = 9776, 8848
             hide_name = True
         ]
 
@@ -26244,7 +26134,7 @@ first_time_step_flag = 0;
             gain = "SIMULATION_SPEED_UP"
         }
         [
-            position = 9640, 8144
+            position = 9816, 8144
             hide_name = True
         ]
 
@@ -26350,6 +26240,324 @@ else {
             position = 10272, 8488
         ]
 
+        component gen_delay Delay2 {
+        }
+        [
+            position = 7352, 8056
+            hide_name = True
+        ]
+
+        component gen_c_function "C function18" {
+            init_fnc = "/*Begin code section*/
+out = 0;
+out2 = 0;
+/*End code section*/"
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = -current;
+    out = 0;
+}
+else {
+    out2 = 0;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 8056, 8856
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_c_function "C function19" {
+            init_fnc = "/*Begin code section*/
+out = 0;
+out2 = 0;
+/*End code section*/"
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = -current;
+    out = 0;
+}
+else {
+    out2 = 0;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 8864, 8856
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_c_function "C function20" {
+            init_fnc = "/*Begin code section*/
+out = 0;
+out2 = 0;
+/*End code section*/"
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = -current;
+    out = 0;
+}
+else {
+    out2 = 0;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 9848, 8848
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_c_function "C function21" {
+            init_fnc = "/*Begin code section*/
+out = 0;
+out2 = 0;
+/*End code section*/"
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = -current;
+    out = 0;
+}
+else {
+    out2 = 0;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 9880, 8160
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_c_function "C function22" {
+            init_fnc = "/*Begin code section*/
+out = 0;
+out2 = 0;
+/*End code section*/"
+            input_terminals = "real current;"
+            input_terminals_dimensions = "inherit"
+            input_terminals_feedthrough = "True"
+            input_terminals_show_labels = "False"
+            output_fnc = "/*Begin code section*/
+if (current>0) {
+    out = current;
+    out2 = 0;
+}
+else if (current<0) {
+    out2 = -current;
+    out = 0;
+}
+else {
+    out2 = 0;
+    out = 0;
+}
+/*End code section*/"
+            output_terminals = "real out;inherit out2;"
+            output_terminals_dimensions = "inherit;inherit"
+            output_terminals_feedthrough = "True;True"
+            output_terminals_show_labels = "False;False"
+        }
+        [
+            position = 8824, 8144
+            hide_name = True
+            size = 48, 48
+        ]
+
+        component gen_delay Delay3 {
+        }
+        [
+            position = 7352, 8120
+            hide_name = True
+        ]
+
+        component gen_delay Delay4 {
+        }
+        [
+            position = 7312, 8976
+            hide_name = True
+        ]
+
+        component gen_delay Delay5 {
+        }
+        [
+            position = 7312, 9040
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay1" {
+        }
+        [
+            position = 8080, 8064
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay2" {
+        }
+        [
+            position = 8928, 8056
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay3" {
+        }
+        [
+            position = 9864, 8040
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay4" {
+        }
+        [
+            position = 9712, 8720
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay5" {
+        }
+        [
+            position = 8808, 8720
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay6" {
+        }
+        [
+            position = 7992, 8720
+            hide_name = True
+        ]
+
+        component gen_probe dyn_current_1 {
+        }
+        [
+            position = 8112, 8952
+        ]
+
+        component gen_probe dyn_current_2 {
+        }
+        [
+            position = 8928, 8960
+        ]
+
+        component gen_probe dyn_current_3 {
+        }
+        [
+            position = 9792, 8960
+        ]
+
+        component gen_probe current_1 {
+        }
+        [
+            position = 8112, 8256
+        ]
+
+        component gen_probe current_2 {
+        }
+        [
+            position = 8928, 8280
+        ]
+
+        component gen_probe current_3 {
+        }
+        [
+            position = 9776, 8256
+        ]
+
+        component tm_delay "Unit Delay7" {
+        }
+        [
+            position = 7992, 8192
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay8" {
+        }
+        [
+            position = 8848, 8184
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay9" {
+        }
+        [
+            position = 9872, 8200
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay10" {
+        }
+        [
+            position = 9872, 8912
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay11" {
+        }
+        [
+            position = 8912, 8920
+            hide_name = True
+        ]
+
+        component tm_delay "Unit Delay12" {
+        }
+        [
+            position = 8080, 8904
+            hide_name = True
+        ]
+
         tag From1 {
             value = "temp_1"
             scope = local
@@ -26418,7 +26626,7 @@ else {
             direction = out
         }
         [
-            position = 7472, 8248
+            position = 7392, 8248
             hide_name = True
             size = 60, 20
         ]
@@ -26442,7 +26650,7 @@ else {
             direction = out
         }
         [
-            position = 7632, 8200
+            position = 7552, 8200
             hide_name = True
             size = 60, 20
         ]
@@ -26454,7 +26662,7 @@ else {
             direction = in
         }
         [
-            position = 7376, 8056
+            position = 7440, 8056
             hide_name = True
             size = 60, 20
         ]
@@ -26466,7 +26674,7 @@ else {
             direction = in
         }
         [
-            position = 7376, 8120
+            position = 7440, 8120
             hide_name = True
             size = 60, 20
         ]
@@ -26478,7 +26686,7 @@ else {
             direction = out
         }
         [
-            position = 7704, 8216
+            position = 7624, 8216
             hide_name = True
             size = 60, 20
         ]
@@ -26490,7 +26698,7 @@ else {
             direction = out
         }
         [
-            position = 7704, 8248
+            position = 7624, 8248
             hide_name = True
             size = 60, 20
         ]
@@ -27376,6 +27584,78 @@ else {
             size = 60, 20
         ]
 
+        tag From69 {
+            value = "sw_select_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 7928, 8192
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From70 {
+            value = "sw_select_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8792, 8184
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From71 {
+            value = "sw_select_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9800, 8200
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From72 {
+            value = "dyn_sw_select_3"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 9800, 8912
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From73 {
+            value = "dyn_sw_select_2"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8816, 8920
+            hide_name = True
+            size = 60, 20
+        ]
+
+        tag From74 {
+            value = "dyn_sw_select_1"
+            scope = local
+            kind = sp
+            direction = out
+        }
+        [
+            position = 8008, 8904
+            hide_name = True
+            size = 60, 20
+        ]
+
         junction Junction91 pe
         [
             position = 7808, 8328
@@ -27388,7 +27668,7 @@ else {
 
         junction Junction104 sp
         [
-            position = 7608, 8248
+            position = 7528, 8248
         ]
 
         junction Junction105 pe
@@ -27521,6 +27801,66 @@ else {
             position = 8040, 7976
         ]
 
+        junction Junction142 sp
+        [
+            position = 8056, 8184
+        ]
+
+        junction Junction143 sp
+        [
+            position = 8880, 8192
+        ]
+
+        junction Junction144 sp
+        [
+            position = 9928, 8184
+        ]
+
+        junction Junction145 sp
+        [
+            position = 9920, 8888
+        ]
+
+        junction Junction146 sp
+        [
+            position = 8952, 8912
+        ]
+
+        junction Junction147 sp
+        [
+            position = 8128, 8896
+        ]
+
+        junction Junction148 sp
+        [
+            position = 7936, 8952
+        ]
+
+        junction Junction149 sp
+        [
+            position = 8768, 8960
+        ]
+
+        junction Junction150 sp
+        [
+            position = 9632, 8960
+        ]
+
+        junction Junction152 sp
+        [
+            position = 8744, 8272
+        ]
+
+        junction Junction153 sp
+        [
+            position = 9600, 8248
+        ]
+
+        junction Junction154 sp
+        [
+            position = 7888, 8256
+        ]
+
         comment Comment4 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 45 DEG  </p><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">DYNAMIC TEST </p></body></html> ENDCOMMENT 
         [
             position = 8520, 8464
@@ -27566,6 +27906,16 @@ else {
             position = 9496, 9112
         ]
 
+        comment Comment13 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">hardcoded delay</p></body></html> ENDCOMMENT 
+        [
+            position = 7272, 8000
+        ]
+
+        comment Comment14 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">hardcoded delay</p></body></html> ENDCOMMENT 
+        [
+            position = 7256, 8920
+        ]
+
         connect "1D look-up table23.value" "Multiport signal switch1.in1" as Connection331
         connect "1D look-up table25.value" "Multiport signal switch1.in3" as Connection332
         connect Isp22.in "Multiport signal switch1.out" as Connection337
@@ -27577,8 +27927,8 @@ else {
         connect voltage_1.p_node Junction91 as Connection341
         connect Junction91 "Battery Cell_25.P" as Connection342
         connect From1 "Battery Cell_25.T" as Connection351
-        connect Isp22.n_node current_1.p_node as Connection390
-        connect current_1.n_node Junction91 as Connection391
+        connect Isp22.n_node current_1_.p_node as Connection390
+        connect current_1_.n_node Junction91 as Connection391
         connect Integrator1.out chgAh_1.in as Connection392
         connect Integrator2.out disAh_1.in as Connection393
         connect "C function2.out" Integrator1.in as Connection395
@@ -27588,7 +27938,6 @@ else {
         connect Goto3 voltage_1.out as Connection403
         connect Integrator2.in "C function2.out2" as Connection417
         connect From16 "Multiport signal switch1.in2" as Connection465
-        connect From15 "Multiport signal switch1.in" as Connection466
         connect Junction104 "1D look-up table23.addr" as Connection469
         connect "1D look-up table25.addr" Junction104 as Connection470
         connect "Multiport signal switch1.ctrl" From6 as Connection471
@@ -27603,13 +27952,11 @@ else {
         connect voltage_2.p_node Junction105 as Connection477
         connect Junction105 "Battery Cell_45.P" as Connection478
         connect From17 "Battery Cell_45.T" as Connection479
-        connect Isp23.n_node current_2.p_node as Connection486
-        connect current_2.n_node Junction105 as Connection487
+        connect Isp23.n_node current_2_.p_node as Connection486
+        connect current_2_.n_node Junction105 as Connection487
         connect Integrator3.out chgAh_2.in as Connection488
         connect Integrator4.out disAh_2.in as Connection489
-        connect "C function4.out" Integrator3.in as Connection491
         connect Goto15 voltage_2.out as Connection496
-        connect Integrator4.in "C function4.out2" as Connection502
         connect From26 "Multiport signal switch2.in2" as Connection506
         connect From25 "Multiport signal switch2.in" as Connection507
         connect Junction108 "1D look-up table26.addr" as Connection509
@@ -27626,13 +27973,11 @@ else {
         connect voltage_3.p_node Junction109 as Connection517
         connect Junction109 "Battery Cell_05.P" as Connection518
         connect From27 "Battery Cell_05.T" as Connection519
-        connect Isp24.n_node current_3.p_node as Connection526
-        connect current_3.n_node Junction109 as Connection527
+        connect Isp24.n_node current_3_.p_node as Connection526
+        connect current_3_.n_node Junction109 as Connection527
         connect Integrator5.out chgAh_3.in as Connection528
         connect Integrator6.out disAh_3.in as Connection529
-        connect "C function6.out" Integrator5.in as Connection531
         connect Goto19 voltage_3.out as Connection536
-        connect Integrator6.in "C function6.out2" as Connection542
         connect From36 "Multiport signal switch3.in2" as Connection546
         connect From35 "Multiport signal switch3.in" as Connection547
         connect Junction112 "1D look-up table28.addr" as Connection549
@@ -27645,19 +27990,17 @@ else {
         ]
         connect sw_select_1.in Junction113 as Connection554
         connect Isp25.in "Multiport signal switch4.out" as Connection557
-        connect Isp25.n_node dyn_current_1.p_node as Connection563
+        connect Isp25.n_node dyn_current_1_.p_node as Connection563
         connect Integrator7.out dyn_chgAh_1.in as Connection565
         connect Integrator8.out dyn_disAh_1.in as Connection566
-        connect "C function7.out" Integrator7.in as Connection568
         connect Goto21 dyn_voltage_1.out as Connection569
-        connect Integrator8.in "C function7.out2" as Connection570
         connect "Multiport signal switch4.ctrl" From39 as Connection576
         [
             breakpoints = 7792, 8864; 7792, 8864; 7792, 8800
         ]
         connect "Dyn Battery Cell_25.N" dyn_voltage_1.n_node as Connection578
         connect Isp25.p_node "Dyn Battery Cell_25.N" as Connection579
-        connect dyn_current_1.n_node Junction116 as Connection580
+        connect dyn_current_1_.n_node Junction116 as Connection580
         connect Junction116 dyn_voltage_1.p_node as Connection581
         [
             breakpoints = 7856, 9008
@@ -27672,7 +28015,6 @@ else {
         connect "Multiport signal switch4.in" "1D look-up table30.value" as Connection627
         connect From46 "C function10.Vcell" as Connection628
         connect Goto27 "C function10.timer" as Connection634
-        connect Goto29 DYN_DIS_CHG.out as Connection637
         connect From47 "Multiport signal switch4.in1" as Connection638
         connect "1D look-up table30.addr" Junction121 as Connection640
         connect "1D look-up table31.addr" Junction122 as Connection643
@@ -27681,21 +28023,18 @@ else {
         connect "1D look-up table32.value" "Multiport signal switch4.in4" as Connection646
         connect "1D look-up table31.value" "Multiport signal switch4.in2" as Connection647
         connect From48 "Multiport signal switch4.in3" as Connection648
-        connect Goto30 DYN_CHG.out as Connection650
         connect Isp26.in "Multiport signal switch5.out" as Connection651
-        connect Isp26.n_node dyn_current_2.p_node as Connection652
+        connect Isp26.n_node dyn_current_2_.p_node as Connection652
         connect Integrator9.out dyn_chgAh_2.in as Connection653
         connect Integrator10.out dyn_disAh_2.in as Connection654
-        connect "C function11.out" Integrator9.in as Connection656
         connect Goto31 dyn_voltage_2.out as Connection657
-        connect Integrator10.in "C function11.out2" as Connection658
         connect "Multiport signal switch5.ctrl" From51 as Connection659
         [
             breakpoints = 8624, 8864; 8624, 8864; 8624, 8800
         ]
         connect "Dyn Battery Cell_45.N" dyn_voltage_2.n_node as Connection660
         connect Isp26.p_node "Dyn Battery Cell_45.N" as Connection661
-        connect dyn_current_2.n_node Junction123 as Connection662
+        connect dyn_current_2_.n_node Junction123 as Connection662
         connect Junction123 dyn_voltage_2.p_node as Connection663
         [
             breakpoints = 8688, 9008
@@ -27716,19 +28055,17 @@ else {
         connect "1D look-up table34.value" "Multiport signal switch5.in2" as Connection679
         connect From55 "Multiport signal switch5.in3" as Connection680
         connect Isp27.in "Multiport signal switch6.out" as Connection682
-        connect Isp27.n_node dyn_current_3.p_node as Connection683
+        connect Isp27.n_node dyn_current_3_.p_node as Connection683
         connect Integrator11.out dyn_chgAh_3.in as Connection684
         connect Integrator12.out dyn_disAh_3.in as Connection685
-        connect "C function13.out" Integrator11.in as Connection687
         connect Goto35 dyn_voltage_3.out as Connection688
-        connect Integrator12.in "C function13.out2" as Connection689
         connect "Multiport signal switch6.ctrl" From58 as Connection690
         [
             breakpoints = 9488, 8864; 9488, 8864; 9488, 8800
         ]
         connect "Dyn Battery Cell_05.N" dyn_voltage_3.n_node as Connection691
         connect Isp27.p_node "Dyn Battery Cell_05.N" as Connection692
-        connect dyn_current_3.n_node Junction126 as Connection693
+        connect dyn_current_3_.n_node Junction126 as Connection693
         connect Junction126 dyn_voltage_3.p_node as Connection694
         [
             breakpoints = 9552, 9008
@@ -27784,17 +28121,6 @@ else {
         connect From5 Gain2.in as Connection752
         connect Gain2.out Junction104 as Connection753
         connect "C function2.current" Gain3.out as Connection754
-        connect Gain3.in current_1.out as Connection755
-        connect "C function7.current" Gain4.out as Connection756
-        connect Gain4.in dyn_current_1.out as Connection757
-        connect "C function11.current" Gain5.out as Connection758
-        connect Gain5.in dyn_current_2.out as Connection759
-        connect "C function4.current" Gain6.out as Connection760
-        connect Gain6.in current_2.out as Connection761
-        connect "C function13.current" Gain7.out as Connection762
-        connect Gain7.in dyn_current_3.out as Connection763
-        connect "C function6.current" Gain8.out as Connection764
-        connect Gain8.in current_3.out as Connection765
         connect "C function1.timer" Goto2 as Connection766
         [
             breakpoints = 8064, 7928
@@ -27817,30 +28143,19 @@ else {
         connect Gain12.out Junction108 as Connection776
         connect From31 Gain13.in as Connection777
         connect Gain13.out Junction112 as Connection778
-        connect STA_CHG.out Goto12 as Connection779
-        connect STA_DIS_CHG.out Goto11 as Connection780
         connect Goto25 Junction135 as Connection781
         connect Junction135 "C function10.sw_select" as Connection782
         connect dyn_sw_select_1.in Junction135 as Connection783
-        connect dyn_script_no_1.in Junction136 as Connection784
         connect Junction136 "C function10.script_no" as Connection785
         connect Goto39 Junction136 as Connection786
-        connect dyn_script_no_3.in Junction137 as Connection787
         connect Junction137 "C function14.script_no" as Connection788
         connect Goto41 Junction137 as Connection789
-        connect dyn_script_no_2.in Junction138 as Connection790
         connect Junction138 "C function12.script_no" as Connection791
         connect Goto40 Junction138 as Connection792
         connect "C function16.script_no" Junction139 as Connection793
-        connect Junction139 script_no_3.in as Connection794
         connect Goto42 Junction139 as Connection795
         connect "C function15.script_no" Junction140 as Connection796
-        connect Junction140 script_no_2.in as Connection797
-        [
-            breakpoints = 8888, 7968; 8888, 8056
-        ]
         connect Goto43 Junction140 as Connection798
-        connect script_no_1.in Junction141 as Connection799
         connect Junction141 "C function1.script_no" as Connection800
         connect Goto44 Junction141 as Connection801
         connect From66 "C function17.sta1" as Connection802
@@ -27854,6 +28169,111 @@ else {
         ]
         connect Delay1.in "C function17.done_flag" as Connection808
         connect Delay1.out done_flag.in as Connection809
+        connect "C function18.current" Gain4.out as Connection812
+        connect "C function18.out" Integrator7.in as Connection813
+        [
+            breakpoints = 8096, 8816; 8128, 8816
+        ]
+        connect "C function18.out2" Integrator8.in as Connection814
+        [
+            breakpoints = 8096, 8880; 8128, 8880
+        ]
+        connect "C function19.current" Gain5.out as Connection815
+        connect "C function19.out" Integrator9.in as Connection816
+        [
+            breakpoints = 8904, 8816; 8952, 8816
+        ]
+        connect "C function19.out2" Integrator10.in as Connection817
+        [
+            breakpoints = 8904, 8880; 8952, 8880
+        ]
+        connect "C function20.current" Gain7.out as Connection818
+        connect "C function20.out2" Integrator12.in as Connection819
+        [
+            breakpoints = 9888, 8872; 9920, 8872
+        ]
+        connect "C function20.out" Integrator11.in as Connection820
+        [
+            breakpoints = 9896, 8840; 9896, 8808
+        ]
+        connect "C function21.current" Gain8.out as Connection821
+        connect "C function21.out2" Integrator6.in as Connection822
+        connect Integrator5.in "C function21.out" as Connection823
+        connect "C function22.current" Gain6.out as Connection824
+        connect "C function22.out" Integrator3.in as Connection825
+        connect "C function22.out2" Integrator4.in as Connection826
+        connect From15 "Multiport signal switch1.in" as Connection827
+        connect STA_DIS_CHG.out Delay2.in as Connection828
+        connect Delay2.out Goto11 as Connection829
+        connect STA_CHG.out Delay3.in as Connection830
+        connect Delay3.out Goto12 as Connection831
+        connect Goto30 Delay5.out as Connection832
+        connect Delay5.in DYN_CHG.out as Connection833
+        connect Goto29 Delay4.out as Connection834
+        connect Delay4.in DYN_DIS_CHG.out as Connection835
+        connect Junction142 Integrator1.reset as Connection838
+        connect Integrator2.reset Junction142 as Connection839
+        connect Junction143 Integrator3.reset as Connection842
+        [
+            breakpoints = 8880, 8224; 8880, 8152
+        ]
+        connect Integrator4.reset Junction143 as Connection843
+        connect Integrator6.reset Junction144 as Connection845
+        connect Integrator5.reset Junction144 as Connection847
+        [
+            breakpoints = 9936, 8120; 9936, 8184
+        ]
+        connect Junction145 Integrator12.reset as Connection850
+        connect Integrator11.reset Junction145 as Connection851
+        connect Junction146 Integrator10.reset as Connection854
+        connect Integrator9.reset Junction146 as Connection855
+        connect Junction147 Integrator8.reset as Connection858
+        connect Integrator7.reset Junction147 as Connection859
+        connect script_no_1.in "Unit Delay1.out" as Connection860
+        connect "Unit Delay1.in" Junction141 as Connection861
+        connect Junction140 "Unit Delay2.in" as Connection862
+        connect "Unit Delay2.out" script_no_2.in as Connection863
+        connect Junction139 "Unit Delay3.in" as Connection864
+        connect "Unit Delay3.out" script_no_3.in as Connection865
+        connect dyn_script_no_3.in "Unit Delay4.out" as Connection866
+        connect "Unit Delay4.in" Junction137 as Connection867
+        connect dyn_script_no_2.in "Unit Delay5.out" as Connection868
+        connect "Unit Delay5.in" Junction138 as Connection869
+        connect dyn_script_no_1.in "Unit Delay6.out" as Connection870
+        connect "Unit Delay6.in" Junction136 as Connection871
+        connect Gain4.in Junction148 as Connection872
+        connect Junction148 dyn_current_1_.out as Connection873
+        connect dyn_current_1.in Junction148 as Connection874
+        connect Gain5.in Junction149 as Connection875
+        connect Junction149 dyn_current_2_.out as Connection876
+        connect dyn_current_2.in Junction149 as Connection877
+        connect Gain7.in Junction150 as Connection878
+        connect Junction150 dyn_current_3_.out as Connection879
+        connect dyn_current_3.in Junction150 as Connection880
+        connect Gain6.in Junction152 as Connection884
+        connect Junction152 current_2_.out as Connection885
+        connect current_2.in Junction152 as Connection886
+        connect Gain8.in Junction153 as Connection887
+        connect Junction153 current_3_.out as Connection888
+        connect current_3.in Junction153 as Connection889
+        connect Gain3.in Junction154 as Connection891
+        connect Junction154 current_1_.out as Connection892
+        [
+            breakpoints = 7888, 8256
+        ]
+        connect current_1.in Junction154 as Connection893
+        connect From69 "Unit Delay7.in" as Connection894
+        connect "Unit Delay7.out" Junction142 as Connection895
+        connect From70 "Unit Delay8.in" as Connection896
+        connect "Unit Delay8.out" Junction143 as Connection897
+        connect Junction144 "Unit Delay9.out" as Connection898
+        connect "Unit Delay9.in" From71 as Connection899
+        connect From72 "Unit Delay10.in" as Connection900
+        connect "Unit Delay10.out" Junction145 as Connection901
+        connect From73 "Unit Delay11.in" as Connection902
+        connect "Unit Delay11.out" Junction146 as Connection903
+        connect From74 "Unit Delay12.in" as Connection904
+        connect "Unit Delay12.out" Junction147 as Connection905
     }
 
     logically_deleted {
@@ -28087,6 +28507,12 @@ else {
             execution_rate = "inherit"
         }
 
+        tm_delay {
+            init_value = "0"
+            signal_out_type = "inherit"
+            execution_rate = "inherit"
+        }
+
         "core/Current Measurement" {
             signal_access = "inherit"
             bw_limit = "False"
@@ -28158,7 +28584,7 @@ else {
         SIMULATION_SPEED_UP = 100
         
         Ts = 1e-2
-        rest_time_for_temperature_equilibrium = 360  # 7200s or 2h
+        rest_time_for_temperature_equilibrium = 7200/SIMULATION_SPEED_UP  # 7200s or 2h
         counter_cooldown_max = rest_time_for_temperature_equilibrium/Ts
         counter_cooldown_max = counter_cooldown_max/SIMULATION_SPEED_UP
         
@@ -28168,7 +28594,7 @@ else {
         total_Q = [i/SIMULATION_SPEED_UP for i in total_Q_original]
         
         C = 14.532  # C rate of a battery is current that will empty the cell in one hour
-        DISCHG_RATE =  5 # 0.5 if its normal battery discharg speed
+        DISCHG_RATE =  0.5 # 0.5 if its normal battery discharg speed
         CHG_RATE = -DISCHG_RATE
         
         init_dynamic = 90  # 90% initial state of charge for dynamic scripts so that

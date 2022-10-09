@@ -147,17 +147,15 @@ class CellAllData:
                     self.static_data.append(self.StaticData(MAT_data['OCVData_' + '05'], temp))
                 else:
                     self.static_data.append(self.StaticData(MAT_data['OCVData_' + str(temp)], temp))
-
         except ValueError:
             print('ValueError for static data. Check the format of the provided data')
 
         try:
             for temp in temp_dyn:
                 if temp == 5:
-                    self.static_data.append(self.DynData(MAT_data['DYNData_' + '05'], temp))
+                    self.dynamic_data.append(self.DynData(MAT_data['DYNData_' + '05'], temp))
                 else:
-                    self.static_data.append(self.DynData(MAT_data['DYNData_' + str(temp)], temp))
-
+                    self.dynamic_data.append(self.DynData(MAT_data['DYNData_' + str(temp)], temp))
         except ValueError:
             print('ValueError for dynamic data. Check the format of the provided data')
 
@@ -183,11 +181,12 @@ class CellAllData:
 
             # time, temp, voltage, current, chgAh, disAh
             def __init__(self, script):
-                self.time = script[0][0][0]
-                self.voltage = script[0][2][0]
-                self.current = script[0][3][0]
-                self.chgAh = script[0][4][0]
-                self.disAh = script[0][5][0]
+                self.time = script[0][0][0][0]
+                self.time = script[0][0][1][0]
+                self.voltage = script[0][0][2][0]
+                self.current = script[0][0][3][0]
+                self.chgAh = script[0][0][4][0]
+                self.disAh = script[0][0][5][0]
 
     class StaticData(OneTempStaticData):
         """
@@ -213,8 +212,10 @@ class CellAllData:
 
             # time, temp, voltage, current, chgAh, disAh
             def __init__(self, script):
-                self.time = script[0][0][0]
-                self.voltage = script[0][2][0]
-                self.current = script[0][3][0]
-                self.chgAh = script[0][4][0]
-                self.disAh = script[0][5][0]
+                self.time = script[0][0][0][0]
+                self.voltage = script[0][0][1][0]
+                self.voltage = script[0][0][2][0]
+                self.current = script[0][0][3][0]
+                self.chgAh = script[0][0][4][0]
+                self.disAh = script[0][0][5][0]
+                self.disAh = script[0][0][5][0]

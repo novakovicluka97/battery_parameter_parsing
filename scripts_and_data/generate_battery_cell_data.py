@@ -13,14 +13,15 @@ import numpy as np
 import time
 
 
-# This script will parse the general load current and tither profiles for Static and Dynamic scripts,
+# This script will parse the general load current and tither profiles from Static and Dynamic scripts,
 # from the original lab data from University of Boulder Colorado. Then it will collect the capture
-# results from the Typhoon HIL measurements. Right now, only VHIL is supported.
+# results from the Typhoon HIL capture. Right now, only VHIL is supported.
 
 output_data_filename = 'cell_all_data.mat'
 model_name = "Battery_parametrization_model.tse"
 flag_show = False  # if True, certain graphs used for debugging will be shown
-capture_duration = 1320  # 30 * 60 * 60
+capture_duration = 2800  # 30 * 60 * 60
+capture_rate = 100  # 1 if not slowed down
 
 # script directory
 # Path to model file and to compiled model file
@@ -97,12 +98,17 @@ if __name__ == "__main__":  # If this script is instantiated manually...
     #                ["P14_OCV_P25.script1.current", "P14_OCV_P25.script2.current", "P14_OCV_P25.script3.current", "P14_OCV_P25.script4.current"],
     #                flag_show=flag_show)
 
+    # Further modifications to Tither profiles
+    OCV_25_SCRIPT_2_CURRENT_TITHER = -(OCV_25_SCRIPT_2_CURRENT_TITHER - 0.01)  # more dc-current to speed up profiles
+    OCV_25_SCRIPT_4_CURRENT_TITHER = (OCV_25_SCRIPT_4_CURRENT_TITHER - 0.01)   # more dc-current to speed up profiles
+    OCV_25_SCRIPT_2_CURRENT_TITHER[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
+    OCV_25_SCRIPT_4_CURRENT_TITHER[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
+
     current_profiles_dict = {
         'OCV_25_SCRIPT_2_TIME_TITHER': OCV_25_SCRIPT_2_TIME_TITHER,
         'OCV_25_SCRIPT_4_TIME_TITHER': OCV_25_SCRIPT_4_TIME_TITHER,
-        'OCV_25_SCRIPT_2_CURRENT_TITHER': -(OCV_25_SCRIPT_2_CURRENT_TITHER - 0.01),
-        'OCV_25_SCRIPT_4_CURRENT_TITHER': (OCV_25_SCRIPT_4_CURRENT_TITHER - 0.01),  # This is just because i sampled
-        # the tither signal in a way that it is still negative in average so I omitted the minus sign
+        'OCV_25_SCRIPT_2_CURRENT_TITHER': OCV_25_SCRIPT_2_CURRENT_TITHER,
+        'OCV_25_SCRIPT_4_CURRENT_TITHER': OCV_25_SCRIPT_4_CURRENT_TITHER,
         'OCV_25_SCRIPT_2_TIME_STOP': OCV_25_SCRIPT_2_TIME_STOP,
         'OCV_25_SCRIPT_4_TIME_STOP': OCV_25_SCRIPT_4_TIME_STOP,
 
@@ -140,13 +146,16 @@ channel_signals = ["temperature_1", "voltage_1", "current_1", "chgAh_1", "disAh_
                    "Time", "done_flag"]
 
 capture.start_capture(duration=capture_duration,
-                      rate=1,
+                      rate=capture_rate,
                       signals=channel_signals,
                       executeAt=0.0)
 
 hil.start_simulation()
 print('STEP 3: Starting simulation and capture')
-print('     This may take up to an hour')
+if vhil_device:
+    print('     This may take up to ' + str(capture_duration/10) + ' seconds')
+else:
+    print('     This may take up to ' + str(capture_duration) + ' seconds')
 st = time.time()  # measuring the starting time
 
 # capture.wait_until("done_flag", 'above', 0.5, timeout=capture_duration)

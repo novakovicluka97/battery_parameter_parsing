@@ -1,8 +1,10 @@
 import numpy as np
 from scipy import interpolate
+import matplotlib.pyplot as plt
+import battery_cell_data_functions as data
 
 
-def processStatic(static_data, model):
+def processStatic(static_data, model, typhoon_origin=False):
     """
     Script that populates the model parameters based on static test data
     """
@@ -38,17 +40,31 @@ def processStatic(static_data, model):
 
         # Third step: calculate OCV curve
         print(f"Calculating static tests for temperature: {static_data[k].temp}")
-        indD  = np.where(np.array(static_data[k].script1.step) == 2)[0]  # slow discharge
-        IR1Da = static_data[k].script1.voltage[indD[0] - 1] - static_data[k].script1.voltage[indD[0]]
-        IR2Da = static_data[k].script1.voltage[indD[-1] + 1] - static_data[k].script1.voltage[indD[-1]]
+        if typhoon_origin:
+            index_discharge = list(np.where(np.array(static_data[k].script1.current) < 0)[0])
+            # First voltage drop when the current starts flowing, step[1] is when the first voltage drop happens
+            IR1Da = static_data[k].script1.voltage[index_discharge[0] - 1] - static_data[k].script1.voltage[index_discharge[0]]
+            # Last voltage drop when the current already charged up the capacitors in the RC circuits
+            IR2Da = static_data[k].script1.voltage[index_discharge[-1]] - static_data[k].script1.voltage[index_discharge[-2]]
+            index_charge = list(np.where(np.array(static_data[k].script3.current) > 0)[0])
+            IR1Ca = static_data[k].script2.voltage[-1] - static_data[k].script3.voltage[0]
+            IR2Ca = static_data[k].script3.voltage[-1] - static_data[k].script4.voltage[0]
+            indD = index_discharge
+            indC = index_charge
+        else:
+            indD  = np.where(np.array(static_data[k].script1.step) == 2)[0]  # index list of all slow discharge
+            # First voltage drop when the current starts flowing
+            IR1Da = static_data[k].script1.voltage[indD[0] - 1] - static_data[k].script1.voltage[indD[0]]
+            # Last voltage drop when the current already charged up the capacitors in the RC circuits
+            IR2Da = static_data[k].script1.voltage[indD[-1] + 1] - static_data[k].script1.voltage[indD[-1]]
+            indC  = np.where(np.array(static_data[k].script3.step) == 2)[0]  # slow charge
+            IR1Ca = static_data[k].script3.voltage[indC[0]] - static_data[k].script3.voltage[indC[0] - 1]
+            IR2Ca = static_data[k].script3.voltage[indC[-1]] - static_data[k].script3.voltage[indC[-1] + 1]
 
-        indC  = np.where(np.array(static_data[k].script3.step) == 2)[0]  # slow charge
-        IR1Ca = static_data[k].script3.voltage[indC[0]] - static_data[k].script3.voltage[indC[0] - 1]
-        IR2Ca = static_data[k].script3.voltage[indC[-1]] - static_data[k].script3.voltage[indC[-1] + 1]
-        IR1D = min(IR1Da, 2*IR2Ca)
-        IR2D = min(IR2Da, 2*IR1Ca)
-        IR1C = min(IR1Ca, 2*IR2Da)
-        IR2C = min(IR2Ca, 2*IR1Da)
+        IR1D = min(IR1Da, 2*IR2Ca)  # For Boulder Colorado data: 0.003254
+        IR2D = min(IR2Da, 2*IR1Ca)  # For Boulder Colorado data: 0.006345
+        IR1C = min(IR1Ca, 2*IR2Da)  # For Boulder Colorado data: 0.012690
+        IR2C = min(IR2Ca, 2*IR1Da)  # For Boulder Colorado data: 0.002928
 
         blend = np.array(range(len(indD)))/(len(indD)-1)
         IRblend = IR1D + (IR2D-IR1D)*blend
@@ -81,3 +97,6 @@ def processStatic(static_data, model):
         model.QParam_static.append(Q)
         model.soc_vector.append(SOC_vector)
         model.ocv_vector.append(rawocv)
+
+        data.plot_func([SOC_vector], [rawocv], ["OCV_SOC_static_temp_"+str(static_data[k].temp)], flag_show=False)
+    plt.show()
