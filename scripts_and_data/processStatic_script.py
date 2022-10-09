@@ -9,7 +9,7 @@ def processStatic(static_data, model, typhoon_origin=False):
     Script that populates the model parameters based on static test data
     """
 
-    # We need to find the index of static data which coresponds with default temperature of 25 degrees celsius
+    # Searching the index of static data which corresponds with default temperature of 25 degrees celsius
     # After that, other temperatures can be calculated
     ind25 = None
     for index, single_temp_data in enumerate(static_data):

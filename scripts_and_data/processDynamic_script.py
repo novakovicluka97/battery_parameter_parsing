@@ -9,7 +9,7 @@ def processDynamic(data, model, numpoles, doHyst):
     """
     Script that populates the model parameters based on dynamic test data
     """
-    # First step: Compute Q and eta
+    # First step: Compute Q and eta again. This is to recalibrate the static test Q and eta
     ind25 = None
     for index, single_temp_data in enumerate(data):
         if single_temp_data.temp == 25:
@@ -71,7 +71,7 @@ def processDynamic(data, model, numpoles, doHyst):
     for k in range(len(data)):
         global bestcost
         bestcost = np.inf
-        print("Processing temperature: ", data[k].temp)
+        print("Processing temperature: ", data[k].temp, " degrees celsius")
         if doHyst:
             model.GParam[k] = abs(fminbnd(optfn, 1, 250, args=(data, model, model.temps[k], doHyst), xtol=0.1, maxfun=40, disp=0))
         else:  # Todo check functionality and extend it if it doesnt work
@@ -90,7 +90,7 @@ def OCVfromSOCtemp(soc, temp, model):
     Extrapolates OCV vector from the soc vector but based on the previous static OCV/SOC test contained in the model.
     """
     index = np.where(np.array(model.temps) == temp)[0][0]
-    function = scipy.interpolate.interp1d(model.soc_vector[index], model.ocv_vector[index])
+    function = scipy.interpolate.interp1d(model.soc_vector[index], model.ocv_vector[index], fill_value="extrapolate")
     return function(soc)
 
 
