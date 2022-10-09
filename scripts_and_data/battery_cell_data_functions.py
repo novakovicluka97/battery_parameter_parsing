@@ -10,17 +10,12 @@ from scipy import interpolate
 def plot_func(x_axis_list, y_axis_list, names, flag_show: bool = False):
     import matplotlib.pyplot as plt
 
-    plt.figure(figsize=(11, 11))
     for i in range(len(x_axis_list)):
-        plt.subplot(221 + i)
         # Optional, but must be between subplot and show
         plt.title(names[i])
         plt.grid(True)
-        plt.plot(x_axis_list[i], y_axis_list[i], linewidth=3.0)
+        plt.plot(x_axis_list[i], y_axis_list[i], linewidth=2.0)
 
-    # Optional spacing options
-    plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25,
-                        wspace=0.35)
     if flag_show:
         plt.show()  # Last line
 

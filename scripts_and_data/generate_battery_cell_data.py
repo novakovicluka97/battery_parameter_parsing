@@ -20,18 +20,17 @@ import time
 output_data_filename = 'cell_all_data.mat'
 model_name = "Battery_parametrization_model.tse"
 flag_show = False  # if True, certain graphs used for debugging will be shown
-capture_duration = 2800  # 30 * 60 * 60
+capture_duration = 2800  # default for VHIL is 2800, for HIL (30*60*60) seconds
 capture_rate = 100  # 1 if not slowed down
 
 # script directory
 # Path to model file and to compiled model file
 FILE_DIR_PATH = Path(__file__).parent
-
 model_path = str(FILE_DIR_PATH / model_name)
 compiled_model_path = model.get_compiled_model_file(model_path)
 
 
-class Script:
+class Script:  # Format for the pickled cell data is this class per temperature, per script
     def __init__(self, time, temperature, voltage, current, chgAh, disAh):
         self.time = time
         self.temperature = temperature
@@ -41,89 +40,74 @@ class Script:
         self.disAh = disAh
 
 
-if __name__ == "__main__":  # If this script is instantiated manually...
-    # Loads the script data
-    P14_DYN_50_P45 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
-    P14_DYN_50_P25 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
-    P14_DYN_30_P05 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
+if __name__ == "__main__":  # If this script is instantiated manually, recalculate current profiles
+    # Loading the script data
     P14_OCV_P45 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P45.mat"), 45)
     P14_OCV_P25 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P25.mat"), 25)
     P14_OCV_P05 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
+    P14_DYN_50_P45 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
+    P14_DYN_50_P25 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
+    P14_DYN_30_P05 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
 
-    # Refactors and loads the time vector (it starts at a certain point)
-    DYN_25_SCRIPT_1_TIME = P14_DYN_50_P25.script1.time - min(P14_DYN_50_P25.script1.time)
-    DYN_25_SCRIPT_2_TIME = P14_DYN_50_P25.script2.time - min(P14_DYN_50_P25.script2.time)
-    DYN_25_SCRIPT_3_TIME = P14_DYN_50_P25.script3.time - min(P14_DYN_50_P25.script3.time)
-
+    # Extracting the time vectors and resetting the x_axis to start with 0 for interpolator
     OCV_25_SCRIPT_2_TIME = P14_OCV_P25.script2.time - min(P14_OCV_P25.script2.time)
     OCV_25_SCRIPT_4_TIME = P14_OCV_P25.script4.time - min(P14_OCV_P25.script4.time)
 
-    # Loads the current vectors
-    DYN_25_SCRIPT_1_CURRENT = P14_DYN_50_P25.script1.current
-    DYN_25_SCRIPT_2_CURRENT = P14_DYN_50_P25.script2.current
-    DYN_25_SCRIPT_3_CURRENT = P14_DYN_50_P25.script3.current
+    DYN_25_SCRIPT_1_TIME = P14_DYN_50_P25.script1.time - min(P14_DYN_50_P25.script1.time)
 
+    # Extracting the current vectors
     OCV_25_SCRIPT_2_CURRENT = P14_OCV_P25.script2.current
     OCV_25_SCRIPT_4_CURRENT = P14_OCV_P25.script4.current
 
-    # Tither profiles extraction # Todo better tither (12781 - 14585)
-    OCV_25_SCRIPT_2_interpolator = interp1d(OCV_25_SCRIPT_2_TIME, OCV_25_SCRIPT_2_CURRENT)
-    OCV_25_SCRIPT_2_TIME_TITHER = np.linspace(9370, 11170,
-                                              11170 - 9370 + 1)  # set points for tither profile start and finish
-    OCV_25_SCRIPT_2_CURRENT_TITHER = OCV_25_SCRIPT_2_interpolator(OCV_25_SCRIPT_2_TIME_TITHER)
-    OCV_25_SCRIPT_2_TIME_TITHER = OCV_25_SCRIPT_2_TIME_TITHER - min(OCV_25_SCRIPT_2_TIME_TITHER)
-    OCV_25_SCRIPT_2_TIME_STOP = max(OCV_25_SCRIPT_2_TIME_TITHER)
+    DYN_25_SCRIPT_1_CURRENT = P14_DYN_50_P25.script1.current
 
-    OCV_25_SCRIPT_4_interpolator = interp1d(OCV_25_SCRIPT_4_TIME, OCV_25_SCRIPT_4_CURRENT)
-    OCV_25_SCRIPT_4_TIME_TITHER = np.linspace(7440, 9030,
-                                              9030 - 7440 + 1)  # set points for tither profile start and finish
-    OCV_25_SCRIPT_4_CURRENT_TITHER = OCV_25_SCRIPT_4_interpolator(OCV_25_SCRIPT_4_TIME_TITHER)
-    OCV_25_SCRIPT_4_TIME_TITHER = OCV_25_SCRIPT_4_TIME_TITHER - min(OCV_25_SCRIPT_4_TIME_TITHER)
-    OCV_25_SCRIPT_4_TIME_STOP = max(OCV_25_SCRIPT_4_TIME_TITHER)
+    # Tither profiles extraction  # Todo: possibly better discharge tither profile at (12781 - 14585)
+    TIME_TITHER_DISCHARGE = np.linspace(9370, 11170, 11170 - 9370 + 1)  # setting x_axis for tither profile LUT
+    TITHER_DISCHARGE_interpolator = interp1d(OCV_25_SCRIPT_2_TIME, OCV_25_SCRIPT_2_CURRENT)  # interpolator
+    CURRENT_TITHER_DISCHARGE = TITHER_DISCHARGE_interpolator(TIME_TITHER_DISCHARGE)  # y_axis for tither profile
+    TIME_TITHER_DISCHARGE = TIME_TITHER_DISCHARGE - min(TIME_TITHER_DISCHARGE)  # redefining x_axis for tither profile
+    TITHER_DISCHARGE_STOP_TIME = max(TIME_TITHER_DISCHARGE)
 
-    # data.plot_func([OCV_25_SCRIPT_2_TIME_TITHER, OCV_25_SCRIPT_4_TIME_TITHER],
-    #                [OCV_25_SCRIPT_2_CURRENT_TITHER, OCV_25_SCRIPT_4_CURRENT_TITHER],
-    #                ["OCV_25_SCRIPT_2_CURRENT_TITHER", "OCV_25_SCRIPT_4_CURRENT_TITHER"],
-    #                flag_show=flag_show)
-    # data.plot_func([DYN_25_SCRIPT_1_TIME, DYN_25_SCRIPT_2_TIME, DYN_25_SCRIPT_3_TIME],
-    #                [DYN_25_SCRIPT_1_CURRENT, DYN_25_SCRIPT_2_CURRENT, DYN_25_SCRIPT_3_CURRENT],
-    #                ["DYN_25_SCRIPT_1_CURRENT", "DYN_25_SCRIPT_2_CURRENT", "DYN_25_SCRIPT_3_CURRENT"],
-    #                flag_show=flag_show)
-    # data.plot_func([P14_OCV_P25.script1.time, P14_OCV_P25.script2.time, P14_OCV_P25.script3.time, P14_OCV_P25.script4.time],
-    #                [P14_OCV_P25.script1.current, P14_OCV_P25.script2.current, P14_OCV_P25.script3.current, P14_OCV_P25.script4.current],
-    #                ["P14_OCV_P25.script1.current", "P14_OCV_P25.script2.current", "P14_OCV_P25.script3.current", "P14_OCV_P25.script4.current"],
-    #                flag_show=flag_show)
-    # data.plot_func([P14_OCV_P25.script1.time, P14_OCV_P25.script2.time, P14_OCV_P25.script3.time, P14_OCV_P25.script4.time],
-    #                [P14_OCV_P25.script1.voltage, P14_OCV_P25.script2.voltage, P14_OCV_P25.script3.voltage, P14_OCV_P25.script4.voltage],
-    #                ["P14_OCV_P25.script1.current", "P14_OCV_P25.script2.current", "P14_OCV_P25.script3.current", "P14_OCV_P25.script4.current"],
-    #                flag_show=flag_show)
+    TIME_TITHER_CHARGE = np.linspace(7440, 9030, 9030 - 7440 + 1)  # x_axis for tither profile start and finish
+    TITHER_CHARGE_interpolator = interp1d(OCV_25_SCRIPT_4_TIME, OCV_25_SCRIPT_4_CURRENT)  # interpolator
+    CURRENT_TITHER_CHARGE = TITHER_CHARGE_interpolator(TIME_TITHER_CHARGE)  # y_axis for charge tither profile
+    TIME_TITHER_CHARGE = TIME_TITHER_CHARGE - min(TIME_TITHER_CHARGE)  # redefining x_axis for charge tither profile
+    TITHER_CHARGE_STOP_TIME = max(TIME_TITHER_CHARGE)
 
-    # Further modifications to Tither profiles
-    OCV_25_SCRIPT_2_CURRENT_TITHER = -(OCV_25_SCRIPT_2_CURRENT_TITHER - 0.01)  # more dc-current to speed up profiles
-    OCV_25_SCRIPT_4_CURRENT_TITHER = (OCV_25_SCRIPT_4_CURRENT_TITHER - 0.01)   # more dc-current to speed up profiles
-    OCV_25_SCRIPT_2_CURRENT_TITHER[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
-    OCV_25_SCRIPT_4_CURRENT_TITHER[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
+    # Further modifications to current profiles
+    CURRENT_TITHER_DISCHARGE = -(CURRENT_TITHER_DISCHARGE - 0.01)  # more dc-current to speed up profiles
+    CURRENT_TITHER_CHARGE = (CURRENT_TITHER_CHARGE - 0.01)   # more dc-current to speed up profiles
+    CURRENT_TITHER_DISCHARGE[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
+    CURRENT_TITHER_CHARGE[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
+    DYN_CURRENT_PROFILE = DYN_25_SCRIPT_1_CURRENT[1930:3380]  # extracting a single segment of this current profile
+    DYN_TIME_PROFILE = DYN_25_SCRIPT_1_TIME[0:(3380-1930)]
+    DYN_PROFILE_STOP_TIME = DYN_25_SCRIPT_1_TIME[(3380-1930)]
 
-    current_profiles_dict = {
-        'OCV_25_SCRIPT_2_TIME_TITHER': OCV_25_SCRIPT_2_TIME_TITHER,
-        'OCV_25_SCRIPT_4_TIME_TITHER': OCV_25_SCRIPT_4_TIME_TITHER,
-        'OCV_25_SCRIPT_2_CURRENT_TITHER': OCV_25_SCRIPT_2_CURRENT_TITHER,
-        'OCV_25_SCRIPT_4_CURRENT_TITHER': OCV_25_SCRIPT_4_CURRENT_TITHER,
-        'OCV_25_SCRIPT_2_TIME_STOP': OCV_25_SCRIPT_2_TIME_STOP,
-        'OCV_25_SCRIPT_4_TIME_STOP': OCV_25_SCRIPT_4_TIME_STOP,
+    current_profiles_dict = {  # Todo: reapply the names to this dictionary and schematic in next commit
+        'OCV_25_SCRIPT_2_TIME_TITHER': TIME_TITHER_DISCHARGE,
+        'OCV_25_SCRIPT_4_TIME_TITHER': TIME_TITHER_CHARGE,
+        'OCV_25_SCRIPT_2_CURRENT_TITHER': CURRENT_TITHER_DISCHARGE,
+        'OCV_25_SCRIPT_4_CURRENT_TITHER': CURRENT_TITHER_CHARGE,
+        'OCV_25_SCRIPT_2_TIME_STOP': TITHER_DISCHARGE_STOP_TIME,
+        'OCV_25_SCRIPT_4_TIME_STOP': TITHER_CHARGE_STOP_TIME,
 
-        'DYN_25_SCRIPT_1_CURRENT': DYN_25_SCRIPT_1_CURRENT[1930:3380],  # mean is 1.981
-        'DYN_25_SCRIPT_1_TIME': DYN_25_SCRIPT_1_TIME[0:(3380-1930)],
-        'DYN_SCRIPT_1_STOP': DYN_25_SCRIPT_1_TIME[(3380-1930)]
+        'DYN_25_SCRIPT_1_CURRENT': DYN_CURRENT_PROFILE,  # mean is 1.981
+        'DYN_25_SCRIPT_1_TIME': DYN_TIME_PROFILE,
+        'DYN_SCRIPT_1_STOP': DYN_PROFILE_STOP_TIME
     }
 
-    print("Saving the current load profiles that will be injected into batteries")
+    print("Saving the current load profiles that will be injected into batteries via LUTs")
     filename = 'current_profiles.pickle'
     with open(filename, 'wb') as file:
         pickle.dump(current_profiles_dict, file)
         print("Current profiles saved as: ", filename)
 
-# Use VHIL to run very fast simulations and thus to obtain the data quickly before the physical tests take place
+    # data.plot_func([OCV_25_SCRIPT_2_TIME_TITHER, OCV_25_SCRIPT_4_TIME_TITHER],
+    #                [OCV_25_SCRIPT_2_CURRENT_TITHER, OCV_25_SCRIPT_4_CURRENT_TITHER],
+    #                ["OCV_25_SCRIPT_2_CURRENT_TITHER", "OCV_25_SCRIPT_4_CURRENT_TITHER"],
+    #                flag_show=flag_show)
+
+# Run very fast simulations and thus to obtain the data quickly before the physical tests take place
 vhil_device = True
 model.load(model_path)
 print('STEP 1: Initializing the model')
@@ -153,9 +137,9 @@ capture.start_capture(duration=capture_duration,
 hil.start_simulation()
 print('STEP 3: Starting simulation and capture')
 if vhil_device:
-    print('     This may take up to ' + str(capture_duration/10) + ' seconds')
+    print('     This may take up to ' + str(round(capture_duration/10)) + ' seconds')
 else:
-    print('     This may take up to ' + str(capture_duration) + ' seconds')
+    print('     This may take up to ' + str(round(capture_duration)) + ' seconds')
 st = time.time()  # measuring the starting time
 
 # capture.wait_until("done_flag", 'above', 0.5, timeout=capture_duration)

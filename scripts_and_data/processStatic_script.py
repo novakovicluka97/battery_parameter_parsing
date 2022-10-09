@@ -8,7 +8,6 @@ def processStatic(static_data, model, typhoon_origin=False):
     """
     Script that populates the model parameters based on static test data
     """
-    SOC_vector = np.linspace(0, 1, 201)  # output SOC_vector points for this step
 
     # We need to find the index of static data which coresponds with default temperature of 25 degrees celsius
     # After that, other temperatures can be calculated
@@ -89,6 +88,8 @@ def processStatic(static_data, model, typhoon_origin=False):
         zDis = np.flipud(disZ[ind[0]:ind[-1]])
         np.append(zChg, zDis)
         FULL_SOC_curve = interpolate.interp1d(np.append(zChg, zDis), np.append(vChg, vDis), fill_value="extrapolate")
+
+        SOC_vector = np.linspace(0, 1, 201)  # output SOC_vector points for this step
         rawocv = FULL_SOC_curve(SOC_vector)
 
         # Final step: populate model
