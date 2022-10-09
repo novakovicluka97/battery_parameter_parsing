@@ -26483,19 +26483,19 @@ else {
         component gen_probe dyn_current_1 {
         }
         [
-            position = 8112, 8952
+            position = 8160, 8952
         ]
 
         component gen_probe dyn_current_2 {
         }
         [
-            position = 8928, 8960
+            position = 8968, 8960
         ]
 
         component gen_probe dyn_current_3 {
         }
         [
-            position = 9792, 8960
+            position = 9840, 8968
         ]
 
         component gen_probe current_1 {
@@ -26555,6 +26555,30 @@ else {
         }
         [
             position = 8080, 8904
+            hide_name = True
+        ]
+
+        component gen_gain Gain14 {
+            gain = "-1"
+        }
+        [
+            position = 8096, 8952
+            hide_name = True
+        ]
+
+        component gen_gain Gain15 {
+            gain = "-1"
+        }
+        [
+            position = 8912, 8960
+            hide_name = True
+        ]
+
+        component gen_gain Gain16 {
+            gain = "-1"
+        }
+        [
+            position = 9784, 8968
             hide_name = True
         ]
 
@@ -28243,13 +28267,10 @@ else {
         connect "Unit Delay6.in" Junction136 as Connection871
         connect Gain4.in Junction148 as Connection872
         connect Junction148 dyn_current_1_.out as Connection873
-        connect dyn_current_1.in Junction148 as Connection874
         connect Gain5.in Junction149 as Connection875
         connect Junction149 dyn_current_2_.out as Connection876
-        connect dyn_current_2.in Junction149 as Connection877
         connect Gain7.in Junction150 as Connection878
         connect Junction150 dyn_current_3_.out as Connection879
-        connect dyn_current_3.in Junction150 as Connection880
         connect Gain6.in Junction152 as Connection884
         connect Junction152 current_2_.out as Connection885
         connect current_2.in Junction152 as Connection886
@@ -28274,6 +28295,12 @@ else {
         connect "Unit Delay11.out" Junction146 as Connection903
         connect From74 "Unit Delay12.in" as Connection904
         connect "Unit Delay12.out" Junction147 as Connection905
+        connect dyn_current_1.in Gain14.out as Connection906
+        connect Gain14.in Junction148 as Connection907
+        connect dyn_current_2.in Gain15.out as Connection908
+        connect Gain15.in Junction149 as Connection909
+        connect dyn_current_3.in Gain16.out as Connection910
+        connect Gain16.in Junction150 as Connection911
     }
 
     logically_deleted {

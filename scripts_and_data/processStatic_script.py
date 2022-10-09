@@ -100,4 +100,5 @@ def processStatic(static_data, model, typhoon_origin=False):
         model.ocv_vector.append(rawocv)
 
         data.plot_func([SOC_vector], [rawocv], ["OCV_SOC_static_temp_"+str(static_data[k].temp)], flag_show=False)
+
     plt.show()

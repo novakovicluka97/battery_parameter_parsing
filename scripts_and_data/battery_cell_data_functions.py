@@ -213,4 +213,3 @@ class CellAllData:
                 self.current = script[0][0][3][0]
                 self.chgAh = script[0][0][4][0]
                 self.disAh = script[0][0][5][0]
-                self.disAh = script[0][0][5][0]

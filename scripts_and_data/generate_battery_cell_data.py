@@ -61,7 +61,7 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
 
     DYN_25_SCRIPT_1_CURRENT = P14_DYN_50_P25.script1.current
 
-    # Tither profiles extraction  # Todo: possibly better discharge tither profile at (12781 - 14585)
+    # Current profiles extraction  # Todo: possibly better discharge tither profile at (12781 - 14585)
     TIME_TITHER_DISCHARGE = np.linspace(9370, 11170, 11170 - 9370 + 1)  # setting x_axis for tither profile LUT
     TITHER_DISCHARGE_interpolator = interp1d(OCV_25_SCRIPT_2_TIME, OCV_25_SCRIPT_2_CURRENT)  # interpolator
     CURRENT_TITHER_DISCHARGE = TITHER_DISCHARGE_interpolator(TIME_TITHER_DISCHARGE)  # y_axis for tither profile
@@ -74,14 +74,17 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
     TIME_TITHER_CHARGE = TIME_TITHER_CHARGE - min(TIME_TITHER_CHARGE)  # redefining x_axis for charge tither profile
     TITHER_CHARGE_STOP_TIME = max(TIME_TITHER_CHARGE)
 
+    DYN_CURRENT_PROFILE = DYN_25_SCRIPT_1_CURRENT[1930:3380]  # extracting a single segment of this current profile
+    DYN_TIME_PROFILE = DYN_25_SCRIPT_1_TIME[0:(3380-1930)]
+    DYN_PROFILE_STOP_TIME = DYN_25_SCRIPT_1_TIME[(3380-1930)]
+
     # Further modifications to current profiles
     CURRENT_TITHER_DISCHARGE = -(CURRENT_TITHER_DISCHARGE - 0.01)  # more dc-current to speed up profiles
     CURRENT_TITHER_CHARGE = (CURRENT_TITHER_CHARGE - 0.01)   # more dc-current to speed up profiles
     CURRENT_TITHER_DISCHARGE[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
     CURRENT_TITHER_CHARGE[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
-    DYN_CURRENT_PROFILE = DYN_25_SCRIPT_1_CURRENT[1930:3380]  # extracting a single segment of this current profile
-    DYN_TIME_PROFILE = DYN_25_SCRIPT_1_TIME[0:(3380-1930)]
-    DYN_PROFILE_STOP_TIME = DYN_25_SCRIPT_1_TIME[(3380-1930)]
+    DYN_CURRENT_PROFILE[-1] = 0
+    DYN_CURRENT_PROFILE[0] = 0
 
     current_profiles_dict = {  # Todo: reapply the names to this dictionary and schematic in next commit
         'OCV_25_SCRIPT_2_TIME_TITHER': TIME_TITHER_DISCHARGE,
@@ -107,17 +110,17 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
     #                ["OCV_25_SCRIPT_2_CURRENT_TITHER", "OCV_25_SCRIPT_4_CURRENT_TITHER"],
     #                flag_show=flag_show)
 
+print('STEP 1: Initializing the model')
 # Run very fast simulations and thus to obtain the data quickly before the physical tests take place
 vhil_device = True
 model.load(model_path)
-print('STEP 1: Initializing the model')
 model_device = model.get_model_property_value("hil_device")
 model_config = model.get_model_property_value("hil_configuration_id")
 report.report_message(
     "Virtual HIL device is used. Model is compiled for {} C{}.".format(model_device, model_config))
 
-model.compile()
 print('STEP 2: Compiling and loading the model')
+model.compile()
 hil.load_model(compiled_model_path, vhil_device=vhil_device)
 
 # signals for capturing
@@ -134,8 +137,8 @@ capture.start_capture(duration=capture_duration,
                       signals=channel_signals,
                       executeAt=0.0)
 
-hil.start_simulation()
 print('STEP 3: Starting simulation and capture')
+hil.start_simulation()
 if vhil_device:
     print('     This may take up to ' + str(round(capture_duration/10)) + ' seconds')
 else:
@@ -160,22 +163,22 @@ current_1 = list(cap_data["current_1"])
 voltage_1 = list(cap_data["voltage_1"])
 script_no_1 = list(cap_data["script_no_1"])
 temperature_1 = list(cap_data["temperature_1"])
-chgAh_1 = list(cap_data["chgAh_1"])
-disAh_1 = list(cap_data["disAh_1"])
+chgAh_1 = list(cap_data["chgAh_1"]/3600)
+disAh_1 = list(cap_data["disAh_1"]/3600)
 
 current_2 = list(cap_data["current_2"])
 voltage_2 = list(cap_data["voltage_2"])
 script_no_2 = list(cap_data["script_no_2"])
 temperature_2 = list(cap_data["temperature_2"])
-chgAh_2 = list(cap_data["chgAh_2"])
-disAh_2 = list(cap_data["disAh_2"])
+chgAh_2 = list(cap_data["chgAh_2"]/3600)
+disAh_2 = list(cap_data["disAh_2"]/3600)
 
 current_3 = list(cap_data["current_3"])
 voltage_3 = list(cap_data["voltage_3"])
 script_no_3 = list(cap_data["script_no_3"])
 temperature_3 = list(cap_data["temperature_3"])
-chgAh_3 = list(cap_data["chgAh_3"])
-disAh_3 = list(cap_data["disAh_3"])
+chgAh_3 = list(cap_data["chgAh_3"]/3600)
+disAh_3 = list(cap_data["disAh_3"]/3600)
 
 # Parsing the data
 scr_start_2_25 = script_no_1.index(2)
@@ -240,22 +243,22 @@ dyn_current_1       = list(cap_data["dyn_current_1"])
 dyn_voltage_1       = list(cap_data["dyn_voltage_1"])
 dyn_script_no_1     = list(cap_data["dyn_script_no_1"])
 dyn_temperature_1   = list(cap_data["dyn_temperature_1"])
-dyn_chgAh_1         = list(cap_data["dyn_chgAh_1"])
-dyn_disAh_1         = list(cap_data["dyn_disAh_1"])
+dyn_chgAh_1         = list(cap_data["dyn_chgAh_1"]/3600)
+dyn_disAh_1         = list(cap_data["dyn_disAh_1"]/3600)
 
 dyn_current_2       = list(cap_data["dyn_current_2"])
 dyn_voltage_2       = list(cap_data["dyn_voltage_2"])
 dyn_script_no_2     = list(cap_data["dyn_script_no_2"])
 dyn_temperature_2   = list(cap_data["dyn_temperature_2"])
-dyn_chgAh_2         = list(cap_data["dyn_chgAh_2"])
-dyn_disAh_2         = list(cap_data["dyn_disAh_2"])
+dyn_chgAh_2         = list(cap_data["dyn_chgAh_2"]/3600)
+dyn_disAh_2         = list(cap_data["dyn_disAh_2"]/3600)
 
 dyn_current_3       = list(cap_data["dyn_current_3"])
 dyn_voltage_3       = list(cap_data["dyn_voltage_3"])
 dyn_script_no_3     = list(cap_data["dyn_script_no_3"])
 dyn_temperature_3   = list(cap_data["dyn_temperature_3"])
-dyn_chgAh_3         = list(cap_data["dyn_chgAh_3"])
-dyn_disAh_3         = list(cap_data["dyn_disAh_3"])
+dyn_chgAh_3         = list(cap_data["dyn_chgAh_3"]/3600)
+dyn_disAh_3         = list(cap_data["dyn_disAh_3"]/3600)
 
 # Parsing the data
 dyn_scr_start_2_25 = dyn_script_no_1.index(2)
