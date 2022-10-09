@@ -20,7 +20,7 @@ import time
 output_data_filename = 'cell_all_data.mat'
 model_name = "Battery_parametrization_model.tse"
 flag_show = False  # if True, certain graphs used for debugging will be shown
-capture_duration = 30 * 60 * 60
+capture_duration = 1320  # 30 * 60 * 60
 
 # script directory
 # Path to model file and to compiled model file
@@ -65,7 +65,7 @@ if __name__ == "__main__":  # If this script is instantiated manually...
     OCV_25_SCRIPT_2_CURRENT = P14_OCV_P25.script2.current
     OCV_25_SCRIPT_4_CURRENT = P14_OCV_P25.script4.current
 
-    # Tither profiles extraction
+    # Tither profiles extraction # Todo better tither (12781 - 14585)
     OCV_25_SCRIPT_2_interpolator = interp1d(OCV_25_SCRIPT_2_TIME, OCV_25_SCRIPT_2_CURRENT)
     OCV_25_SCRIPT_2_TIME_TITHER = np.linspace(9370, 11170,
                                               11170 - 9370 + 1)  # set points for tither profile start and finish
@@ -80,22 +80,22 @@ if __name__ == "__main__":  # If this script is instantiated manually...
     OCV_25_SCRIPT_4_TIME_TITHER = OCV_25_SCRIPT_4_TIME_TITHER - min(OCV_25_SCRIPT_4_TIME_TITHER)
     OCV_25_SCRIPT_4_TIME_STOP = max(OCV_25_SCRIPT_4_TIME_TITHER)
 
-    data.plot_func([OCV_25_SCRIPT_2_TIME_TITHER, OCV_25_SCRIPT_4_TIME_TITHER],
-                   [OCV_25_SCRIPT_2_CURRENT_TITHER, OCV_25_SCRIPT_4_CURRENT_TITHER],
-                   ["OCV_25_SCRIPT_2_CURRENT_TITHER", "OCV_25_SCRIPT_4_CURRENT_TITHER"],
-                   flag_show=flag_show)
-    data.plot_func([DYN_25_SCRIPT_1_TIME, DYN_25_SCRIPT_2_TIME, DYN_25_SCRIPT_3_TIME],
-                   [DYN_25_SCRIPT_1_CURRENT, DYN_25_SCRIPT_2_CURRENT, DYN_25_SCRIPT_3_CURRENT],
-                   ["DYN_25_SCRIPT_1_CURRENT", "DYN_25_SCRIPT_2_CURRENT", "DYN_25_SCRIPT_3_CURRENT"],
-                   flag_show=flag_show)
-    data.plot_func([P14_OCV_P25.script1.time, P14_OCV_P25.script2.time, P14_OCV_P25.script3.time, P14_OCV_P25.script4.time],
-                   [P14_OCV_P25.script1.current, P14_OCV_P25.script2.current, P14_OCV_P25.script3.current, P14_OCV_P25.script4.current],
-                   ["P14_OCV_P25.script1.current", "P14_OCV_P25.script2.current", "P14_OCV_P25.script3.current", "P14_OCV_P25.script4.current"],
-                   flag_show=flag_show)
-    data.plot_func([P14_OCV_P25.script1.time, P14_OCV_P25.script2.time, P14_OCV_P25.script3.time, P14_OCV_P25.script4.time],
-                   [P14_OCV_P25.script1.voltage, P14_OCV_P25.script2.voltage, P14_OCV_P25.script3.voltage, P14_OCV_P25.script4.voltage],
-                   ["P14_OCV_P25.script1.current", "P14_OCV_P25.script2.current", "P14_OCV_P25.script3.current", "P14_OCV_P25.script4.current"],
-                   flag_show=flag_show)
+    # data.plot_func([OCV_25_SCRIPT_2_TIME_TITHER, OCV_25_SCRIPT_4_TIME_TITHER],
+    #                [OCV_25_SCRIPT_2_CURRENT_TITHER, OCV_25_SCRIPT_4_CURRENT_TITHER],
+    #                ["OCV_25_SCRIPT_2_CURRENT_TITHER", "OCV_25_SCRIPT_4_CURRENT_TITHER"],
+    #                flag_show=flag_show)
+    # data.plot_func([DYN_25_SCRIPT_1_TIME, DYN_25_SCRIPT_2_TIME, DYN_25_SCRIPT_3_TIME],
+    #                [DYN_25_SCRIPT_1_CURRENT, DYN_25_SCRIPT_2_CURRENT, DYN_25_SCRIPT_3_CURRENT],
+    #                ["DYN_25_SCRIPT_1_CURRENT", "DYN_25_SCRIPT_2_CURRENT", "DYN_25_SCRIPT_3_CURRENT"],
+    #                flag_show=flag_show)
+    # data.plot_func([P14_OCV_P25.script1.time, P14_OCV_P25.script2.time, P14_OCV_P25.script3.time, P14_OCV_P25.script4.time],
+    #                [P14_OCV_P25.script1.current, P14_OCV_P25.script2.current, P14_OCV_P25.script3.current, P14_OCV_P25.script4.current],
+    #                ["P14_OCV_P25.script1.current", "P14_OCV_P25.script2.current", "P14_OCV_P25.script3.current", "P14_OCV_P25.script4.current"],
+    #                flag_show=flag_show)
+    # data.plot_func([P14_OCV_P25.script1.time, P14_OCV_P25.script2.time, P14_OCV_P25.script3.time, P14_OCV_P25.script4.time],
+    #                [P14_OCV_P25.script1.voltage, P14_OCV_P25.script2.voltage, P14_OCV_P25.script3.voltage, P14_OCV_P25.script4.voltage],
+    #                ["P14_OCV_P25.script1.current", "P14_OCV_P25.script2.current", "P14_OCV_P25.script3.current", "P14_OCV_P25.script4.current"],
+    #                flag_show=flag_show)
 
     current_profiles_dict = {
         'OCV_25_SCRIPT_2_TIME_TITHER': OCV_25_SCRIPT_2_TIME_TITHER,
@@ -108,9 +108,7 @@ if __name__ == "__main__":  # If this script is instantiated manually...
 
         'DYN_25_SCRIPT_1_CURRENT': DYN_25_SCRIPT_1_CURRENT[1930:3380],  # mean is 1.981
         'DYN_25_SCRIPT_1_TIME': DYN_25_SCRIPT_1_TIME[0:(3380-1930)],
-        'DYN_SCRIPT_1_STOP': DYN_25_SCRIPT_1_TIME[(3380-1930)],
-        'DYN_DIS_CHG_TITHER_STOP_TIME': 00,
-        'DYN_CHG_TITHER_STOP_TIME': 00
+        'DYN_SCRIPT_1_STOP': DYN_25_SCRIPT_1_TIME[(3380-1930)]
     }
 
     print("Saving the current load profiles that will be injected into batteries")
@@ -132,7 +130,6 @@ model.compile()
 print('STEP 2: Compiling and loading the model')
 hil.load_model(compiled_model_path, vhil_device=vhil_device)
 
-battery_cell_name = "Battery Cell_25"
 # signals for capturing
 channel_signals = ["temperature_1", "voltage_1", "current_1", "chgAh_1", "disAh_1", "script_no_1",
                    "temperature_2", "voltage_2", "current_2", "chgAh_2", "disAh_2", "script_no_2",
@@ -140,7 +137,7 @@ channel_signals = ["temperature_1", "voltage_1", "current_1", "chgAh_1", "disAh_
                    "dyn_temperature_1", "dyn_voltage_1", "dyn_current_1", "dyn_chgAh_1", "dyn_disAh_1", "dyn_script_no_1",
                    "dyn_temperature_2", "dyn_voltage_2", "dyn_current_2", "dyn_chgAh_2", "dyn_disAh_2", "dyn_script_no_2",
                    "dyn_temperature_3", "dyn_voltage_3", "dyn_current_3", "dyn_chgAh_3", "dyn_disAh_3", "dyn_script_no_3",
-                   "Time"]
+                   "Time", "done_flag"]
 
 capture.start_capture(duration=capture_duration,
                       rate=1,
@@ -152,21 +149,20 @@ print('STEP 3: Starting simulation and capture')
 print('     This may take up to an hour')
 st = time.time()  # measuring the starting time
 
-# Todo make the capture stop once the signal reaches a certain value
-capture.wait_until("script_no_1", 'above', 4.5, timeout=capture_duration)
-# capture.wait(100)  # Wait 100 more seconds #Todo EXCEPTION HERE
+# capture.wait_until("done_flag", 'above', 0.5, timeout=capture_duration)
+capture.wait_capture_finish()
 
 et = time.time()  # get the end time
 elapsed_time = et - st  # get the execution time
 print('Execution time:', elapsed_time, 'seconds, and ', hil.get_sim_time(), "seconds of simulation time")
 cap_data = capture.get_capture_results()
-
 hil.stop_simulation()  # Stopping the simulation
 
 print('STEP 4: Manipulating the captured data')
 # Assigning to variables
 time_vec = list(cap_data["Time"])
 
+# STATIC TEST
 current_1 = list(cap_data["current_1"])
 voltage_1 = list(cap_data["voltage_1"])
 script_no_1 = list(cap_data["script_no_1"])
@@ -244,8 +240,7 @@ Script4_05 = Script(time_vec[scr_start_4_05:scr_start_5_05], temperature_3[scr_s
                     voltage_3[scr_start_4_05:scr_start_5_05], current_3[scr_start_4_05:scr_start_5_05],
                     chgAh_3[scr_start_4_05:scr_start_5_05], disAh_3[scr_start_4_05:scr_start_5_05])
 
-data.plot_func([time_vec], [voltage_3], ["Script4_05"], flag_show=True)
-
+# data.plot_func([time_vec], [voltage_3], ["Script4_05"], flag_show=True)
 
 # DYNAMIC TESTS
 dyn_current_1       = list(cap_data["dyn_current_1"])
@@ -269,19 +264,58 @@ dyn_temperature_3   = list(cap_data["dyn_temperature_3"])
 dyn_chgAh_3         = list(cap_data["dyn_chgAh_3"])
 dyn_disAh_3         = list(cap_data["dyn_disAh_3"])
 
+# Parsing the data
+dyn_scr_start_2_25 = dyn_script_no_1.index(2)
+dyn_scr_start_3_25 = dyn_script_no_1.index(3)
+dyn_scr_start_4_25 = dyn_script_no_1.index(4)
 
+dyn_scr_start_2_45 = dyn_script_no_2.index(2)
+dyn_scr_start_3_45 = dyn_script_no_2.index(3)
+dyn_scr_start_4_45 = dyn_script_no_2.index(4)
 
+dyn_scr_start_2_05 = dyn_script_no_3.index(2)
+dyn_scr_start_3_05 = dyn_script_no_3.index(3)
+dyn_scr_start_4_05 = dyn_script_no_3.index(4)
 
+# Packing the data into class script
+# TEMPERATURE 25 DYNAMIC TEST
+Dyn_Script1_25 = Script(time_vec[0:dyn_scr_start_2_25], dyn_temperature_1[0:dyn_scr_start_2_25], dyn_voltage_1[0:dyn_scr_start_2_25],
+                    dyn_current_1[0:dyn_scr_start_2_25], dyn_chgAh_1[0:dyn_scr_start_2_25], dyn_disAh_1[0:dyn_scr_start_2_25])
+Dyn_Script2_25 = Script(time_vec[dyn_scr_start_2_25:dyn_scr_start_3_25], dyn_temperature_1[dyn_scr_start_2_25:dyn_scr_start_3_25],
+                    dyn_voltage_1[dyn_scr_start_2_25:dyn_scr_start_3_25], dyn_current_1[dyn_scr_start_2_25:dyn_scr_start_3_25],
+                    dyn_chgAh_1[dyn_scr_start_2_25:dyn_scr_start_3_25], dyn_disAh_1[dyn_scr_start_2_25:dyn_scr_start_3_25])
+Dyn_Script3_25 = Script(time_vec[dyn_scr_start_3_25:dyn_scr_start_4_25], dyn_temperature_1[dyn_scr_start_3_25:dyn_scr_start_4_25],
+                    dyn_voltage_1[dyn_scr_start_3_25:dyn_scr_start_4_25], dyn_current_1[dyn_scr_start_3_25:dyn_scr_start_4_25],
+                    dyn_chgAh_1[dyn_scr_start_3_25:dyn_scr_start_4_25], dyn_disAh_1[dyn_scr_start_3_25:dyn_scr_start_4_25])
 
+# TEMPERATURE 45 DYNAMIC TEST
+Dyn_Script1_45 = Script(time_vec[0:dyn_scr_start_2_45], dyn_temperature_2[0:dyn_scr_start_2_45], dyn_voltage_2[0:dyn_scr_start_2_45],
+                    dyn_current_2[0:dyn_scr_start_2_45], dyn_chgAh_2[0:dyn_scr_start_2_45], dyn_disAh_2[0:dyn_scr_start_2_45])
+Dyn_Script2_45 = Script(time_vec[dyn_scr_start_2_45:dyn_scr_start_3_45], dyn_temperature_2[dyn_scr_start_2_45:dyn_scr_start_3_45],
+                    dyn_voltage_2[dyn_scr_start_2_45:dyn_scr_start_3_45], dyn_current_2[dyn_scr_start_2_45:dyn_scr_start_3_45],
+                    dyn_chgAh_2[dyn_scr_start_2_45:dyn_scr_start_3_45], dyn_disAh_2[dyn_scr_start_2_45:dyn_scr_start_3_45])
+Dyn_Script3_45 = Script(time_vec[dyn_scr_start_3_45:dyn_scr_start_4_45], dyn_temperature_2[dyn_scr_start_3_45:dyn_scr_start_4_45],
+                    dyn_voltage_2[dyn_scr_start_3_45:dyn_scr_start_4_45], dyn_current_2[dyn_scr_start_3_45:dyn_scr_start_4_45],
+                    dyn_chgAh_2[dyn_scr_start_3_45:dyn_scr_start_4_45], dyn_disAh_2[dyn_scr_start_3_45:dyn_scr_start_4_45])
+
+# TEMPERATURE 05 DYNAMIC TEST
+Dyn_Script1_05 = Script(time_vec[0:dyn_scr_start_2_05], dyn_temperature_3[0:dyn_scr_start_2_05], dyn_voltage_3[0:dyn_scr_start_2_05],
+                    dyn_current_3[0:dyn_scr_start_2_05], dyn_chgAh_3[0:dyn_scr_start_2_05], dyn_disAh_3[0:dyn_scr_start_2_05])
+Dyn_Script2_05 = Script(time_vec[dyn_scr_start_2_05:dyn_scr_start_3_05], dyn_temperature_3[dyn_scr_start_2_05:dyn_scr_start_3_05],
+                    dyn_voltage_3[dyn_scr_start_2_05:dyn_scr_start_3_05], dyn_current_3[dyn_scr_start_2_05:dyn_scr_start_3_05],
+                    dyn_chgAh_3[dyn_scr_start_2_05:dyn_scr_start_3_05], dyn_disAh_3[dyn_scr_start_2_05:dyn_scr_start_3_05])
+Dyn_Script3_05 = Script(time_vec[dyn_scr_start_3_05:dyn_scr_start_4_05], dyn_temperature_3[dyn_scr_start_3_05:dyn_scr_start_4_05],
+                    dyn_voltage_3[dyn_scr_start_3_05:dyn_scr_start_4_05], dyn_current_3[dyn_scr_start_3_05:dyn_scr_start_4_05],
+                    dyn_chgAh_3[dyn_scr_start_3_05:dyn_scr_start_4_05], dyn_disAh_3[dyn_scr_start_3_05:dyn_scr_start_4_05])
 
 # Saving the data
 data = {
     "OCVData_25": [Script1_25, Script2_25, Script3_25, Script4_25],
-    "OCVData_05": [Script1_05, Script2_05, Script3_05, Script4_05],
     "OCVData_45": [Script1_45, Script2_45, Script3_45, Script4_45],
-    "DYNData_25": [Script1_25, Script1_25, Script1_25],
-    "DYNData_05": [Script1_25, Script1_25, Script1_25],
-    "DYNData_45": [Script1_25, Script1_25, Script1_25],
+    "OCVData_05": [Script1_05, Script2_05, Script3_05, Script4_05],
+    "DYNData_25": [Dyn_Script1_25, Dyn_Script2_25, Dyn_Script3_25],
+    "DYNData_45": [Dyn_Script1_45, Dyn_Script2_45, Dyn_Script3_45],
+    "DYNData_05": [Dyn_Script1_05, Dyn_Script2_05, Dyn_Script3_05],
 }
 
 print('STEP 5: Saving the data into a file: ' + output_data_filename)
