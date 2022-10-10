@@ -8,13 +8,13 @@ import scipy.io
 # This script will parse out the battery cell parameters from the battery cell data obtained from
 # "generate_battery_cell_data.py" python script. The parameters will be saved in the .pickle format.
 
-data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
-# data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
-output_filename = data_origin + '.pickle'  # Name of the pickled file
 # todo doHyst and numpoles variables are only tested when they are both one.
 #  Extend this functionality to different values of these variables
 numpoles = 1  # Number of resistor--capacitor pairs in final model
 doHyst = 1    # Include hysteresis in model
+#  data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
+data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
+output_filename = data_origin + '.pickle'  # Name of the pickled file
 
 # Initialize data
 if data_origin == 'P14_Boulder_cell_data':  # test data from the Boulder university

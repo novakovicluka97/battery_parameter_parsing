@@ -73,7 +73,7 @@ def processDynamic(data, model, numpoles, doHyst):
         bestcost = np.inf
         print("Processing temperature: ", data[k].temp, " degrees celsius")
         if doHyst:
-            model.GParam[k] = abs(fminbnd(optfn, 1, 250, args=(data, model, model.temps[k], doHyst), xtol=0.1, maxfun=40, disp=0))
+            model.GParam[k] = abs(fminbnd(optfn, 1, 250, args=(data, model, model.temps[k], doHyst, k), xtol=0.1, maxfun=40, disp=0))
         else:  # Todo check functionality and extend it if it doesnt work
             model.GParam.append(0)
             theGParam = 0
@@ -94,18 +94,141 @@ def OCVfromSOCtemp(soc, temp, model):
     return function(soc)
 
 
-def optfn(theGParam, data, model, temperature, doHyst):
+def optfn(theGParam, data, model, temperature, doHyst, index):
     """
     Optimization function copied from the Octave code
     """
     global bestcost
     bestcost = np.inf
-    model.GParam.append(abs(theGParam))
+    model.GParam[index] = (abs(theGParam))
     [cost, _] = minfn(data, model, temperature, doHyst)
     if cost < bestcost:
         bestcost = cost
         print("The model created for this value of gamma is the best ESC model yet!")
     return cost
+
+
+def minfn(data, model, temperature, doHyst):
+    """
+    Minimization function
+    """
+    alltemps = [data[i].temp for i in range(len(data))]
+    index_array = np.where(np.array(alltemps) == temperature)
+    ind = index_array[0][0]  # index of current temperature in the temperatures vector of model (and data?)
+    numfiles = len(index_array)  # will be 1 for now
+
+    xplots = np.ceil(np.sqrt(numfiles))
+    yplots = np.ceil(numfiles / xplots)
+    rmserr = np.zeros(1, xplots * yplots)
+
+    G = abs(model.GParam[ind])          # Boulder data: temp_5 -> G = 96.10954, 154.89
+    Q = abs(model.QParam[ind])          # Boulder data: temp_5 -> Q = 14.5924882
+    eta = abs(model.etaParam[ind])      # Boulder data: temp_5 -> eta = 0.981744
+    # RC = model.RCParam[ind]
+    numpoles = 1  # len(RC)          # todo extend this functionality
+
+    for thefile in range(numfiles):  # should always be 1 file as long as there is one test per temperature
+        script_1_current = data[ind].script1.current[:]
+        script_1_voltage = data[ind].script1.voltage[:]
+        # tk = range(len(vk))  # never used again
+        script_1_current_corrected = script_1_current  # Todo Make this not a copy
+        for i in range(len(script_1_current)):
+            if script_1_current[i] < 0:
+                script_1_current_corrected[i] = script_1_current[i] * eta
+            else:
+                script_1_current_corrected[i] = script_1_current[i]
+
+        # Calculating hysteresis variables
+        h = [0] * len(script_1_current)  # 'h' is a variable that relates to hysteresis voltage
+        current_sign = [0] * len(script_1_current)
+        fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q)))  # also a hysteresis voltage variable
+        # debug looks the same as octave up until this point
+        for k in range(1, len(script_1_current)):  # todo check why it starts with 1
+            h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * np.sign(script_1_current[k - 1])
+            current_sign[k] = np.sign(script_1_current[k])
+            if abs(script_1_current[k]) < Q / 100:
+                current_sign[k] = current_sign[k-1]
+
+        # First modeling step: Compute error with model represented only with OCV
+        # debug looks the same as octave up until this point (except OCV and SOC arrays)
+        v_est = data[ind].OCV  # OCV is not completely the same but script_1_voltage is the same
+        v_error = np.array(script_1_voltage) - np.array(v_est)  # therefore v_error is not the same as in Octave
+        numpoles_loop_no = numpoles
+
+        # Second modeling step: Compute time constants in "A" matrix
+        while True:
+            A = SISOsubid(-np.diff(v_error), np.diff(script_1_current_corrected), numpoles_loop_no)   # diff works fine
+            eigA = LA.eig(A)[0]     # For Boulder: eigA = [0.2389149], [0.6528]
+            assert (eigA == np.conj(eigA)), "eigA is not a real number"
+            assert (1 > eigA > 0), "eigA is not in proper range"
+            okpoles = len(eigA)
+            numpoles_loop_no = numpoles_loop_no + 1
+            if okpoles >= numpoles:
+                break
+            print(f'Trying {numpoles_loop_no=}\n')
+
+        RCfact_var = np.sort(eigA)
+        RCfact = RCfact_var[len(RCfact_var) - numpoles:]
+        RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4
+        # Simulate the R - C filters to find R - C currents
+        vrcRaw = np.zeros((numpoles, len(h)))
+        for k in range(1, len(script_1_current)):
+            vrcRaw[:, k] = np.diag(RCfact) * vrcRaw[:, k - 1] + (1 - RCfact) * script_1_current_corrected[k - 1]
+        vrcRaw = np.transpose(vrcRaw)  # Close enough to Octave vrcRaw
+
+        # Third modeling step: Hysteresis parameters
+        if doHyst:
+            H_1 = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
+            H_2 = np.append(np.transpose([-script_1_current_corrected]), -vrcRaw, 1)
+            H = np.append(H_1, H_2, 1)
+            W = LA.lstsq(H, v_error)  # W = H\verr;   LEAST SQUARE NON NEGATIVE
+            M  = W[0][0]
+            M0 = W[0][1]
+            R0 = W[0][2]
+            Rfact = np.transpose(W[0][3:])
+        else:
+            H = np.append(np.transpose([-script_1_current_corrected]), -vrcRaw, 1)
+            W = H / v_error  # Todo probably something wrong here, revisit later
+            M = 0
+            M0 = 0
+            R0 = W[0]
+            Rfact = np.transpose(W[0][1:])
+
+        # Populate the model
+        model.R0Param[ind] = R0
+        model.M0Param[ind] = M0
+        model.MParam[ind] = M
+        model.RCParam[ind] = np.transpose(RC)
+        model.RParam[ind] = np.transpose(Rfact)
+
+        vest2 = v_est + np.array(h)*M + M0*np.array(current_sign) - R0*np.array(script_1_current_corrected) - np.transpose(vrcRaw) * Rfact
+        verr = script_1_voltage - vest2
+        # starting to look different
+
+        # Compute RMS error only on data roughly in 5 % to 95 % SOC
+        v1 = OCVfromSOCtemp(0.95, data[ind].temp, model)
+        v2 = OCVfromSOCtemp(0.05, data[ind].temp, model)
+        N1_array = np.where(script_1_voltage < v1, 1, 0)
+        N2_array = np.where(script_1_voltage < v2, 1, 0)
+        for i in range(len(N1_array)):
+            if N1_array[i] == 1:
+                N1 = i
+                break
+        for i in range(len(N2_array)):
+            if N2_array[i] == 1:
+                N2 = i
+                break
+        if not N1:
+            N1=1
+        if not N2:
+            N2=len(verr)
+        rmserr[thefile] = np.sqrt(np.mean(verr[0, N1:N2]**2))
+
+    cost = sum(rmserr)
+    print(f'RMS error for present value of gamma = {cost * 1000} (mV)\n')
+    assert cost, 'Exception: Cost is empty'
+
+    return [cost, model]
 
 
 def SISOsubid(y, u, n):
@@ -213,123 +336,3 @@ def SISOsubid(y, u, n):
     A = sol[0:n, 0: n]  # Extract A
 
     return A
-
-
-def minfn(data, model, temperature, doHyst):
-    """
-    Minimization function
-    """
-    alltemps = [data[i].temp for i in range(len(data))]
-    index_array = np.where(np.array(alltemps) == temperature)
-    ind = index_array[0][0]
-    numfiles = len(index_array)  # will be 1 for now
-
-    xplots = np.ceil(np.sqrt(numfiles))
-    yplots = np.ceil(numfiles / xplots)
-    rmserr = np.zeros(1, xplots * yplots)
-
-    G = abs(model.GParam[ind])      # for 25 degrees
-    Q = abs(model.QParam[ind])      # for 25 degrees
-    eta = abs(model.etaParam[ind])  # for 25 degrees
-    # RC = model.RCParam[ind]       # for 25 degrees
-    numpoles = 1  # len(RC)         # for 25 degrees # todo extend this functionality
-
-    for thefile in range(numfiles):  # should always be 1 file as long as there is one test per temperature
-        ik = data[ind].script1.current[:]
-        vk = data[ind].script1.voltage[:]
-        # tk = range(len(vk))  # never used again
-        etaik = ik
-        for i in range(len(etaik)):
-            if etaik[i] < 0:
-                etaik[i] = etaik[i] * eta
-
-        h = [0] * len(ik)
-        sik = [0] * len(ik)
-        fac = np.exp(-abs(G * np.array(etaik) / (3600 * Q)))  # looks the same as octave
-        for k in range(1, len(ik)):
-            h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * np.sign(ik[k - 1])
-            sik[k] = np.sign(ik[k])
-            if abs(ik[k]) < Q / 100:
-                sik[k] = sik[k-1]
-
-        # First modeling step: Compute error with model = OCV only
-        # Everything looks the same up until this part (except OCV and SOC arrays)
-        vest1 = data[ind].OCV  # OCV is not completely the same but vk is
-        v_error = np.array(vk) - np.array(vest1)  # therefore v_error is not the same as in Octave
-        numpoles_loop_no = numpoles
-
-        # Second modeling step: Compute time constants in "A" matrix
-        while True:
-            A = SISOsubid(-np.diff(v_error), np.diff(etaik), numpoles_loop_no)   # diff works fine
-            eigA = LA.eig(A)[0]
-            assert (eigA == np.conj(eigA)), "eigA is not a real number"
-            assert (1 > eigA > 0), "eigA is not in proper range"
-            okpoles = len(eigA)
-            numpoles_loop_no = numpoles_loop_no + 1
-            if okpoles >= numpoles:
-                break
-            print(f'Trying {numpoles_loop_no=}\n')
-
-        RCfact_var = np.sort(eigA)
-        RCfact = RCfact_var[len(RCfact_var) - numpoles:]
-        RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4
-        # Simulate the R - C filters to find R - C currents
-        vrcRaw = np.zeros((numpoles, len(h)))
-        for k in range(1, len(ik)):
-            vrcRaw[:, k] = np.diag(RCfact) * vrcRaw[:, k - 1] + (1 - RCfact) * etaik[k - 1]
-        vrcRaw = np.transpose(vrcRaw)  # Close enough to Octave vrcRaw
-
-        # Third modeling step: Hysteresis parameters
-        if doHyst:
-            H_1 = np.append(np.transpose([h]), np.transpose([sik]), 1)
-            H_2 = np.append(np.transpose([-etaik]), -vrcRaw, 1)
-            H = np.append(H_1, H_2, 1)
-            W = LA.lstsq(H, v_error)  # W = H\verr;   LEAST SQUARE NON NEGATIVE
-            M  = W[0][0]
-            M0 = W[0][1]
-            R0 = W[0][2]
-            Rfact = np.transpose(W[0][3:])
-        else:
-            H = np.append(np.transpose([-etaik]), -vrcRaw, 1)
-            W = H / v_error  # Todo probably something wrong here, revisit later
-            M = 0
-            M0 = 0
-            R0 = W[0]
-            Rfact = np.transpose(W[0][1:])
-
-        # Populate the model
-        model.R0Param[ind] = R0
-        model.M0Param[ind] = M0
-        model.MParam[ind] = M
-        model.RCParam[ind] = np.transpose(RC)
-        model.RParam[ind] = np.transpose(Rfact)
-
-        vest2 = vest1 + np.array(h)*M + M0*np.array(sik) - R0*np.array(etaik) - np.transpose(vrcRaw) * Rfact
-        verr = vk - vest2
-        # starting to look different
-
-        # Compute RMS error only on data roughly in 5 % to 95 % SOC
-        v1 = OCVfromSOCtemp(0.95, data[ind].temp, model)
-        v2 = OCVfromSOCtemp(0.05, data[ind].temp, model)
-        N1_array = np.where(vk < v1, 1, 0)
-        N2_array = np.where(vk < v2, 1, 0)
-        for i in range(len(N1_array)):
-            if N1_array[i] == 1:
-                N1 = i
-                break
-        for i in range(len(N2_array)):
-            if N2_array[i] == 1:
-                N2 = i
-                break
-        if not N1:
-            N1=1
-        if not N2:
-            N2=len(verr)
-        rmserr[thefile] = np.sqrt(np.mean(verr[0, N1:N2]**2))
-
-    cost = sum(rmserr)
-    print(f'RMS error for present value of gamma = {cost * 1000} (mV)\n')
-    assert cost, 'Exception: Cost is empty'
-
-    return [cost, model]
-

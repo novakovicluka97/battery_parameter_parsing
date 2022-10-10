@@ -1,0 +1,158 @@
+LOG FROM CONSOLE:  (COUPLED WITH BACKUP PICKLED MODEL)
+RMS error for present value of gamma = 9.073239707014398 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 9.279153113935768 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 8.925758219634501 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 9.101510585043934 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 8.86013564415816 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 8.846077816204744 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 8.865907978335475 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 8.922663661414528 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 8.968664742790027 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 9.034320738136957 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 9.11663608628101 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 9.309777433758821 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 9.559664389856799 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 9.643430913214099 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 9.726198808177601 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 9.816348715419993 (mV)
+
+Processing temperature:  25  degrees celsius
+RMS error for present value of gamma = 5.356769318382805 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.50411900998842 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.3230903213340675 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.3753996702365745 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.176829981504448 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.138770333524969 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.092361374017986 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.072313049556162 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.068954253149841 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.0685815419278395 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.0683307169553355 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.078554435244804 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.0859743476916215 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.100555960765375 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.121267296831093 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.146554765549119 (mV)
+
+Processing temperature:  45  degrees celsius
+RMS error for present value of gamma = 6.027577933411886 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 6.128379789103515 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.9153655200159 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.970374228069816 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.836811282310973 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.785273005210658 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.761387006347089 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.73315388585274 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.708179704482258 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.686685840535772 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.669160521122368 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.655614711515957 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.645548328937198 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.6394856674368325 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.636976662123413 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.637083032570717 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.640615812984469 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.646522891989607 (mV)
+
+The model created for this value of gamma is the best ESC model yet!
+RMS error for present value of gamma = 5.6556272372184075 (mV)
+
+Dynamic model created!
+Saving the model
+Model saved as  P14_Boulder_cell_data.pickle
+
+Process finished with exit code 0
