@@ -3,6 +3,7 @@ import processDynamic_script as dynamic
 import processStatic_script as static
 import pickle
 import scipy.io
+import matplotlib.pyplot as plt
 
 
 # This script will parse out the battery cell parameters from the battery cell data obtained from
@@ -12,6 +13,7 @@ import scipy.io
 #  Extend this functionality to different values of these variables
 numpoles = 1  # Number of resistor--capacitor pairs in final model
 doHyst = 1    # Include hysteresis in model
+printout_flag = True  # Print out the output model parameters
 #  data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
 data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
 output_filename = data_origin + '.pickle'  # Name of the pickled file
@@ -43,3 +45,19 @@ print("Saving the model")
 with open(output_filename, 'wb') as file:
     pickle.dump(cell_model, file)
     print("Model saved as ", output_filename)
+
+if printout_flag:
+    print(f"")
+    print(f"{cell_model.temps=}")
+    print(f"{cell_model.etaParam=}")
+    print(f"{cell_model.R0Param=}")
+    print(f"{cell_model.QParam=}")
+    print(f"{cell_model.RParam=}")
+    print(f"{cell_model.CParam=}")
+    plt.plot(cell_model.soc_vector, cell_model.ocv_vector)
+    plt.show()
+    print(f"{cell_model.etaParam_static=}")
+    print(f"{cell_model.QParam_static=}")
+    print(f"{cell_model.M0Param=}")
+    print(f"{cell_model.MParam=}")
+    print(f"{cell_model.GParam=}")

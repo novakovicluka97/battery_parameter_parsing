@@ -41,6 +41,7 @@ class ESC_battery_model:
         self.R0Param = []  # model.R0Param = [0] * len(data)
         self.RCParam = []  # model.RCParam = [[0] * len(data)] * numpoles
         self.RParam = []  # model.RParam = [[0] * len(data)] * numpoles
+        self.CParam = []  # model.RParam = [[0] * len(data)] * numpoles
 
 
 class OneTempDynData:

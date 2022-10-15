@@ -3,6 +3,7 @@ from numpy import linalg as LA
 import scipy
 from scipy import optimize
 fminbnd = scipy.optimize.fminbound
+import matplotlib.pyplot as plt
 
 
 def processDynamic(data, model, numpoles, doHyst):
@@ -68,6 +69,7 @@ def processDynamic(data, model, numpoles, doHyst):
     model.RParam = [0] * len(data)
     model.R0Param = [0] * len(data)
     model.RCParam = [0] * len(data)
+    model.CParam = [0] * len(data)
     for k in range(len(data)):
         global bestcost
         bestcost = np.inf
@@ -153,14 +155,25 @@ def minfn(data, model, temperature, doHyst):
         # debug looks the same as octave up until this point (except OCV and SOC arrays)
         v_est = data[ind].OCV  # OCV is not completely the same but script_1_voltage is the same
         v_error = np.array(script_1_voltage) - np.array(v_est)  # therefore v_error is not the same as in Octave
+        # v_error = [-0.001688.....] for Boulder data
         numpoles_loop_no = numpoles
 
-        # Second modeling step: Compute time constants in "A" matrix
+        # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
+        # Octave code was not up to date with lessons from here
+        # diff works fine
+        # https://www.coursera.org/lecture/equivalent-circuit-cell-model-simulation/2-3-3-introducing-octave-code-to-determine-dynamic-part-of-an-ecm-NILTD
         while True:
-            A = SISOsubid(-np.diff(v_error), np.diff(script_1_current_corrected), numpoles_loop_no)   # diff works fine
+            A = SISOsubid(-np.diff(v_error), np.diff(script_1_current_corrected), numpoles_loop_no)
             eigA = LA.eig(A)[0]     # For Boulder: eigA = [0.2389149], [0.6528]
-            assert (eigA == np.conj(eigA)), "eigA is not a real number"
-            assert (1 > eigA > 0), "eigA is not in proper range"
+            if eigA != np.conj(eigA):
+                print("WARNING: eigA is not a real number, results may not be proper. eigA = ", eigA)
+                eigA = abs(eigA)
+            if not (1 > eigA > 0):
+                print("WARNING: eigA is not in proper range, results may not be proper. eigA = ", eigA)
+                if eigA < 0:
+                    eigA = -eigA
+                elif eigA > 1:
+                    eigA = 1/eigA
             okpoles = len(eigA)
             numpoles_loop_no = numpoles_loop_no + 1
             if okpoles >= numpoles:
@@ -198,8 +211,9 @@ def minfn(data, model, temperature, doHyst):
         model.R0Param[ind] = R0
         model.M0Param[ind] = M0
         model.MParam[ind] = M
-        model.RCParam[ind] = np.transpose(RC)
-        model.RParam[ind] = np.transpose(Rfact)
+        model.RCParam[ind] = np.transpose(RC)[0]
+        model.RParam[ind] = np.transpose(Rfact)[0]
+        model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
 
         vest2 = v_est + np.array(h)*M + M0*np.array(current_sign) - R0*np.array(script_1_current_corrected) - np.transpose(vrcRaw) * Rfact
         verr = script_1_voltage - vest2
@@ -231,8 +245,12 @@ def minfn(data, model, temperature, doHyst):
     return [cost, model]
 
 
-def SISOsubid(y, u, n):
+def SISOsubid(y, u, n):  # Subsystem identifier function
     """
+    This function calculates values for time constants of RC circuit, based on the number of poles of the system.
+    The solutions may not always be between 0 and 1, they may also be negative or even complex conjugate.
+    In these cases, we warn the user but still provide the time constants.
+
     Identifies state-space "A" matrix from input-output data.
        y: vector of measured outputs
        u: vector of measured inputs
