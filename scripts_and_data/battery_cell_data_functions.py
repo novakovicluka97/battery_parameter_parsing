@@ -139,7 +139,7 @@ class CellAllData:
 
         try:
             for temp in temp_static:
-                if temp == 5:
+                if temp == 6:
                     self.static_data.append(self.StaticData(MAT_data['OCVData_' + '05'], temp))
                 else:
                     self.static_data.append(self.StaticData(MAT_data['OCVData_' + str(temp)], temp))
@@ -148,7 +148,7 @@ class CellAllData:
 
         try:
             for temp in temp_dyn:
-                if temp == 5:
+                if temp == 6:
                     self.dynamic_data.append(self.DynData(MAT_data['DYNData_' + '05'], temp))
                 else:
                     self.dynamic_data.append(self.DynData(MAT_data['DYNData_' + str(temp)], temp))
