@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # todo doHyst and numpoles variables are only tested when they are both one.
 #  Extend this functionality to different values of these variables
 numpoles = 1  # Number of resistor--capacitor pairs in final model
-doHyst = 1    # Include hysteresis in model
+doHyst = 0    # Include hysteresis in model
 printout_flag = True  # Print out the output model parameters
 data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
 # data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
@@ -48,17 +48,19 @@ with open(output_filename, 'wb') as file:
 
 # Printing the output cell parameters, if enabled
 if printout_flag:
-    print(f"")
-    print(f"{cell_model.temps=}")
-    print(f"{cell_model.etaParam=}")
-    print(f"{cell_model.R0Param=}")
-    print(f"{cell_model.QParam=}")
-    print(f"{cell_model.RParam=}")
-    print(f"{cell_model.CParam=}")
-    plt.plot(cell_model.soc_vector, cell_model.ocv_vector)
+    print(f"\nPrintout of model params:\n")
+    print(f"{cell_model.temps=}  Relative error: {data.error_func(cell_model.temps, 'temps')}")
+    print(f"{cell_model.etaParam=}  Relative error: {data.error_func(cell_model.etaParam, 'etaParam')}")
+    print(f"{cell_model.R0Param=}  Relative error: {data.error_func(cell_model.R0Param, 'R0Param')}")
+    print(f"{cell_model.QParam=}  Relative error: {data.error_func(cell_model.QParam, 'QParam')}")
+    print(f"{cell_model.RParam=}  Relative error: {data.error_func(cell_model.RParam, 'RParam')}")
+    print(f"{cell_model.RCParam=}  Relative error: {data.error_func(cell_model.RCParam, 'RCParam')}")
+    print(f"{cell_model.etaParam_static=}  Relative error: {data.error_func(cell_model.etaParam_static, 'etaParam_static')}")
+    print(f"{cell_model.QParam_static=}  Relative error: {data.error_func(cell_model.QParam_static, 'QParam_static')}")
+    print(f"{cell_model.M0Param=}  Relative error: {data.error_func(cell_model.M0Param, 'M0Param')}")
+    print(f"{cell_model.MParam=}  Relative error: {data.error_func(cell_model.MParam, 'MParam')}")
+    print(f"{cell_model.GParam=}  Relative error: {data.error_func(cell_model.GParam, 'GParam')}")
+    plt.plot(cell_model.soc_vector[1], cell_model.ocv_vector[1])
+    plt.plot(data.SOC_default, data.OCV_default[1])  # OCV curve
+    plt.title("OCV vs SOC graph (Colorado, octave vs generated)")
     plt.show()
-    print(f"{cell_model.etaParam_static=}")
-    print(f"{cell_model.QParam_static=}")
-    print(f"{cell_model.M0Param=}")
-    print(f"{cell_model.MParam=}")
-    print(f"{cell_model.GParam=}")

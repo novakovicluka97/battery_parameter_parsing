@@ -17,12 +17,22 @@ import time
 # from the original lab data from University of Boulder Colorado. Then it will collect the capture
 # results from the Typhoon HIL capture. Right now, only VHIL is supported.
 
+# Parameters:
+test_temperatures = ['25', '45', '5']  # must exist in the model as well
+Ts = 1e-2  # signal processing execution rate
+capture_duration = 28e2  # default for VHIL is 28e2, for HIL (30*60*60) seconds, for VHIL full no hyst and no RC 23e4
+SIMULATION_SPEED_UP = 100  # 1 if not slowed down
+M0 = [0.0031315, 0.0023535, 0.0011502]
+M = [0.039929, 0.020018, 0.020545]
+M0 = [1e-5, 1e-5, 1e-5]
+M = [1e-5, 1e-5, 1e-5]
+R1 = 0.64769e-3
+C1 = 7.9598e3
+
+capture_rate = SIMULATION_SPEED_UP
 output_data_filename = 'Typhoon_captured_data.mat'
-model_name = "Battery_parametrization_model.tse"
+model_name = "Battery_parametrization_model.tse"  # "Battery_parametrization_model.tse"
 flag_show = False  # if True, certain graphs used for debugging will be shown
-capture_duration = 2800  # default for VHIL is 2800, for HIL (30*60*60) seconds
-capture_rate = 100  # 1 if not slowed down
-test_temperatures = ['25', '45', '5']  # must be created in model as well
 current_profile_filename = 'current_profiles.pickle'
 
 # script directory
@@ -30,6 +40,61 @@ current_profile_filename = 'current_profiles.pickle'
 FILE_DIR_PATH = Path(__file__).parent
 model_path = str(FILE_DIR_PATH / model_name)
 compiled_model_path = model.get_compiled_model_file(model_path)
+
+model_init_code = f"""
+R1 = {str(R1)}
+C1 = {str(C1)}
+M0 = {str(M0)}
+M = {str(M)}
+SIMULATION_SPEED_UP = {str(SIMULATION_SPEED_UP)}
+init_dynamic = 100  # 90% initial state of charge for dynamic scripts so that the voltage doesnt go over Vmax
+Ts = {str(Ts)}
+
+rest_time_for_temperature_equilibrium = 7200/SIMULATION_SPEED_UP  # 7200s or 2h
+counter_cooldown_max = rest_time_for_temperature_equilibrium/Ts
+counter_cooldown_max = counter_cooldown_max/SIMULATION_SPEED_UP
+
+Vmax = 4.1497   # Volts
+Vmin = 2.8060   # Volts
+total_Q_original = [14.592, 14.532, 14.444]
+total_Q = [i/SIMULATION_SPEED_UP for i in total_Q_original]
+G = [67.207, 92.645, 67.840]  # G param is wrong for default battery
+
+C = 14.532  # C rate of a battery is current that will empty the cell in one hour
+DISCHG_RATE =  0.5 # 0.5 if its normal battery discharg speed
+CHG_RATE = -DISCHG_RATE
+
+# when the dynamic script executes, current profiles don't push the cell voltage
+# over the intended Vmax
+V_end_script_1 = (Vmax-Vmin)*0.1+Vmin  # ends dynamic script 1 when SOC is roughly at 10%
+DYN_DIS_CHG = C/30
+DYN_CHG = -C
+
+import pickle
+# model_path = mdl.get_model_file_path()
+filename = 'c:\\\\PROJECT\\\\battery_cell_testing\\\\scripts_and_data\\\\{current_profile_filename}'
+file = open(filename, 'rb')
+current_profiles_dict = pickle.load(file)
+
+TIME_TITHER_DISCHARGE      = current_profiles_dict['TIME_TITHER_DISCHARGE']
+TIME_TITHER_CHARGE         = current_profiles_dict['TIME_TITHER_CHARGE']
+CURRENT_TITHER_DISCHARGE   = current_profiles_dict['CURRENT_TITHER_DISCHARGE']
+CURRENT_TITHER_CHARGE      = current_profiles_dict['CURRENT_TITHER_CHARGE']
+TITHER_DISCHARGE_STOP_TIME = current_profiles_dict['TITHER_DISCHARGE_STOP_TIME']
+TITHER_CHARGE_STOP_TIME    = current_profiles_dict['TITHER_CHARGE_STOP_TIME']
+
+DYN_TIME_PROFILE           = current_profiles_dict['DYN_TIME_PROFILE']
+DYN_CURRENT_PROFILE        = current_profiles_dict['DYN_CURRENT_PROFILE']
+DYN_PROFILE_STOP_TIME      = current_profiles_dict['DYN_PROFILE_STOP_TIME']
+
+# Tither profiles are assumed to be the same for dynamic scripts as well as for 
+# the static scripts, check later
+
+TITHER_DISCHARGE_STOP_TIME       = TITHER_DISCHARGE_STOP_TIME /SIMULATION_SPEED_UP
+TITHER_CHARGE_STOP_TIME          = TITHER_CHARGE_STOP_TIME    /SIMULATION_SPEED_UP
+DYN_PROFILE_STOP_TIME            = DYN_PROFILE_STOP_TIME      /SIMULATION_SPEED_UP
+
+"""
 
 
 class Script:  # Format for the pickled cell data is this class per temperature, per script
@@ -88,7 +153,7 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
     DYN_CURRENT_PROFILE[-1] = 0
     DYN_CURRENT_PROFILE[0] = 0
 
-    current_profiles_dict = {  # Todo: reapply the names to this dictionary and schematic in next commit
+    current_profiles_dict = {
         'TIME_TITHER_DISCHARGE': TIME_TITHER_DISCHARGE,
         'TIME_TITHER_CHARGE': TIME_TITHER_CHARGE,
         'CURRENT_TITHER_DISCHARGE': CURRENT_TITHER_DISCHARGE,
@@ -106,11 +171,6 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
         pickle.dump(current_profiles_dict, file)
         print("Current profiles saved as: ", current_profile_filename)
 
-    # data.plot_func([OCV_25_SCRIPT_2_TIME_TITHER, OCV_25_SCRIPT_4_TIME_TITHER],
-    #                [OCV_25_SCRIPT_2_CURRENT_TITHER, OCV_25_SCRIPT_4_CURRENT_TITHER],
-    #                ["OCV_25_SCRIPT_2_CURRENT_TITHER", "OCV_25_SCRIPT_4_CURRENT_TITHER"],
-    #                flag_show=flag_show)
-
 print('STEP 1: Initializing the model')
 # Run very fast simulations and thus to obtain the data quickly before the physical tests take place
 vhil_device = True
@@ -118,9 +178,16 @@ model.load(model_path)
 model_device = model.get_model_property_value("hil_device")
 model_config = model.get_model_property_value("hil_configuration_id")
 report.report_message("Virtual HIL device is used. Model is compiled for {} C{}.".format(model_device, model_config))
+model.set_model_init_code(model_init_code)
+model.save()  # saving a model
 
 print('STEP 2: Compiling and loading the model, vhil_device = ', vhil_device)
-model.compile()
+if model.compile():
+    print("     Compile successful.")
+else:
+    print("     Compile failed.")
+model.close_model()
+
 hil.load_model(compiled_model_path, vhil_device=vhil_device)
 
 # signals for capturing
@@ -189,9 +256,10 @@ for temp in test_temperatures:
                               disAh[script_3_stop:script_4_stop])
 
             data['OCVData_' + temp] = [Script_1, Script_2, Script_3, Script_4]
+            data['OCVData_full' + temp] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
         else:
             data['DYNData_' + temp] = [Script_1, Script_2, Script_3]
-
+            data['DYNData_full' + temp] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
 
 print('STEP 5: Saving the data dictionary into a .mat file: ' + output_data_filename)
 scipy.io.savemat(output_data_filename, data)

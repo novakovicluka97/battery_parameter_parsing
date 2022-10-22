@@ -1,7 +1,7 @@
 version = 4.2
 
 //
-// Saved by sw version: 2022.4 DEV
+// Saved by sw version: 2023.1 DEV
 //
 
 model "Battery_parametrization_model" {
@@ -870,7 +870,7 @@ else
                                 current_diagram=current_diagram
                             )
                             dialog.exec_()
-                        
+                            
                         ENDCODE
 
                         CODE pre_compile
@@ -1612,15 +1612,15 @@ else
                     ]
                     connect Product_1a.in Constant_C1.out as Connection128
                     connect Product_1a.in1 Constant_R1.out as Connection129
-                    connect Product_1b.in I as Connection131
-                    connect Product_1b.in1 Constant_C1.out as Connection132
-                    connect Product_1a.out Product_1c.in as Connection133
-                    connect Sum_1.in1 Product_1c.out as Connection134
-                    connect Product_1b.out Sum_1.in as Connection135
-                    connect Integrator_1.in Sum_1.out as Connection136
-                    connect Integrator_1.out Product_1c.in1 as Connection137
-                    connect Integrator_1.out Sum.in as Connection138
-                    connect Sum.out V as Connection139
+                    connect Product_1b.in I as Connection130
+                    connect Product_1b.in1 Constant_C1.out as Connection131
+                    connect Product_1a.out Product_1c.in as Connection132
+                    connect Sum_1.in1 Product_1c.out as Connection133
+                    connect Product_1b.out Sum_1.in as Connection134
+                    connect Integrator_1.in Sum_1.out as Connection135
+                    connect Integrator_1.out Product_1c.in1 as Connection136
+                    connect Integrator_1.out Sum.in as Connection137
+                    connect Sum.out V as Connection138
 
                     mask {
                         description = "The parallel RC subsystem emulates cell voltage drop due to the physical proccess diffusion of lithium ions.
@@ -2752,7 +2752,7 @@ V_h = M0*current_sign + M*h;
                                 current_diagram=current_diagram
                             )
                             dialog.exec_()
-                        
+                            
                         ENDCODE
 
                         CODE pre_compile
@@ -2958,6 +2958,14 @@ V_h = M0*current_sign + M*h;
                 }
                 [
                     position = 8488, 7824
+                ]
+
+                component gen_gain Cell_NO1 {
+                    gain = "3600"
+                }
+                [
+                    position = 7536, 7992
+                    hide_name = True
                 ]
 
                 port P {
@@ -3553,7 +3561,7 @@ V_h = M0*current_sign + M*h;
                     direction = out
                 }
                 [
-                    position = 7552, 7992
+                    position = 7448, 7992
                     hide_name = True
                     size = 60, 20
                 ]
@@ -3651,7 +3659,6 @@ V_h = M0*current_sign + M*h;
                 connect Termination1.in From30 as Connection1217
                 connect Hysteresis.T From5 as Connection1158
                 connect Hysteresis.I From42 as Connection1159
-                connect From44 Hysteresis.Q as Connection1233
                 connect From45 Hysteresis.eta as Connection1234
                 connect Goto12 Hysteresis.V_hyst as Connection1235
                 connect From46 Hysteresis.SOC as Connection1245
@@ -3661,9 +3668,16 @@ V_h = M0*current_sign + M*h;
                 connect "Vcell Value Set.out" "Signal switch1.in" as Connection1248
                 connect "Vcell Override.out" "Signal switch1.in2" as Connection1249
                 connect SOC.in Termination3.in as Connection1251
+                connect From44 Cell_NO1.in as Connection1252
+                connect Cell_NO1.out Hysteresis.Q as Connection1253
 
+                C1 = "C1"
+                M = "M"
+                M0 = "M0"
                 Q_total = "total_Q"
+                R1 = "R1"
                 Ts = "Ts"
+                gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
                 meas_OCV = "False"
@@ -4370,7 +4384,7 @@ V_h = M0*current_sign + M*h;
                             current_diagram=current_diagram
                         )
                         dialog.exec_()
-                    
+                        
                     ENDCODE
 
                     CODE pre_compile
@@ -5315,7 +5329,7 @@ else
                                 current_diagram=current_diagram
                             )
                             dialog.exec_()
-                        
+                            
                         ENDCODE
 
                         CODE pre_compile
@@ -6057,15 +6071,15 @@ else
                     ]
                     connect Product_1a.in Constant_C1.out as Connection128
                     connect Product_1a.in1 Constant_R1.out as Connection129
-                    connect Product_1b.in I as Connection131
-                    connect Product_1b.in1 Constant_C1.out as Connection132
-                    connect Product_1a.out Product_1c.in as Connection133
-                    connect Sum_1.in1 Product_1c.out as Connection134
-                    connect Product_1b.out Sum_1.in as Connection135
-                    connect Integrator_1.in Sum_1.out as Connection136
-                    connect Integrator_1.out Product_1c.in1 as Connection137
-                    connect Integrator_1.out Sum.in as Connection138
-                    connect Sum.out V as Connection139
+                    connect Product_1b.in I as Connection130
+                    connect Product_1b.in1 Constant_C1.out as Connection131
+                    connect Product_1a.out Product_1c.in as Connection132
+                    connect Sum_1.in1 Product_1c.out as Connection133
+                    connect Product_1b.out Sum_1.in as Connection134
+                    connect Integrator_1.in Sum_1.out as Connection135
+                    connect Integrator_1.out Product_1c.in1 as Connection136
+                    connect Integrator_1.out Sum.in as Connection137
+                    connect Sum.out V as Connection138
 
                     mask {
                         description = "The parallel RC subsystem emulates cell voltage drop due to the physical proccess diffusion of lithium ions.
@@ -7405,6 +7419,14 @@ V_h = M0*current_sign + M*h;
                     position = 8488, 7824
                 ]
 
+                component gen_gain Cell_NO1 {
+                    gain = "3600"
+                }
+                [
+                    position = 7552, 7992
+                    hide_name = True
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -7998,7 +8020,7 @@ V_h = M0*current_sign + M*h;
                     direction = out
                 }
                 [
-                    position = 7552, 7992
+                    position = 7480, 7992
                     hide_name = True
                     size = 60, 20
                 ]
@@ -8096,7 +8118,6 @@ V_h = M0*current_sign + M*h;
                 connect Termination1.in From30 as Connection1217
                 connect Hysteresis.T From5 as Connection1158
                 connect Hysteresis.I From42 as Connection1159
-                connect From44 Hysteresis.Q as Connection1233
                 connect From45 Hysteresis.eta as Connection1234
                 connect Goto12 Hysteresis.V_hyst as Connection1235
                 connect From46 Hysteresis.SOC as Connection1245
@@ -8106,10 +8127,17 @@ V_h = M0*current_sign + M*h;
                 connect "Vcell Value Set.out" "Signal switch1.in" as Connection1248
                 connect "Vcell Override.out" "Signal switch1.in2" as Connection1249
                 connect SOC.in Termination3.in as Connection1251
+                connect From44 Cell_NO1.in as Connection1252
+                connect Cell_NO1.out Hysteresis.Q as Connection1253
 
+                C1 = "C1"
                 Init_SOC = "init_dynamic"
+                M = "M"
+                M0 = "M0"
                 Q_total = "total_Q"
+                R1 = "R1"
                 Ts = "Ts"
+                gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
                 meas_OCV = "False"
@@ -8816,7 +8844,7 @@ V_h = M0*current_sign + M*h;
                             current_diagram=current_diagram
                         )
                         dialog.exec_()
-                    
+                        
                     ENDCODE
 
                     CODE pre_compile
@@ -10789,15 +10817,15 @@ else
                     ]
                     connect Product_1a.in Constant_C1.out as Connection128
                     connect Product_1a.in1 Constant_R1.out as Connection129
-                    connect Product_1b.in I as Connection131
-                    connect Product_1b.in1 Constant_C1.out as Connection132
-                    connect Product_1a.out Product_1c.in as Connection133
-                    connect Sum_1.in1 Product_1c.out as Connection134
-                    connect Product_1b.out Sum_1.in as Connection135
-                    connect Integrator_1.in Sum_1.out as Connection136
-                    connect Integrator_1.out Product_1c.in1 as Connection137
-                    connect Integrator_1.out Sum.in as Connection138
-                    connect Sum.out V as Connection139
+                    connect Product_1b.in I as Connection130
+                    connect Product_1b.in1 Constant_C1.out as Connection131
+                    connect Product_1a.out Product_1c.in as Connection132
+                    connect Sum_1.in1 Product_1c.out as Connection133
+                    connect Product_1b.out Sum_1.in as Connection134
+                    connect Integrator_1.in Sum_1.out as Connection135
+                    connect Integrator_1.out Product_1c.in1 as Connection136
+                    connect Integrator_1.out Sum.in as Connection137
+                    connect Sum.out V as Connection138
 
                     mask {
                         description = "The parallel RC subsystem emulates cell voltage drop due to the physical proccess diffusion of lithium ions.
@@ -12137,6 +12165,14 @@ V_h = M0*current_sign + M*h;
                     position = 8488, 7824
                 ]
 
+                component gen_gain Cell_NO1 {
+                    gain = "3600"
+                }
+                [
+                    position = 7568, 7992
+                    hide_name = True
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -12730,7 +12766,7 @@ V_h = M0*current_sign + M*h;
                     direction = out
                 }
                 [
-                    position = 7552, 7992
+                    position = 7480, 7992
                     hide_name = True
                     size = 60, 20
                 ]
@@ -12828,7 +12864,6 @@ V_h = M0*current_sign + M*h;
                 connect Termination1.in From30 as Connection1217
                 connect Hysteresis.T From5 as Connection1158
                 connect Hysteresis.I From42 as Connection1159
-                connect From44 Hysteresis.Q as Connection1233
                 connect From45 Hysteresis.eta as Connection1234
                 connect Goto12 Hysteresis.V_hyst as Connection1235
                 connect From46 Hysteresis.SOC as Connection1245
@@ -12838,9 +12873,16 @@ V_h = M0*current_sign + M*h;
                 connect "Vcell Value Set.out" "Signal switch1.in" as Connection1248
                 connect "Vcell Override.out" "Signal switch1.in2" as Connection1249
                 connect SOC.in Termination3.in as Connection1251
+                connect From44 Cell_NO1.in as Connection1252
+                connect Cell_NO1.out Hysteresis.Q as Connection1253
 
+                C1 = "C1"
+                M = "M"
+                M0 = "M0"
                 Q_total = "total_Q"
+                R1 = "R1"
                 Ts = "Ts"
+                gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
                 meas_OCV = "False"
@@ -15210,15 +15252,15 @@ else
                     ]
                     connect Product_1a.in Constant_C1.out as Connection128
                     connect Product_1a.in1 Constant_R1.out as Connection129
-                    connect Product_1b.in I as Connection131
-                    connect Product_1b.in1 Constant_C1.out as Connection132
-                    connect Product_1a.out Product_1c.in as Connection133
-                    connect Sum_1.in1 Product_1c.out as Connection134
-                    connect Product_1b.out Sum_1.in as Connection135
-                    connect Integrator_1.in Sum_1.out as Connection136
-                    connect Integrator_1.out Product_1c.in1 as Connection137
-                    connect Integrator_1.out Sum.in as Connection138
-                    connect Sum.out V as Connection139
+                    connect Product_1b.in I as Connection130
+                    connect Product_1b.in1 Constant_C1.out as Connection131
+                    connect Product_1a.out Product_1c.in as Connection132
+                    connect Sum_1.in1 Product_1c.out as Connection133
+                    connect Product_1b.out Sum_1.in as Connection134
+                    connect Integrator_1.in Sum_1.out as Connection135
+                    connect Integrator_1.out Product_1c.in1 as Connection136
+                    connect Integrator_1.out Sum.in as Connection137
+                    connect Sum.out V as Connection138
 
                     mask {
                         description = "The parallel RC subsystem emulates cell voltage drop due to the physical proccess diffusion of lithium ions.
@@ -16558,6 +16600,14 @@ V_h = M0*current_sign + M*h;
                     position = 8488, 7824
                 ]
 
+                component gen_gain Cell_NO1 {
+                    gain = "3600"
+                }
+                [
+                    position = 7560, 7992
+                    hide_name = True
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -17151,7 +17201,7 @@ V_h = M0*current_sign + M*h;
                     direction = out
                 }
                 [
-                    position = 7552, 7992
+                    position = 7472, 7992
                     hide_name = True
                     size = 60, 20
                 ]
@@ -17249,7 +17299,6 @@ V_h = M0*current_sign + M*h;
                 connect Termination1.in From30 as Connection1217
                 connect Hysteresis.T From5 as Connection1158
                 connect Hysteresis.I From42 as Connection1159
-                connect From44 Hysteresis.Q as Connection1233
                 connect From45 Hysteresis.eta as Connection1234
                 connect Goto12 Hysteresis.V_hyst as Connection1235
                 connect From46 Hysteresis.SOC as Connection1245
@@ -17259,10 +17308,17 @@ V_h = M0*current_sign + M*h;
                 connect "Vcell Value Set.out" "Signal switch1.in" as Connection1248
                 connect "Vcell Override.out" "Signal switch1.in2" as Connection1249
                 connect SOC.in Termination3.in as Connection1251
+                connect From44 Cell_NO1.in as Connection1252
+                connect Cell_NO1.out Hysteresis.Q as Connection1253
 
+                C1 = "C1"
                 Init_SOC = "init_dynamic"
+                M = "M"
+                M0 = "M0"
                 Q_total = "total_Q"
+                R1 = "R1"
                 Ts = "Ts"
+                gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
                 meas_OCV = "False"
@@ -19942,15 +19998,15 @@ else
                     ]
                     connect Product_1a.in Constant_C1.out as Connection128
                     connect Product_1a.in1 Constant_R1.out as Connection129
-                    connect Product_1b.in I as Connection131
-                    connect Product_1b.in1 Constant_C1.out as Connection132
-                    connect Product_1a.out Product_1c.in as Connection133
-                    connect Sum_1.in1 Product_1c.out as Connection134
-                    connect Product_1b.out Sum_1.in as Connection135
-                    connect Integrator_1.in Sum_1.out as Connection136
-                    connect Integrator_1.out Product_1c.in1 as Connection137
-                    connect Integrator_1.out Sum.in as Connection138
-                    connect Sum.out V as Connection139
+                    connect Product_1b.in I as Connection130
+                    connect Product_1b.in1 Constant_C1.out as Connection131
+                    connect Product_1a.out Product_1c.in as Connection132
+                    connect Sum_1.in1 Product_1c.out as Connection133
+                    connect Product_1b.out Sum_1.in as Connection134
+                    connect Integrator_1.in Sum_1.out as Connection135
+                    connect Integrator_1.out Product_1c.in1 as Connection136
+                    connect Integrator_1.out Sum.in as Connection137
+                    connect Sum.out V as Connection138
 
                     mask {
                         description = "The parallel RC subsystem emulates cell voltage drop due to the physical proccess diffusion of lithium ions.
@@ -21290,6 +21346,14 @@ V_h = M0*current_sign + M*h;
                     position = 8488, 7824
                 ]
 
+                component gen_gain Cell_NO1 {
+                    gain = "3600"
+                }
+                [
+                    position = 7560, 7992
+                    hide_name = True
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -21883,7 +21947,7 @@ V_h = M0*current_sign + M*h;
                     direction = out
                 }
                 [
-                    position = 7552, 7992
+                    position = 7496, 7992
                     hide_name = True
                     size = 60, 20
                 ]
@@ -21981,7 +22045,6 @@ V_h = M0*current_sign + M*h;
                 connect Termination1.in From30 as Connection1217
                 connect Hysteresis.T From5 as Connection1158
                 connect Hysteresis.I From42 as Connection1159
-                connect From44 Hysteresis.Q as Connection1233
                 connect From45 Hysteresis.eta as Connection1234
                 connect Goto12 Hysteresis.V_hyst as Connection1235
                 connect From46 Hysteresis.SOC as Connection1245
@@ -21991,9 +22054,16 @@ V_h = M0*current_sign + M*h;
                 connect "Vcell Value Set.out" "Signal switch1.in" as Connection1248
                 connect "Vcell Override.out" "Signal switch1.in2" as Connection1249
                 connect SOC.in Termination3.in as Connection1251
+                connect From44 Cell_NO1.in as Connection1252
+                connect Cell_NO1.out Hysteresis.Q as Connection1253
 
+                C1 = "C1"
+                M = "M"
+                M0 = "M0"
                 Q_total = "total_Q"
+                R1 = "R1"
                 Ts = "Ts"
+                gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
                 meas_OCV = "False"
@@ -24363,15 +24433,15 @@ else
                     ]
                     connect Product_1a.in Constant_C1.out as Connection128
                     connect Product_1a.in1 Constant_R1.out as Connection129
-                    connect Product_1b.in I as Connection131
-                    connect Product_1b.in1 Constant_C1.out as Connection132
-                    connect Product_1a.out Product_1c.in as Connection133
-                    connect Sum_1.in1 Product_1c.out as Connection134
-                    connect Product_1b.out Sum_1.in as Connection135
-                    connect Integrator_1.in Sum_1.out as Connection136
-                    connect Integrator_1.out Product_1c.in1 as Connection137
-                    connect Integrator_1.out Sum.in as Connection138
-                    connect Sum.out V as Connection139
+                    connect Product_1b.in I as Connection130
+                    connect Product_1b.in1 Constant_C1.out as Connection131
+                    connect Product_1a.out Product_1c.in as Connection132
+                    connect Sum_1.in1 Product_1c.out as Connection133
+                    connect Product_1b.out Sum_1.in as Connection134
+                    connect Integrator_1.in Sum_1.out as Connection135
+                    connect Integrator_1.out Product_1c.in1 as Connection136
+                    connect Integrator_1.out Sum.in as Connection137
+                    connect Sum.out V as Connection138
 
                     mask {
                         description = "The parallel RC subsystem emulates cell voltage drop due to the physical proccess diffusion of lithium ions.
@@ -25711,6 +25781,14 @@ V_h = M0*current_sign + M*h;
                     position = 8488, 7824
                 ]
 
+                component gen_gain Cell_NO1 {
+                    gain = "3600"
+                }
+                [
+                    position = 7560, 7992
+                    hide_name = True
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -26304,7 +26382,7 @@ V_h = M0*current_sign + M*h;
                     direction = out
                 }
                 [
-                    position = 7552, 7992
+                    position = 7480, 7992
                     hide_name = True
                     size = 60, 20
                 ]
@@ -26402,7 +26480,6 @@ V_h = M0*current_sign + M*h;
                 connect Termination1.in From30 as Connection1217
                 connect Hysteresis.T From5 as Connection1158
                 connect Hysteresis.I From42 as Connection1159
-                connect From44 Hysteresis.Q as Connection1233
                 connect From45 Hysteresis.eta as Connection1234
                 connect Goto12 Hysteresis.V_hyst as Connection1235
                 connect From46 Hysteresis.SOC as Connection1245
@@ -26412,10 +26489,17 @@ V_h = M0*current_sign + M*h;
                 connect "Vcell Value Set.out" "Signal switch1.in" as Connection1248
                 connect "Vcell Override.out" "Signal switch1.in2" as Connection1249
                 connect SOC.in Termination3.in as Connection1251
+                connect From44 Cell_NO1.in as Connection1252
+                connect Cell_NO1.out Hysteresis.Q as Connection1253
 
+                C1 = "C1"
                 Init_SOC = "init_dynamic"
+                M = "M"
+                M0 = "M0"
                 Q_total = "total_Q"
+                R1 = "R1"
                 Ts = "Ts"
+                gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
                 meas_OCV = "False"
@@ -28361,14 +28445,14 @@ else {
     }
 
     CODE model_init
-        # Numpy module is imported as 'np'
-        # Scipy module is imported as 'sp'
-        # The Schematic API is imported as 'mdl'
-        # To get the model file path, use 'mdl.get_model_file_path()'
-        # To print information to the console, use info()
+        R1 = 0.00064769
+        C1 = 7959.8
+        M0 = [1e-05, 1e-05, 1e-05]
+        M = [1e-05, 1e-05, 1e-05]
         SIMULATION_SPEED_UP = 100
+        init_dynamic = 100  # 90% initial state of charge for dynamic scripts so that the voltage doesnt go over Vmax
+        Ts = 0.01
         
-        Ts = 1e-2
         rest_time_for_temperature_equilibrium = 7200/SIMULATION_SPEED_UP  # 7200s or 2h
         counter_cooldown_max = rest_time_for_temperature_equilibrium/Ts
         counter_cooldown_max = counter_cooldown_max/SIMULATION_SPEED_UP
@@ -28377,12 +28461,12 @@ else {
         Vmin = 2.8060   # Volts
         total_Q_original = [14.592, 14.532, 14.444]
         total_Q = [i/SIMULATION_SPEED_UP for i in total_Q_original]
+        G = [67.207, 92.645, 67.840]  # G param is wrong for default battery
         
         C = 14.532  # C rate of a battery is current that will empty the cell in one hour
         DISCHG_RATE =  0.5 # 0.5 if its normal battery discharg speed
         CHG_RATE = -DISCHG_RATE
         
-        init_dynamic = 90  # 90% initial state of charge for dynamic scripts so that
         # when the dynamic script executes, current profiles don't push the cell voltage
         # over the intended Vmax
         V_end_script_1 = (Vmax-Vmin)*0.1+Vmin  # ends dynamic script 1 when SOC is roughly at 10%
@@ -28390,6 +28474,7 @@ else {
         DYN_CHG = -C
         
         import pickle
+        # model_path = mdl.get_model_file_path()
         filename = 'c:\\PROJECT\\battery_cell_testing\\scripts_and_data\\current_profiles.pickle'
         file = open(filename, 'rb')
         current_profiles_dict = pickle.load(file)
@@ -28412,6 +28497,5 @@ else {
         TITHER_CHARGE_STOP_TIME          = TITHER_CHARGE_STOP_TIME    /SIMULATION_SPEED_UP
         DYN_PROFILE_STOP_TIME            = DYN_PROFILE_STOP_TIME      /SIMULATION_SPEED_UP
         
-        info('Model initialization script completed')
     ENDCODE
 }

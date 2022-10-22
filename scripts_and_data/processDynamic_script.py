@@ -6,82 +6,90 @@ fminbnd = scipy.optimize.fminbound
 import matplotlib.pyplot as plt
 
 
-def processDynamic(data, model, numpoles, doHyst):
+current_sign_threshold = 1e-8  # threshold for current sign (in octave it is Q/100 and this gives me the negative M0)
+
+
+def processDynamic(dynamic_data, model, numpoles, doHyst):
     """
     Script that populates the model parameters based on dynamic test data
     """
     # First step: Compute Q and eta again. This is to recalibrate the static test Q and eta
     ind25 = None
-    for index, single_temp_data in enumerate(data):
+    for index, single_temp_data in enumerate(dynamic_data):
         if single_temp_data.temp == 25:
             ind25 = index
     if not ind25:
         print("There is no default temperature of 25 deg celsius!")
         raise Exception()
 
-    totDisAh = data[ind25].script1.disAh[-1] + data[ind25].script2.disAh[-1] + data[ind25].script3.disAh[-1]
-    totChgAh = data[ind25].script1.chgAh[-1] + data[ind25].script2.chgAh[-1] + data[ind25].script3.chgAh[-1]
+    totDisAh = dynamic_data[ind25].script1.disAh[-1] + dynamic_data[ind25].script2.disAh[-1] + dynamic_data[ind25].script3.disAh[-1]
+    totChgAh = dynamic_data[ind25].script1.chgAh[-1] + dynamic_data[ind25].script2.chgAh[-1] + dynamic_data[ind25].script3.chgAh[-1]
     eta25 = totDisAh / totChgAh
 
-    data[ind25].script1.chgAh[-1] = eta25 * data[ind25].script1.chgAh[-1]  # correct for the coefficients
-    data[ind25].script2.chgAh[-1] = eta25 * data[ind25].script2.chgAh[-1]  # correct for the coefficients
-    data[ind25].script3.chgAh[-1] = eta25 * data[ind25].script3.chgAh[-1]  # correct for the coefficients
-    Q25 = data[ind25].script1.disAh[-1] + data[ind25].script2.disAh[-1] - data[ind25].script1.chgAh[-1] - data[ind25].script2.chgAh[-1]
-    data[ind25].Q = Q25
-    data[ind25].eta = eta25
+    dynamic_data[ind25].script1.chgAh[-1] = eta25 * dynamic_data[ind25].script1.chgAh[-1]  # correct for the coefficients
+    dynamic_data[ind25].script2.chgAh[-1] = eta25 * dynamic_data[ind25].script2.chgAh[-1]  # correct for the coefficients
+    dynamic_data[ind25].script3.chgAh[-1] = eta25 * dynamic_data[ind25].script3.chgAh[-1]  # correct for the coefficients
+    Q25 = dynamic_data[ind25].script1.disAh[-1] + dynamic_data[ind25].script2.disAh[-1] - dynamic_data[ind25].script1.chgAh[-1] - dynamic_data[ind25].script2.chgAh[-1]
+    dynamic_data[ind25].Q = Q25
+    dynamic_data[ind25].eta = eta25
 
-    for k in range(len(data)):
-        if data[k].temp != 25:
-            data[k].script2.chgAh = data[k].script2.chgAh * eta25
-            data[k].script3.chgAh = data[k].script3.chgAh * eta25
-            eta = (data[k].script1.disAh[-1] + data[k].script2.disAh[-1] +
-                   data[k].script3.disAh[-1] - data[k].script2.chgAh[-1] -
-                   data[k].script3.chgAh[-1]) / data[k].script1.chgAh[-1]
+    for k in range(len(dynamic_data)):
+        if dynamic_data[k].temp != 25:
+            dynamic_data[k].script2.chgAh = dynamic_data[k].script2.chgAh * eta25
+            dynamic_data[k].script3.chgAh = dynamic_data[k].script3.chgAh * eta25
+            eta = (dynamic_data[k].script1.disAh[-1] + dynamic_data[k].script2.disAh[-1] +
+                   dynamic_data[k].script3.disAh[-1] - dynamic_data[k].script2.chgAh[-1] -
+                   dynamic_data[k].script3.chgAh[-1]) / dynamic_data[k].script1.chgAh[-1]
 
-            data[k].script1.chgAh = eta * data[k].script1.chgAh
-            Q = data[k].script1.disAh[-1] + data[k].script2.disAh[-1] - data[k].script1.chgAh[-1] - data[k].script2.chgAh[-1]
-            data[k].Q = Q
-            data[k].eta = eta
+            dynamic_data[k].script1.chgAh = eta * dynamic_data[k].script1.chgAh
+            Q = dynamic_data[k].script1.disAh[-1] + dynamic_data[k].script2.disAh[-1] - dynamic_data[k].script1.chgAh[-1] - dynamic_data[k].script2.chgAh[-1]
+            dynamic_data[k].Q = Q
+            dynamic_data[k].eta = eta
 
         # Populate model with parameters from the dynamic data
-        model.QParam.append(data[k].Q)
-        model.etaParam.append(data[k].eta)
-        if model.temps[k] != data[k].temp:
+        model.QParam.append(dynamic_data[k].Q)
+        model.etaParam.append(dynamic_data[k].eta)
+        if model.temps[k] != dynamic_data[k].temp:
             print("Dynamic data temperatures are not matching the static data temperatures or their numbering order.")
             raise Exception()
 
+        # Todo: Delete this after testing
+        # model.QParam[k]  = model.QParam_static[k]
+        # model.etaParam[k]= model.etaParam_static[k]
+
     # Second step: Compute OCV for "discharge portion" of test, based on static test data
-    for k in range(len(data)):
-        corrected_current = [0]*len(data[k].script1.current)
-        for index, current in enumerate(data[k].script1.current):
+    for k in range(len(dynamic_data)):
+        corrected_current = [0]*len(dynamic_data[k].script1.current)
+        for index, current in enumerate(dynamic_data[k].script1.current):
             if current < 0:  # if current is flowing into the battery and charging it, apply a coefficient
                 corrected_current[index] = current * model.etaParam[k]
             else:
                 corrected_current[index] = current
-        data[k].Z = np.ones(np.size(corrected_current)) - np.cumsum(corrected_current)/(data[k].Q*3600)
-        data[k].OCV = OCVfromSOCtemp(data[k].Z, data[k].temp, model)
+        dynamic_data[k].Z = np.ones(np.size(corrected_current)) - np.cumsum(corrected_current)/(dynamic_data[k].Q*3600)
+        dynamic_data[k].OCV = OCVfromSOCtemp(dynamic_data[k].Z, dynamic_data[k].temp, model)
         # plt.plot(data[k].script1.time, data[k].Z)
 
     # Third step: Use optimization algorythm to find parameters M, M0, G, RC, R and R0
-    model.GParam = [0] * len(data)
-    model.MParam = [0] * len(data)
-    model.M0Param = [0] * len(data)
-    model.RParam = [0] * len(data)
-    model.R0Param = [0] * len(data)
-    model.RCParam = [0] * len(data)
-    model.CParam = [0] * len(data)
-    for k in range(len(data)):
+    model.GParam = [0] * len(dynamic_data)
+    model.MParam = [0] * len(dynamic_data)
+    model.M0Param = [0] * len(dynamic_data)
+    model.RParam = [0] * len(dynamic_data)
+    model.R0Param = [0] * len(dynamic_data)
+    model.RCParam = [0] * len(dynamic_data)
+    model.CParam = [0] * len(dynamic_data)
+
+    for k in range(len(dynamic_data)):
         global bestcost
         bestcost = np.inf
-        print("Processing temperature: ", data[k].temp, " degrees celsius")
+        print("Processing temperature: ", dynamic_data[k].temp, " degrees celsius")
         if doHyst:
-            model.GParam[k] = abs(fminbnd(optfn, 1, 250, args=(data, model, model.temps[k], doHyst, k), xtol=0.1, maxfun=40, disp=0))
+            model.GParam[k] = abs(fminbnd(optfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, k), xtol=0.1, maxfun=40, disp=0))
         else:  # Todo check functionality and extend it if it doesnt work
-            model.GParam.append(0)
-            theGParam = 0
-            optfn(theGParam, data, model, model.temps[k], doHyst)
+            model.GParam[k] = 0
+            optfn(0, dynamic_data, model, model.temps[k], doHyst, k)
 
-        [_, model] = minfn(data, model, model.temps[k], doHyst)
+        # Todo I dont think this last thing here is even needed
+        [_, model] = minfn(dynamic_data, model, model.temps[k], doHyst)
 
     print("Dynamic model created!")
     return model
@@ -96,42 +104,44 @@ def OCVfromSOCtemp(soc, temp, model):
     return function(soc)
 
 
-def optfn(theGParam, data, model, temperature, doHyst, index):
+def optfn(theGParam, dynamic_data, model, temperature, doHyst, index):
     """
     Optimization function copied from the Octave code
+    # Todo: Fuse with minfn as it doesn't have to be separated like in octave
     """
+    print("optfn function was triggered")
     global bestcost
-    bestcost = np.inf
-    model.GParam[index] = (abs(theGParam))
-    [cost, _] = minfn(data, model, temperature, doHyst)
+    model.GParam[index] = abs(theGParam)
+    [cost, _] = minfn(dynamic_data, model, temperature, doHyst)
     if cost < bestcost:
         bestcost = cost
         print("The model created for this value of gamma is the best ESC model yet!")
     return cost
 
 
-def minfn(data, model, temperature, doHyst):
+def minfn(dynamic_data, model, temperature, doHyst):
     """
     Minimization function
     """
-    alltemps = [data[i].temp for i in range(len(data))]
+    print("minfn function was triggered")
+    alltemps = [dynamic_data[i].temp for i in range(len(dynamic_data))]
     index_array = np.where(np.array(alltemps) == temperature)
     ind = index_array[0][0]  # index of current temperature in the temperatures vector of model (and data?)
     numfiles = len(index_array)  # will be 1 for now
 
     xplots = np.ceil(np.sqrt(numfiles))
     yplots = np.ceil(numfiles / xplots)
-    rmserr = np.zeros(1, xplots * yplots)
+    root_mean_square_error = np.zeros(1, xplots * yplots)
 
-    G = abs(model.GParam[ind])          # Boulder data: temp_5 -> G = 96.10954, 154.89
-    Q = abs(model.QParam[ind])          # Boulder data: temp_5 -> Q = 14.5924882
-    eta = abs(model.etaParam[ind])      # Boulder data: temp_5 -> eta = 0.981744
+    G = model.GParam[ind]             # Boulder data: temp_5 -> G = 96.10954, 154.89
+    Q = model.QParam[ind]             # Boulder data: temp_5 -> Q = 14.5924882
+    eta = model.etaParam[ind]         # Boulder data: temp_5 -> eta = 0.981744
     # RC = model.RCParam[ind]
     numpoles = 1  # len(RC)          # todo extend this functionality
 
     for thefile in range(numfiles):  # should always be 1 file as long as there is one test per temperature
-        script_1_current = data[ind].script1.current[:]
-        script_1_voltage = data[ind].script1.voltage[:]
+        script_1_current = dynamic_data[ind].script1.current[:]
+        script_1_voltage = dynamic_data[ind].script1.voltage[:]
         # tk = range(len(vk))  # never used again
         script_1_current_corrected = script_1_current  # Todo Make this not a copy
         for i in range(len(script_1_current)):
@@ -143,18 +153,21 @@ def minfn(data, model, temperature, doHyst):
         # Calculating hysteresis variables
         h = [0] * len(script_1_current)  # 'h' is a variable that relates to hysteresis voltage
         current_sign = [0] * len(script_1_current)
-        fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q)))  # also a hysteresis voltage variable
+        Ts = 1e-2
+        SIMULATION_SPEED_UP = 100
+        delta_T = SIMULATION_SPEED_UP*Ts  # time step between two calculated current points
+        fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
         # debug looks the same as octave up until this point
         for k in range(1, len(script_1_current)):  # todo check why it starts with 1
             h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * np.sign(script_1_current[k - 1])
             current_sign[k] = np.sign(script_1_current[k])
-            if abs(script_1_current[k]) < Q / 100:
+            if abs(script_1_current[k]) < current_sign_threshold:  # threshold for current sign
                 current_sign[k] = current_sign[k-1]
 
         # First modeling step: Compute error with model represented only with OCV
         # debug looks the same as octave up until this point (except OCV and SOC arrays)
-        v_est = data[ind].OCV  # OCV is not completely the same but script_1_voltage is the same
-        v_error = np.array(script_1_voltage) - np.array(v_est)  # therefore v_error is not the same as in Octave
+        v_est_ocv = dynamic_data[ind].OCV  # OCV is not completely the same but script_1_voltage is the same
+        v_error = np.array(script_1_voltage) - np.array(v_est_ocv)  # therefore v_error is not the same as in Octave
         # v_error = [-0.001688.....] for Boulder data
         numpoles_loop_no = numpoles
 
@@ -198,14 +211,14 @@ def minfn(data, model, temperature, doHyst):
             M  = W[0][0]
             M0 = W[0][1]
             R0 = W[0][2]
-            Rfact = np.transpose(W[0][3:])
+            Rfact = np.transpose(W[0][3:])  # rest of the lstsq array values
         else:
             H = np.append(np.transpose([-script_1_current_corrected]), -vrcRaw, 1)
-            W = H / v_error  # Todo probably something wrong here, revisit later
+            W = LA.lstsq(H, v_error)
             M = 0
             M0 = 0
-            R0 = W[0]
-            Rfact = np.transpose(W[0][1:])
+            R0 = W[0][0]
+            Rfact = np.transpose(W[0][1:])  # rest of the lstsq array values
 
         # Populate the model
         model.R0Param[ind] = R0
@@ -215,13 +228,13 @@ def minfn(data, model, temperature, doHyst):
         model.RParam[ind] = np.transpose(Rfact)[0]
         model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
 
-        vest2 = v_est + np.array(h)*M + M0*np.array(current_sign) - R0*np.array(script_1_current_corrected) - np.transpose(vrcRaw) * Rfact
-        verr = script_1_voltage - vest2
+        v_est_full = v_est_ocv + np.array(h)*M + M0*np.array(current_sign) - R0*np.array(script_1_current_corrected) - np.transpose(vrcRaw) * Rfact
+        verr = script_1_voltage - v_est_full
         # starting to look different
 
         # Compute RMS error only on data roughly in 5 % to 95 % SOC
-        v1 = OCVfromSOCtemp(0.95, data[ind].temp, model)
-        v2 = OCVfromSOCtemp(0.05, data[ind].temp, model)
+        v1 = OCVfromSOCtemp(0.95, dynamic_data[ind].temp, model)
+        v2 = OCVfromSOCtemp(0.05, dynamic_data[ind].temp, model)
         N1_array = np.where(script_1_voltage < v1, 1, 0)
         N2_array = np.where(script_1_voltage < v2, 1, 0)
         for i in range(len(N1_array)):
@@ -236,9 +249,9 @@ def minfn(data, model, temperature, doHyst):
             N1=1
         if not N2:
             N2=len(verr)
-        rmserr[thefile] = np.sqrt(np.mean(verr[0, N1:N2]**2))
+        root_mean_square_error[thefile] = np.sqrt(np.mean(verr[0, N1:N2]**2))
 
-    cost = sum(rmserr)
+    cost = sum(root_mean_square_error)
     print(f'RMS error for present value of gamma = {cost * 1000} (mV)\n')
     assert cost, 'Exception: Cost is empty'
 
