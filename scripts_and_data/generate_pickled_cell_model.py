@@ -9,8 +9,7 @@ import matplotlib.pyplot as plt
 # This script will parse out the battery cell parameters from the battery cell data obtained from
 # "generate_battery_cell_data.py" python script. The parameters will be saved in the .pickle format.
 
-# todo doHyst and numpoles variables are only tested when they are both one.
-#  Extend this functionality to different values of these variables
+# todo numpoles variable is only tested when it is 1.
 numpoles = 1  # Number of resistor--capacitor pairs in final model
 doHyst = 0    # Include hysteresis in model
 printout_flag = True  # Print out the output model parameters
@@ -62,5 +61,5 @@ if printout_flag:
     print(f"{cell_model.GParam=}  Relative error: {data.error_func(cell_model.GParam, 'GParam')}")
     plt.plot(cell_model.soc_vector[1], cell_model.ocv_vector[1])
     plt.plot(data.SOC_default, data.OCV_default[1])  # OCV curve
-    plt.title("OCV vs SOC graph (Colorado, octave vs generated)")
+    plt.title(f"OCV vs SOC graph (Colorado, octave vs {data_origin})")
     plt.show()

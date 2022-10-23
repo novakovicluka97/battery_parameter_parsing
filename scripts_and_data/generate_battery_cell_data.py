@@ -18,22 +18,23 @@ import time
 # results from the Typhoon HIL capture. Right now, only VHIL is supported.
 
 # Parameters:
-test_temperatures = ['25', '45', '5']  # must exist in the model as well
 Ts = 1e-2  # signal processing execution rate
-capture_duration = 28e2  # default for VHIL is 28e2, for HIL (30*60*60) seconds, for VHIL full no hyst and no RC 23e4
-SIMULATION_SPEED_UP = 100  # 1 if not slowed down
+SIMULATION_SPEED_UP = 100  # 1 if not sped up
+capture_duration = 28e4/SIMULATION_SPEED_UP  # default for HIL (30*60*60) seconds, for VHIL full no hyst and no RC 23e4
 M0 = [0.0031315, 0.0023535, 0.0011502]
 M = [0.039929, 0.020018, 0.020545]
-M0 = [1e-5, 1e-5, 1e-5]
-M = [1e-5, 1e-5, 1e-5]
-R1 = 0.64769e-3
+M0 = [1e-5, 1e-5, 1e-5]  # disabling hysteresis
+M = [1e-5, 1e-5, 1e-5]   # disabling hysteresis
+R1 = 0.64769 # 0.64769e-3
 C1 = 7.9598e3
+test_temperatures = ['25', '45', '5']  # must exist in the model as well
 
 capture_rate = SIMULATION_SPEED_UP
 output_data_filename = 'Typhoon_captured_data.mat'
 model_name = "Battery_parametrization_model.tse"  # "Battery_parametrization_model.tse"
-flag_show = False  # if True, certain graphs used for debugging will be shown
 current_profile_filename = 'current_profiles.pickle'
+flag_show = False  # if True, certain graphs used for debugging will be shown
+vhil_device = True
 
 # script directory
 # Path to model file and to compiled model file
@@ -171,97 +172,96 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
         pickle.dump(current_profiles_dict, file)
         print("Current profiles saved as: ", current_profile_filename)
 
-print('STEP 1: Initializing the model')
-# Run very fast simulations and thus to obtain the data quickly before the physical tests take place
-vhil_device = True
-model.load(model_path)
-model_device = model.get_model_property_value("hil_device")
-model_config = model.get_model_property_value("hil_configuration_id")
-report.report_message("Virtual HIL device is used. Model is compiled for {} C{}.".format(model_device, model_config))
-model.set_model_init_code(model_init_code)
-model.save()  # saving a model
+    print('STEP 1: Initializing the model')
+    # Run very fast simulations and thus to obtain the data quickly before the physical tests take place
+    model.load(model_path)
+    model_device = model.get_model_property_value("hil_device")
+    model_config = model.get_model_property_value("hil_configuration_id")
+    report.report_message("Virtual HIL device is used. Model is compiled for {} C{}.".format(model_device, model_config))
+    model.set_model_init_code(model_init_code)
+    model.save()  # saving a model
 
-print('STEP 2: Compiling and loading the model, vhil_device = ', vhil_device)
-if model.compile():
-    print("     Compile successful.")
-else:
-    print("     Compile failed.")
-model.close_model()
+    print('STEP 2: Compiling and loading the model, vhil_device = ', vhil_device)
+    if model.compile():
+        print("     Compile successful.")
+    else:
+        print("     Compile failed.")
+    model.close_model()
 
-hil.load_model(compiled_model_path, vhil_device=vhil_device)
+    hil.load_model(compiled_model_path, vhil_device=vhil_device)
 
-# signals for capturing
-channel_signals = ['Time', 'done_flag']
-for temp in test_temperatures:
-    for measurement in ['temperature', 'voltage', 'current', 'chgAh', 'disAh', 'script_no']:
-        channel_signals.append('static_' + temp + '.' + measurement)
-        channel_signals.append('dynamic_' + temp + '.' + measurement)
+    # signals for capturing
+    channel_signals = ['Time', 'done_flag']
+    for temp in test_temperatures:
+        for measurement in ['temperature', 'voltage', 'current', 'chgAh', 'disAh', 'script_no']:
+            channel_signals.append('static_' + temp + '.' + measurement)
+            channel_signals.append('dynamic_' + temp + '.' + measurement)
 
-capture.start_capture(duration=capture_duration,
-                      rate=capture_rate,
-                      signals=channel_signals,
-                      executeAt=0.0)
+    capture.start_capture(duration=capture_duration,
+                          rate=capture_rate,
+                          signals=channel_signals,
+                          executeAt=0.0)
 
-print('STEP 3: Starting simulation and capture')
-hil.start_simulation()
-if vhil_device:
-    print('     This may take up to ' + str(round(capture_duration/10)) + ' seconds')
-else:
-    print('     This may take up to ' + str(round(capture_duration)) + ' seconds')
-st = time.time()  # measuring the starting time
+    print('STEP 3: Starting simulation and capture')
+    hil.start_simulation()
+    if vhil_device:
+        print('     This may take up to ' + str(round(capture_duration/10)) + ' seconds')
+    else:
+        print('     This may take up to ' + str(round(capture_duration)) + ' seconds')
+    st = time.time()  # measuring the starting time
 
-# capture.wait_until("done_flag", 'above', 0.5, timeout=capture_duration)
-capture.wait_capture_finish()
+    # capture.wait_until("done_flag", 'above', 0.5, timeout=capture_duration)
+    capture.wait_capture_finish()
 
-et = time.time()  # get the end time
-elapsed_time = et - st  # get the execution time
-print('Execution time:', elapsed_time, 'seconds, and ', hil.get_sim_time(), "seconds of simulation time")
-cap_data = capture.get_capture_results()
-hil.stop_simulation()  # Stopping the simulation
+    et = time.time()  # get the end time
+    elapsed_time = et - st  # get the execution time
+    print('Execution time:', elapsed_time, 'seconds, and ', hil.get_sim_time(), "seconds of simulation time")
+    cap_data = capture.get_capture_results()
+    hil.stop_simulation()  # Stopping the simulation
 
-print('STEP 4: Parsing the captured data and saving it in a dictionary')
-time_vec = list(cap_data["Time"])
-data = dict()  # creating an output dictionary for all the dynamic and static data
+    print('STEP 4: Parsing the captured data and saving it in a dictionary')
+    time_vec = list(cap_data["Time"])
+    data = dict()  # creating an output dictionary for all the dynamic and static data
 
-for temp in test_temperatures:
-    for script_type in ['static', 'dynamic']:
-        current = list(cap_data[script_type + '_' + temp + '.current'])
-        voltage = list(cap_data[script_type + '_' + temp + '.voltage'])
-        script_no = list(cap_data[script_type + '_' + temp + '.script_no'])
-        temperature = list(cap_data[script_type + '_' + temp + '.temperature'])
-        chgAh = list(cap_data[script_type + '_' + temp + '.chgAh']/3600)  # converting to Ah from As
-        disAh = list(cap_data[script_type + '_' + temp + '.disAh']/3600)  # converting to Ah from As
+    for temp in test_temperatures:
+        for script_type in ['static', 'dynamic']:
+            current = list(cap_data[script_type + '_' + temp + '.current'])
+            voltage = list(cap_data[script_type + '_' + temp + '.voltage'])
+            script_no = list(cap_data[script_type + '_' + temp + '.script_no'])
+            temperature = list(cap_data[script_type + '_' + temp + '.temperature'])
+            chgAh = list(cap_data[script_type + '_' + temp + '.chgAh']/3600)  # converting to Ah from As
+            disAh = list(cap_data[script_type + '_' + temp + '.disAh']/3600)  # converting to Ah from As
 
-        script_1_stop = script_no.index(2)
-        script_2_stop = script_no.index(3)
-        script_3_stop = script_no.index(4)
+            script_1_stop = script_no.index(2)
+            script_2_stop = script_no.index(3)
+            script_3_stop = script_no.index(4)
 
-        # Create script objects for each part of the simulation. Lists are segmented using script_x_stop variables
-        Script_1 = Script(time_vec[0:script_1_stop], temperature[0:script_1_stop], voltage[0:script_1_stop],
-                          current[0:script_1_stop], chgAh[0:script_1_stop], disAh[0:script_1_stop])
-        Script_2 = Script(time_vec[script_1_stop:script_2_stop], temperature[script_1_stop:script_2_stop],
-                          voltage[script_1_stop:script_2_stop],
-                          current[script_1_stop:script_2_stop], chgAh[script_1_stop:script_2_stop],
-                          disAh[script_1_stop:script_2_stop])
-        Script_3 = Script(time_vec[script_2_stop:script_3_stop], temperature[script_2_stop:script_3_stop],
-                          voltage[script_2_stop:script_3_stop],
-                          current[script_2_stop:script_3_stop], chgAh[script_2_stop:script_3_stop],
-                          disAh[script_2_stop:script_3_stop])
+            # Create script objects for each part of the simulation. Lists are segmented using script_x_stop variables
+            Script_1 = Script(time_vec[0:script_1_stop], temperature[0:script_1_stop], voltage[0:script_1_stop],
+                              current[0:script_1_stop], chgAh[0:script_1_stop], disAh[0:script_1_stop])
+            Script_2 = Script(time_vec[script_1_stop:script_2_stop], temperature[script_1_stop:script_2_stop],
+                              voltage[script_1_stop:script_2_stop],
+                              current[script_1_stop:script_2_stop], chgAh[script_1_stop:script_2_stop],
+                              disAh[script_1_stop:script_2_stop])
+            Script_3 = Script(time_vec[script_2_stop:script_3_stop], temperature[script_2_stop:script_3_stop],
+                              voltage[script_2_stop:script_3_stop],
+                              current[script_2_stop:script_3_stop], chgAh[script_2_stop:script_3_stop],
+                              disAh[script_2_stop:script_3_stop])
 
-        if script_type == 'static':  # add new Script object to output data dict.
-            script_4_stop = script_no.index(5)  # static tests have 4 scripts, so we add script 4 as well
-            Script_4 = Script(time_vec[script_3_stop:script_4_stop], temperature[script_3_stop:script_4_stop],
-                              voltage[script_3_stop:script_4_stop],
-                              current[script_3_stop:script_4_stop], chgAh[script_3_stop:script_4_stop],
-                              disAh[script_3_stop:script_4_stop])
+            if script_type == 'static':  # add new Script object to output data dict.
+                script_4_stop = script_no.index(5)  # static tests have 4 scripts, so we add script 4 as well
+                Script_4 = Script(time_vec[script_3_stop:script_4_stop], temperature[script_3_stop:script_4_stop],
+                                  voltage[script_3_stop:script_4_stop],
+                                  current[script_3_stop:script_4_stop], chgAh[script_3_stop:script_4_stop],
+                                  disAh[script_3_stop:script_4_stop])
 
-            data['OCVData_' + temp] = [Script_1, Script_2, Script_3, Script_4]
-            data['OCVData_full' + temp] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
-        else:
-            data['DYNData_' + temp] = [Script_1, Script_2, Script_3]
-            data['DYNData_full' + temp] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
+                data['OCVData_' + temp] = [Script_1, Script_2, Script_3, Script_4]
+                data['OCVData_full' + temp] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
+            else:
+                data['DYNData_' + temp] = [Script_1, Script_2, Script_3]
+                data['DYNData_full' + temp] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
 
-print('STEP 5: Saving the data dictionary into a .mat file: ' + output_data_filename)
-scipy.io.savemat(output_data_filename, data)
+    print('STEP 5: Saving the data dictionary into a .mat file: ' + output_data_filename)
+    scipy.io.savemat(output_data_filename, data)
 
-print('Done!')
+    print('Done!')

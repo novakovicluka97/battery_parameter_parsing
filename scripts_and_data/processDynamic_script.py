@@ -3,6 +3,7 @@ from numpy import linalg as LA
 import scipy
 from scipy import optimize
 fminbnd = scipy.optimize.fminbound
+import generate_battery_cell_data
 import matplotlib.pyplot as plt
 
 
@@ -153,9 +154,8 @@ def minfn(dynamic_data, model, temperature, doHyst):
         # Calculating hysteresis variables
         h = [0] * len(script_1_current)  # 'h' is a variable that relates to hysteresis voltage
         current_sign = [0] * len(script_1_current)
-        Ts = 1e-2
-        SIMULATION_SPEED_UP = 100
-        delta_T = SIMULATION_SPEED_UP*Ts  # time step between two calculated current points
+        # time step between two calculated current points
+        delta_T = generate_battery_cell_data.SIMULATION_SPEED_UP*generate_battery_cell_data.Ts
         fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
         # debug looks the same as octave up until this point
         for k in range(1, len(script_1_current)):  # todo check why it starts with 1
@@ -197,15 +197,15 @@ def minfn(dynamic_data, model, temperature, doHyst):
         RCfact = RCfact_var[len(RCfact_var) - numpoles:]
         RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4
         # Simulate the R - C filters to find R - C currents
-        vrcRaw = np.zeros((numpoles, len(h)))
+        resistor_current_rc = np.zeros((numpoles, len(h)))
         for k in range(1, len(script_1_current)):
-            vrcRaw[:, k] = np.diag(RCfact) * vrcRaw[:, k - 1] + (1 - RCfact) * script_1_current_corrected[k - 1]
-        vrcRaw = np.transpose(vrcRaw)  # Close enough to Octave vrcRaw
+            resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current_corrected[k - 1]
+        resistor_current_rc = np.transpose(resistor_current_rc)  # Close enough to Octave vrcRaw
 
         # Third modeling step: Hysteresis parameters
         if doHyst:
             H_1 = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
-            H_2 = np.append(np.transpose([-script_1_current_corrected]), -vrcRaw, 1)
+            H_2 = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
             H = np.append(H_1, H_2, 1)
             W = LA.lstsq(H, v_error)  # W = H\verr;   LEAST SQUARE NON NEGATIVE
             M  = W[0][0]
@@ -213,7 +213,7 @@ def minfn(dynamic_data, model, temperature, doHyst):
             R0 = W[0][2]
             Rfact = np.transpose(W[0][3:])  # rest of the lstsq array values
         else:
-            H = np.append(np.transpose([-script_1_current_corrected]), -vrcRaw, 1)
+            H = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
             W = LA.lstsq(H, v_error)
             M = 0
             M0 = 0
@@ -258,7 +258,7 @@ def minfn(dynamic_data, model, temperature, doHyst):
     return [cost, model]
 
 
-def SISOsubid(y, u, n):  # Subsystem identifier function
+def SISOsubid(y, u, n):  # Subspace system identification function
     """
     This function calculates values for time constants of RC circuit, based on the number of poles of the system.
     The solutions may not always be between 0 and 1, they may also be negative or even complex conjugate.
