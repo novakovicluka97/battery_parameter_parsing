@@ -713,7 +713,7 @@ else
                         ENDCODE
 
                         CODE init
-                            numeric_scale = 1e6
+                            numeric_scale = 1e2
                         ENDCODE
                     }
                 }
@@ -3676,7 +3676,7 @@ V_h = M0*current_sign + M*h;
                 M0 = "M0"
                 Q_total = "total_Q"
                 R1 = "R1"
-                Ts = "Ts"
+                Ts = "Ts_cell"
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
@@ -4676,6 +4676,15 @@ else {
                 hide_name = True
             ]
 
+            component "core/Rate Transition" "Rate Transition1" {
+                execution_rate = "Ts_cell"
+            }
+            [
+                position = 8096, 8296
+                hide_name = True
+                size = 32, 32
+            ]
+
             port switch_select {
                 position = left:1
                 kind = sp
@@ -4801,10 +4810,6 @@ else {
             connect "Multiport signal switch1.ctrl" Junction155 as Connection899
             connect Junction155 switch_select as Connection900
             connect "Unit Delay7.in" Junction155 as Connection901
-            connect "Battery Cell.T" Junction156 as Connection906
-            [
-                breakpoints = 8040, 8352
-            ]
             connect Junction156 cell_temperature as Connection907
             [
                 breakpoints = 7824, 8352
@@ -4843,6 +4848,8 @@ else {
             ]
             connect current.in Junction154 as Connection893
             connect "Unit Delay7.out" Junction142 as Connection895
+            connect "Battery Cell.T" "Rate Transition1.out" as Connection910
+            connect "Rate Transition1.in" Junction156 as Connection911
         }
         [
             position = 7944, 8088
@@ -5172,7 +5179,7 @@ else
                         ENDCODE
 
                         CODE init
-                            numeric_scale = 1e6
+                            numeric_scale = 1e2
                         ENDCODE
                     }
                 }
@@ -8136,7 +8143,7 @@ V_h = M0*current_sign + M*h;
                 M0 = "M0"
                 Q_total = "total_Q"
                 R1 = "R1"
-                Ts = "Ts"
+                Ts = "Ts_cell"
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
@@ -9210,6 +9217,15 @@ else {
                 hide_name = True
             ]
 
+            component "core/Rate Transition" "Rate Transition1" {
+                execution_rate = "Ts_cell"
+            }
+            [
+                position = 8056, 8232
+                hide_name = True
+                size = 32, 32
+            ]
+
             port switch_select {
                 position = left:1
                 kind = sp
@@ -9389,8 +9405,9 @@ else {
                 breakpoints = 8056, 8048; 8056, 8048
             ]
             connect "Unit Delay12.in" Junction160 as Connection983
-            connect "Battery Cell.T" Junction161 as Connection985
             connect temperature.in Junction161 as Connection987
+            connect "Battery Cell.T" "Rate Transition1.out" as Connection993
+            connect "Rate Transition1.in" Junction161 as Connection994
         }
         [
             position = 7952, 8464
@@ -9918,7 +9935,7 @@ else
                         ENDCODE
 
                         CODE init
-                            numeric_scale = 1e6
+                            numeric_scale = 1e2
                         ENDCODE
                     }
                 }
@@ -12881,7 +12898,7 @@ V_h = M0*current_sign + M*h;
                 M0 = "M0"
                 Q_total = "total_Q"
                 R1 = "R1"
-                Ts = "Ts"
+                Ts = "Ts_cell"
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
@@ -13881,6 +13898,15 @@ else {
                 hide_name = True
             ]
 
+            component "core/Rate Transition" "Rate Transition1" {
+                execution_rate = "Ts_cell"
+            }
+            [
+                position = 8104, 8296
+                hide_name = True
+                size = 32, 32
+            ]
+
             port switch_select {
                 position = left:1
                 kind = sp
@@ -14006,10 +14032,6 @@ else {
             connect "Multiport signal switch1.ctrl" Junction155 as Connection899
             connect Junction155 switch_select as Connection900
             connect "Unit Delay7.in" Junction155 as Connection901
-            connect "Battery Cell.T" Junction156 as Connection906
-            [
-                breakpoints = 8040, 8352
-            ]
             connect Junction156 cell_temperature as Connection907
             [
                 breakpoints = 7824, 8352
@@ -14048,6 +14070,8 @@ else {
             ]
             connect current.in Junction154 as Connection893
             connect "Unit Delay7.out" Junction142 as Connection895
+            connect "Battery Cell.T" "Rate Transition1.out" as Connection910
+            connect "Rate Transition1.in" Junction156 as Connection911
         }
         [
             position = 8664, 8088
@@ -14353,7 +14377,7 @@ else
                         ENDCODE
 
                         CODE init
-                            numeric_scale = 1e6
+                            numeric_scale = 1e2
                         ENDCODE
                     }
                 }
@@ -17317,7 +17341,7 @@ V_h = M0*current_sign + M*h;
                 M0 = "M0"
                 Q_total = "total_Q"
                 R1 = "R1"
-                Ts = "Ts"
+                Ts = "Ts_cell"
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
@@ -18391,6 +18415,15 @@ else {
                 hide_name = True
             ]
 
+            component "core/Rate Transition" "Rate Transition1" {
+                execution_rate = "Ts_cell"
+            }
+            [
+                position = 8048, 8232
+                hide_name = True
+                size = 32, 32
+            ]
+
             port switch_select {
                 position = left:1
                 kind = sp
@@ -18570,8 +18603,9 @@ else {
                 breakpoints = 8056, 8048; 8056, 8048
             ]
             connect "Unit Delay12.in" Junction160 as Connection983
-            connect "Battery Cell.T" Junction161 as Connection985
             connect temperature.in Junction161 as Connection987
+            connect "Battery Cell.T" "Rate Transition1.out" as Connection993
+            connect "Rate Transition1.in" Junction161 as Connection994
         }
         [
             position = 8672, 8464
@@ -19099,7 +19133,7 @@ else
                         ENDCODE
 
                         CODE init
-                            numeric_scale = 1e6
+                            numeric_scale = 1e2
                         ENDCODE
                     }
                 }
@@ -22062,7 +22096,7 @@ V_h = M0*current_sign + M*h;
                 M0 = "M0"
                 Q_total = "total_Q"
                 R1 = "R1"
-                Ts = "Ts"
+                Ts = "Ts_cell"
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
@@ -23062,6 +23096,15 @@ else {
                 hide_name = True
             ]
 
+            component "core/Rate Transition" "Rate Transition1" {
+                execution_rate = "Ts_cell"
+            }
+            [
+                position = 8096, 8296
+                hide_name = True
+                size = 32, 32
+            ]
+
             port switch_select {
                 position = left:1
                 kind = sp
@@ -23187,10 +23230,6 @@ else {
             connect "Multiport signal switch1.ctrl" Junction155 as Connection899
             connect Junction155 switch_select as Connection900
             connect "Unit Delay7.in" Junction155 as Connection901
-            connect "Battery Cell.T" Junction156 as Connection906
-            [
-                breakpoints = 8040, 8352
-            ]
             connect Junction156 cell_temperature as Connection907
             [
                 breakpoints = 7824, 8352
@@ -23229,6 +23268,8 @@ else {
             ]
             connect current.in Junction154 as Connection893
             connect "Unit Delay7.out" Junction142 as Connection895
+            connect "Battery Cell.T" "Rate Transition1.out" as Connection910
+            connect "Rate Transition1.in" Junction156 as Connection911
         }
         [
             position = 9384, 8088
@@ -23534,7 +23575,7 @@ else
                         ENDCODE
 
                         CODE init
-                            numeric_scale = 1e6
+                            numeric_scale = 1e2
                         ENDCODE
                     }
                 }
@@ -26498,7 +26539,7 @@ V_h = M0*current_sign + M*h;
                 M0 = "M0"
                 Q_total = "total_Q"
                 R1 = "R1"
-                Ts = "Ts"
+                Ts = "Ts_cell"
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
@@ -27572,6 +27613,15 @@ else {
                 hide_name = True
             ]
 
+            component "core/Rate Transition" "Rate Transition1" {
+                execution_rate = "Ts_cell"
+            }
+            [
+                position = 8048, 8232
+                hide_name = True
+                size = 32, 32
+            ]
+
             port switch_select {
                 position = left:1
                 kind = sp
@@ -27751,8 +27801,9 @@ else {
                 breakpoints = 8056, 8048; 8056, 8048
             ]
             connect "Unit Delay12.in" Junction160 as Connection983
-            connect "Battery Cell.T" Junction161 as Connection985
             connect temperature.in Junction161 as Connection987
+            connect "Battery Cell.T" "Rate Transition1.out" as Connection993
+            connect "Rate Transition1.in" Junction161 as Connection994
         }
         [
             position = 9392, 8464
@@ -28118,6 +28169,11 @@ else {
             position = 9296, 7960
         ]
 
+        comment Comment23 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
+        [
+            position = 8168, 8768
+        ]
+
         connect Time.in Gain1.out as Connection750
         connect Gain1.in Clock1.out as Connection751
         connect From66 "C function17.sta1" as Connection802
@@ -28411,6 +28467,11 @@ else {
             execution_rate = "inherit"
         }
 
+        "core/Rate Transition" {
+            init_value = "0.0"
+            execution_rate = "100e-6"
+        }
+
         "core/Signal Controlled Current Source" {
             execution_rate = "inherit"
         }
@@ -28445,13 +28506,15 @@ else {
     }
 
     CODE model_init
-        R1 = 0.00064769
-        C1 = 7959.8
+        R1 = 1e-05
+        C1 = 4775.88
         M0 = [1e-05, 1e-05, 1e-05]
         M = [1e-05, 1e-05, 1e-05]
         SIMULATION_SPEED_UP = 100
         init_dynamic = 100  # 90% initial state of charge for dynamic scripts so that the voltage doesnt go over Vmax
         Ts = 0.01
+        Ts_cell = 0.002
+        G = [67.207, 92.645, 67.84]  # G param is wrong for default battery
         
         rest_time_for_temperature_equilibrium = 7200/SIMULATION_SPEED_UP  # 7200s or 2h
         counter_cooldown_max = rest_time_for_temperature_equilibrium/Ts
@@ -28461,7 +28524,6 @@ else {
         Vmin = 2.8060   # Volts
         total_Q_original = [14.592, 14.532, 14.444]
         total_Q = [i/SIMULATION_SPEED_UP for i in total_Q_original]
-        G = [67.207, 92.645, 67.840]  # G param is wrong for default battery
         
         C = 14.532  # C rate of a battery is current that will empty the cell in one hour
         DISCHG_RATE =  0.5 # 0.5 if its normal battery discharg speed
