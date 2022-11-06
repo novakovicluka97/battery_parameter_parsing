@@ -9,35 +9,34 @@ import matplotlib.pyplot as plt
 # This script will parse out the battery cell parameters from the battery cell data obtained from
 # "generate_battery_cell_data.py" python script. The parameters will be saved in the .pickle format.
 
-# todo numpoles variable is only tested when it is 1.
-numpoles = 1  # Number of resistor--capacitor pairs in final model
-doHyst = 0    # Include hysteresis in model
-printout_flag = True  # Print out the output model parameters
+printout = True  # Print out the output model parameters
 data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
-# data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
+data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
 output_filename = data_origin + '.pickle'  # Name of the pickled file
+
+# Initialize model
+cell_model = data.ESC_battery_model()
 
 # Initialize data
 if data_origin == 'P14_Boulder_cell_data':  # test data from the Boulder university
+    numpoles = 1    # Number of resistor--capacitor pairs in final model
+    doHyst = 1      # Include hysteresis in model
+
     P14_DYN_50_P45 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
     P14_DYN_50_P25 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
     P14_DYN_30_P05 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
     P14_OCV_P45 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P45.mat"), 45)
     P14_OCV_P25 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P25.mat"), 25)
     P14_OCV_P05 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
+
+    static.processStatic([P14_OCV_P05, P14_OCV_P25, P14_OCV_P45], cell_model)
+    dynamic.processDynamic([P14_DYN_30_P05, P14_DYN_50_P25, P14_DYN_50_P45], cell_model, numpoles, doHyst)
+
 else:  # Normal, Typhoon data format
     TYPHOON_FULL_CELL_DATA = data.CellAllData(scipy.io.loadmat(data_origin + ".mat"), [5, 25, 45], [5, 25, 45])
 
-# Initialize model
-cell_model = data.ESC_battery_model()
-
-# These next 2 functions require their data to have same temperature
-if data_origin == 'P14_Boulder_cell_data':
-    static.processStatic([P14_OCV_P05, P14_OCV_P25, P14_OCV_P45], cell_model)
-    dynamic.processDynamic([P14_DYN_30_P05, P14_DYN_50_P25, P14_DYN_50_P45], cell_model, numpoles, doHyst)
-else:  # Normal, Typhoon data format
     static.processStatic(TYPHOON_FULL_CELL_DATA.static_data, cell_model, typhoon_origin=True)
-    dynamic.processDynamic(TYPHOON_FULL_CELL_DATA.dynamic_data, cell_model, numpoles, doHyst)
+    dynamic.processDynamic(TYPHOON_FULL_CELL_DATA.dynamic_data, cell_model, TYPHOON_FULL_CELL_DATA.numpoles, TYPHOON_FULL_CELL_DATA.doHyst)
 
 # Saving the model
 print("Saving the model")
@@ -46,7 +45,7 @@ with open(output_filename, 'wb') as file:
     print("Model saved as ", output_filename)
 
 # Printing the output cell parameters, if enabled
-if printout_flag:
+if printout:
     print(f"\nPrintout of model params:\n")
     print(f"{cell_model.temps=}  Relative error: {data.error_func(cell_model.temps, 'temps')}")
     print(f"{cell_model.etaParam=}  Relative error: {data.error_func(cell_model.etaParam, 'etaParam')}")
@@ -61,5 +60,5 @@ if printout_flag:
     print(f"{cell_model.GParam=}  Relative error: {data.error_func(cell_model.GParam, 'GParam')}")
     plt.plot(cell_model.soc_vector[1], cell_model.ocv_vector[1])
     plt.plot(data.SOC_default, data.OCV_default[1])  # OCV curve
-    plt.title(f"OCV vs SOC graph (Colorado, octave vs {data_origin})")
+    plt.title(f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius")
     plt.show()

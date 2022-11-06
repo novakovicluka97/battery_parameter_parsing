@@ -6,17 +6,18 @@ import battery_cell_data_functions as data
 
 def processStatic(static_data, model, typhoon_origin=False):
     """
-    Script that populates the model parameters based on static test data
+    Script that populates the model parameters based on static test data.
+    Populates OCV as a function of SOC, Q and eta.
     """
 
     # Searching the index of static data which corresponds with default temperature of 25 degrees celsius
-    # After that, other temperatures can be calculated
+    # After that, other temperature data can be calculated
     ind25 = None
     for index, single_temp_data in enumerate(static_data):
         if single_temp_data.temp == 25:
             ind25 = index
     if not ind25:
-        print("There is no default temperature of 25 degrees celsius!")
+        print("There is no (default) temperature of 25 degrees celsius!")
         raise Exception()
 
     totDisAh = static_data[ind25].script1.disAh[-1] + static_data[ind25].script2.disAh[-1] + \
@@ -42,30 +43,32 @@ def processStatic(static_data, model, typhoon_origin=False):
         if typhoon_origin:
             index_discharge = list(np.where(np.array(static_data[k].script1.current) < 0)[0])
             # First voltage drop when the current starts flowing, step[1] is when the first voltage drop happens
-            I_R0_drop_start = static_data[k].script1.voltage[index_discharge[0] - 1] - static_data[k].script1.voltage[index_discharge[0]]
+            I_R0_dis_start = static_data[k].script1.voltage[index_discharge[0] - 2] - static_data[k].script1.voltage[index_discharge[0] - 1]
             # Last voltage drop when the current already charged up the capacitors in the RC circuits
-            I_R0_drop_end = static_data[k].script1.voltage[index_discharge[-1]] - static_data[k].script1.voltage[index_discharge[-2]]
+            I_R0_dis_end = static_data[k].script1.voltage[index_discharge[-1]] - static_data[k].script1.voltage[index_discharge[-2]]
             index_charge = list(np.where(np.array(static_data[k].script3.current) > 0)[0])
-            I_R0_rise_start = static_data[k].script2.voltage[-1] - static_data[k].script3.voltage[0]
-            I_R0_rise_end = static_data[k].script3.voltage[-1] - static_data[k].script4.voltage[0]
-            index_discharge = index_discharge
-            index_charge = index_charge
+            I_R0_chg_start = static_data[k].script3.voltage[0] - static_data[k].script2.voltage[-1]
+            I_R0_chg_end = static_data[k].script3.voltage[-2] - static_data[k].script3.voltage[-1]
+
+            IR1D = min(I_R0_dis_start, I_R0_chg_start)
+            IR2D = min(I_R0_dis_start, I_R0_chg_start)
+            IR1C = min(I_R0_dis_start, I_R0_chg_start)
+            IR2C = min(I_R0_dis_start, I_R0_chg_start)
         else:
             index_discharge  = np.where(np.array(static_data[k].script1.step) == 2)[0]  # index list of all slow discharge
             # First voltage drop when the current starts flowing
-            I_R0_drop_start = static_data[k].script1.voltage[index_discharge[0] - 1] - static_data[k].script1.voltage[index_discharge[0]]
+            I_R0_dis_start = static_data[k].script1.voltage[index_discharge[0] - 1] - static_data[k].script1.voltage[index_discharge[0]]
             # Last voltage drop when the current already charged up the capacitors in the RC circuits
-            I_R0_drop_end = static_data[k].script1.voltage[index_discharge[-1] + 1] - static_data[k].script1.voltage[index_discharge[-1]]
+            I_R0_dis_end = static_data[k].script1.voltage[index_discharge[-1] + 1] - static_data[k].script1.voltage[index_discharge[-1]]
             index_charge  = np.where(np.array(static_data[k].script3.step) == 2)[0]  # slow charge
-            I_R0_rise_start = static_data[k].script3.voltage[index_charge[0]] - static_data[k].script3.voltage[index_charge[0] - 1]
-            I_R0_rise_end = static_data[k].script3.voltage[index_charge[-1]] - static_data[k].script3.voltage[index_charge[-1] + 1]
+            I_R0_chg_start = static_data[k].script3.voltage[index_charge[0]] - static_data[k].script3.voltage[index_charge[0] - 1]
+            I_R0_chg_end = static_data[k].script3.voltage[index_charge[-1]] - static_data[k].script3.voltage[index_charge[-1] + 1]
 
-        # min of I_R0_rise_end still needs to be understood
-        # todo check for typhoon data if all the R0 drops are the same. They should be
-        IR1D = min(I_R0_drop_start, 2 * I_R0_rise_end)  # For Boulder Colorado data: 0.003254
-        IR2D = min(I_R0_drop_end, 2 * I_R0_rise_start)  # For Boulder Colorado data: 0.006345
-        IR1C = min(I_R0_rise_start, 2 * I_R0_drop_end)  # For Boulder Colorado data: 0.012690
-        IR2C = min(I_R0_rise_end, 2 * I_R0_drop_start)  # For Boulder Colorado data: 0.002928
+            # still remains to be understood
+            IR1D = min(I_R0_dis_start, 2 * I_R0_chg_end)  # For Boulder Colorado data: 0.003254
+            IR2D = min(I_R0_dis_end, 2 * I_R0_chg_start)  # For Boulder Colorado data: 0.006345
+            IR1C = min(I_R0_chg_start, 2 * I_R0_dis_end)  # For Boulder Colorado data: 0.012690
+            IR2C = min(I_R0_chg_end, 2 * I_R0_dis_start)  # For Boulder Colorado data: 0.002928
 
         blend = np.array(range(len(index_discharge))) / (len(index_discharge) - 1)  # linear rise from 0 to 1 with len(discharge_index)
         IR0_blend = IR1D + (IR2D - IR1D) * blend  # IR0_blend exists because R0 measured on end and on beginning aren't the same
@@ -83,12 +86,15 @@ def processStatic(static_data, model, typhoon_origin=False):
         Voltage_SOC_curve = interpolate.interp1d(chgZ, charged_voltage_without_IR0)
         Discharge_SOC_curve = interpolate.interp1d(disZ, discharged_voltage_without_IR0)
         deltaV50 = Voltage_SOC_curve(0.5) - Discharge_SOC_curve(0.5)
+
+        # Now only look at values of SOC under 50%
         ind = np.where(chgZ < 0.5)[0]
-        vChg = charged_voltage_without_IR0[ind[0]:ind[-1]] - chgZ[ind[0]:ind[-1]] * deltaV50
-        zChg = chgZ[ind[0]:ind[-1]]
+        vChg = charged_voltage_without_IR0[ind] - chgZ[ind] * deltaV50
+        zChg = chgZ[ind]
+        # Now only look at values of SOC over 50%
         ind = np.where(disZ > 0.5)[0]
-        vDis = np.flipud(discharged_voltage_without_IR0[ind[0]:ind[-1]] + (1 - disZ[ind[0]:ind[-1]]) * deltaV50)
-        zDis = np.flipud(disZ[ind[0]:ind[-1]])
+        vDis = np.flipud(discharged_voltage_without_IR0[ind] + (1 - disZ[ind]) * deltaV50)
+        zDis = np.flipud(disZ[ind])
         np.append(zChg, zDis)
         FULL_SOC_curve = interpolate.interp1d(np.append(zChg, zDis), np.append(vChg, vDis), fill_value="extrapolate")
 

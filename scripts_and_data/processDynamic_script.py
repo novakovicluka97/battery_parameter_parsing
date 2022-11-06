@@ -144,7 +144,7 @@ def minfn(dynamic_data, model, temperature, doHyst):
         script_1_current = dynamic_data[ind].script1.current[:]
         script_1_voltage = dynamic_data[ind].script1.voltage[:]
         # tk = range(len(vk))  # never used again
-        script_1_current_corrected = script_1_current  # Todo Make this not a copy
+        script_1_current_corrected = np.copy(script_1_current)
         for i in range(len(script_1_current)):
             if script_1_current[i] < 0:
                 script_1_current_corrected[i] = script_1_current[i] * eta
@@ -155,7 +155,7 @@ def minfn(dynamic_data, model, temperature, doHyst):
         h = [0] * len(script_1_current)  # 'h' is a variable that relates to hysteresis voltage
         current_sign = [0] * len(script_1_current)
         # time step between two calculated current points
-        delta_T = generate_battery_cell_data.SIMULATION_SPEED_UP*generate_battery_cell_data.Ts
+        delta_T = generate_battery_cell_data.SIMULATION_SPEED_UP*generate_battery_cell_data.Ts_cell
         fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
         # debug looks the same as octave up until this point
         for k in range(1, len(script_1_current)):  # todo check why it starts with 1
@@ -193,9 +193,11 @@ def minfn(dynamic_data, model, temperature, doHyst):
                 break
             print(f'Trying {numpoles_loop_no=}\n')
 
-        RCfact_var = np.sort(eigA)
-        RCfact = RCfact_var[len(RCfact_var) - numpoles:]
-        RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4
+        # Solution of SISOSubid is RCfact which is np.exp(-delta_T/Tau) and as exponential function, the solution should be between 0 and 1
+        RCfact_var = np.sort(eigA)  # [0.66075] for boulder data
+        RCfact = RCfact_var[len(RCfact_var) - numpoles:]  # looks like it makes no sense to be different then previous variable
+        RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4 s (or minutes)
+        # 1 in previous function is delta_T and should be a variable but then that must also be propagated in SISOSubid
         # Simulate the R - C filters to find R - C currents
         resistor_current_rc = np.zeros((numpoles, len(h)))
         for k in range(1, len(script_1_current)):
@@ -207,14 +209,14 @@ def minfn(dynamic_data, model, temperature, doHyst):
             H_1 = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
             H_2 = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
             H = np.append(H_1, H_2, 1)
-            W = LA.lstsq(H, v_error)  # W = H\verr;   LEAST SQUARE NON NEGATIVE
+            W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
             M  = W[0][0]
             M0 = W[0][1]
             R0 = W[0][2]
             Rfact = np.transpose(W[0][3:])  # rest of the lstsq array values
         else:
             H = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
-            W = LA.lstsq(H, v_error)
+            W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
             M = 0
             M0 = 0
             R0 = W[0][0]
@@ -228,7 +230,7 @@ def minfn(dynamic_data, model, temperature, doHyst):
         model.RParam[ind] = np.transpose(Rfact)[0]
         model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
 
-        v_est_full = v_est_ocv + np.array(h)*M + M0*np.array(current_sign) - R0*np.array(script_1_current_corrected) - np.transpose(vrcRaw) * Rfact
+        v_est_full = v_est_ocv + np.array(h)*M + M0*np.array(current_sign) - R0*np.array(script_1_current_corrected) - np.transpose(resistor_current_rc) * Rfact
         verr = script_1_voltage - v_est_full
         # starting to look different
 

@@ -135,6 +135,8 @@ class CellAllData:
     def __init__(self, MAT_data, temp_static=[], temp_dyn=[]):
         self.static_data = []
         self.dynamic_data = []
+        self.doHyst = MAT_data['doHyst'][0][0]
+        self.numpoles = MAT_data['numpoles'][0][0]
 
         try:
             for temp in temp_static:
