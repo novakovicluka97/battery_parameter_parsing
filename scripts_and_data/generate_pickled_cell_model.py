@@ -1,3 +1,4 @@
+import generate_battery_cell_data as model_data
 import battery_cell_data_functions as data
 import processDynamic_script as dynamic
 import processStatic_script as static
@@ -19,9 +20,6 @@ cell_model = data.ESC_battery_model()
 
 # Initialize data
 if data_origin == 'P14_Boulder_cell_data':  # test data from the Boulder university
-    numpoles = 1    # Number of resistor--capacitor pairs in final model
-    doHyst = 1      # Include hysteresis in model
-
     P14_DYN_50_P45 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
     P14_DYN_50_P25 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
     P14_DYN_30_P05 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
@@ -30,7 +28,7 @@ if data_origin == 'P14_Boulder_cell_data':  # test data from the Boulder univers
     P14_OCV_P05 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
 
     static.processStatic([P14_OCV_P05, P14_OCV_P25, P14_OCV_P45], cell_model)
-    dynamic.processDynamic([P14_DYN_30_P05, P14_DYN_50_P25, P14_DYN_50_P45], cell_model, numpoles, doHyst)
+    dynamic.processDynamic([P14_DYN_30_P05, P14_DYN_50_P25, P14_DYN_50_P45], cell_model, numpoles=1, doHyst=1)
 
 else:  # Normal, Typhoon data format
     TYPHOON_FULL_CELL_DATA = data.CellAllData(scipy.io.loadmat(data_origin + ".mat"), [5, 25, 45], [5, 25, 45])
@@ -47,18 +45,18 @@ with open(output_filename, 'wb') as file:
 # Printing the output cell parameters, if enabled
 if printout:
     print(f"\nPrintout of model params:\n")
-    print(f"{cell_model.temps=}  Relative error: {data.error_func(cell_model.temps, 'temps')}")
-    print(f"{cell_model.etaParam=}  Relative error: {data.error_func(cell_model.etaParam, 'etaParam')}")
-    print(f"{cell_model.R0Param=}  Relative error: {data.error_func(cell_model.R0Param, 'R0Param')}")
-    print(f"{cell_model.QParam=}  Relative error: {data.error_func(cell_model.QParam, 'QParam')}")
-    print(f"{cell_model.RParam=}  Relative error: {data.error_func(cell_model.RParam, 'RParam')}")
-    print(f"{cell_model.RCParam=}  Relative error: {data.error_func(cell_model.RCParam, 'RCParam')}")
-    print(f"{cell_model.etaParam_static=}  Relative error: {data.error_func(cell_model.etaParam_static, 'etaParam_static')}")
-    print(f"{cell_model.QParam_static=}  Relative error: {data.error_func(cell_model.QParam_static, 'QParam_static')}")
-    print(f"{cell_model.M0Param=}  Relative error: {data.error_func(cell_model.M0Param, 'M0Param')}")
-    print(f"{cell_model.MParam=}  Relative error: {data.error_func(cell_model.MParam, 'MParam')}")
-    print(f"{cell_model.GParam=}  Relative error: {data.error_func(cell_model.GParam, 'GParam')}")
+    print(f"{cell_model.temps=}  Relative error: {model_data.error_func(cell_model.temps, 'temps')}")
+    print(f"{cell_model.etaParam=}  Relative error: {model_data.error_func(cell_model.etaParam, 'etaParam')}")
+    print(f"{cell_model.R0Param=}  Relative error: {model_data.error_func(cell_model.R0Param, 'R0Param')}")
+    print(f"{cell_model.QParam=}  Relative error: {model_data.error_func(cell_model.QParam, 'QParam')}")
+    print(f"{cell_model.RParam=}  Relative error: {model_data.error_func(cell_model.RParam, 'RParam')}")
+    print(f"{cell_model.RCParam=}  Relative error: {model_data.error_func(cell_model.RCParam, 'RCParam')}")
+    print(f"{cell_model.etaParam_static=}  Relative error: {model_data.error_func(cell_model.etaParam_static, 'etaParam_static')}")
+    print(f"{cell_model.QParam_static=}  Relative error: {model_data.error_func(cell_model.QParam_static, 'QParam_static')}")
+    print(f"{cell_model.M0Param=}  Relative error: {model_data.error_func(cell_model.M0Param, 'M0Param')}")
+    print(f"{cell_model.MParam=}  Relative error: {model_data.error_func(cell_model.MParam, 'MParam')}")
+    print(f"{cell_model.GParam=}  Relative error: {model_data.error_func(cell_model.GParam, 'GParam')}")
     plt.plot(cell_model.soc_vector[1], cell_model.ocv_vector[1])
-    plt.plot(data.SOC_default, data.OCV_default[1])  # OCV curve
+    plt.plot(model_data.SOC_default, model_data.OCV_default[1])  # OCV curve
     plt.title(f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius")
     plt.show()

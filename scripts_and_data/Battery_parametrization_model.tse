@@ -28521,8 +28521,8 @@ else {
     }
 
     CODE model_init
-        R1 = 1e-05
-        C1 = 4775.88
+        R1 = 0.004
+        C1 = 150.0
         M0 = [1e-05, 1e-05, 1e-05]
         M = [1e-05, 1e-05, 1e-05]
         SIMULATION_SPEED_UP = 100
