@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 printout = True  # Print out the output model parameters
 data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
-data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
+# data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
 output_filename = data_origin + '.pickle'  # Name of the pickled file
 
 # Initialize model
@@ -36,7 +36,7 @@ else:  # Normal, Typhoon data format
     TYPHOON_FULL_CELL_DATA = data.CellAllData(scipy.io.loadmat(data_origin + ".mat"), [5, 25, 45], [5, 25, 45])
 
     static.processStatic(TYPHOON_FULL_CELL_DATA.static_data, cell_model, typhoon_origin=True)
-    dynamic.processDynamic(TYPHOON_FULL_CELL_DATA.dynamic_data, cell_model, TYPHOON_FULL_CELL_DATA.numpoles, TYPHOON_FULL_CELL_DATA.doHyst)
+    dynamic.processDynamic(TYPHOON_FULL_CELL_DATA.dynamic_data, cell_model, TYPHOON_FULL_CELL_DATA.numpoles, TYPHOON_FULL_CELL_DATA.doHyst, typhoon_origin=True)
 
 # Saving the model
 print("Saving the model")

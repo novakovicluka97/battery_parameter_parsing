@@ -254,6 +254,8 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
             chgAh = list(cap_data[script_type + '_' + temp + '.chgAh']/3600)  # converting to Ah from As
             disAh = list(cap_data[script_type + '_' + temp + '.disAh']/3600)  # converting to Ah from As
 
+            voltage[0] = voltage[1]  # this line of code is necessary because the voltage from probe starts with 0
+
             script_1_stop = script_no.index(2)
             script_2_stop = script_no.index(3)
             script_3_stop = script_no.index(4)

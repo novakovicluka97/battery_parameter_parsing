@@ -43,7 +43,7 @@ def processStatic(static_data, model, typhoon_origin=False):
         if typhoon_origin:
             index_discharge = list(np.where(np.array(static_data[k].script1.current) < 0)[0])
             # First voltage drop when the current starts flowing, step[1] is when the first voltage drop happens
-            I_R0_dis_start = static_data[k].script1.voltage[index_discharge[0] - 2] - static_data[k].script1.voltage[index_discharge[0] - 1]
+            I_R0_dis_start = static_data[k].script1.voltage[index_discharge[0] - 1] - static_data[k].script1.voltage[index_discharge[0]]
             # Last voltage drop when the current already charged up the capacitors in the RC circuits
             I_R0_dis_end = static_data[k].script1.voltage[index_discharge[-1]] - static_data[k].script1.voltage[index_discharge[-2]]
             index_charge = list(np.where(np.array(static_data[k].script3.current) > 0)[0])
@@ -71,7 +71,7 @@ def processStatic(static_data, model, typhoon_origin=False):
             IR2C = min(I_R0_chg_end, 2 * I_R0_dis_start)  # For Boulder Colorado data: 0.002928
 
         blend = np.array(range(len(index_discharge))) / (len(index_discharge) - 1)  # linear rise from 0 to 1 with len(discharge_index)
-        IR0_blend = IR1D + (IR2D - IR1D) * blend  # IR0_blend exists because R0 measured on end and on beginning aren't the same
+        IR0_blend = IR1D + (IR2D - IR1D) * blend  # IR0_blend exists because R0 measured on end and on beginning aren't necesserily the same
         # and so this list is scaled from R0 beginning to R0 end with this line
         discharged_voltage_without_IR0 = static_data[k].script1.voltage[index_discharge[0]:(index_discharge[-1] + 1)] + IR0_blend
         disZ = 1 - static_data[k].script1.disAh[index_discharge[0]:(index_discharge[-1] + 1)] / Q

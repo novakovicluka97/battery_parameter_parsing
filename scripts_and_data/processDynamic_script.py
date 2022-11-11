@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 current_sign_threshold = 1e-8  # threshold for current sign (in octave it is Q/100 and this gives me the negative M0)
 
 
-def processDynamic(dynamic_data, model, numpoles, doHyst):
+def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
     """
     Script that populates the model parameters based on dynamic test data
     """
