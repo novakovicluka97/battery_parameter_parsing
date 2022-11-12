@@ -171,6 +171,11 @@ def minfn(dynamic_data, model, temperature, doHyst):
         # v_error = [-0.001688.....] for Boulder data
         numpoles_loop_no = numpoles
 
+        # Data needed to determine RC circuits (poles) is saved for external processing
+        SISOSubid_data = {'v_error': v_error,
+                          'script_1_current_corrected': script_1_current_corrected}
+        scipy.io.savemat("SISOSubid_data.mat", SISOSubid_data)
+
         # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
         # Octave code was not up to date with lessons from here
         # diff works fine
