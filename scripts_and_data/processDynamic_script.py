@@ -4,6 +4,7 @@ import scipy
 from scipy import optimize
 fminbnd = scipy.optimize.fminbound
 import generate_battery_cell_data
+import generate_pickled_cell_model
 import matplotlib.pyplot as plt
 
 
@@ -14,6 +15,15 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
     """
     Script that populates the model parameters based on dynamic test data
     """
+
+    model.GParam = [0] * len(dynamic_data)
+    model.MParam = [0] * len(dynamic_data)
+    model.M0Param = [0] * len(dynamic_data)
+    model.RParam = [0] * len(dynamic_data)
+    model.R0Param = [0] * len(dynamic_data)
+    model.RCParam = [0] * len(dynamic_data)
+    model.CParam = [0] * len(dynamic_data)
+
     # First step: Compute Q and eta again. This is to recalibrate the static test Q and eta
     ind25 = None
     for index, single_temp_data in enumerate(dynamic_data):
@@ -31,8 +41,6 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
     dynamic_data[ind25].script2.chgAh[-1] = eta25 * dynamic_data[ind25].script2.chgAh[-1]  # correct for the coefficients
     dynamic_data[ind25].script3.chgAh[-1] = eta25 * dynamic_data[ind25].script3.chgAh[-1]  # correct for the coefficients
     Q25 = dynamic_data[ind25].script1.disAh[-1] + dynamic_data[ind25].script2.disAh[-1] - dynamic_data[ind25].script1.chgAh[-1] - dynamic_data[ind25].script2.chgAh[-1]
-    dynamic_data[ind25].Q = Q25
-    dynamic_data[ind25].eta = eta25
 
     for k in range(len(dynamic_data)):
         if dynamic_data[k].temp != 25:
@@ -44,53 +52,41 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
 
             dynamic_data[k].script1.chgAh = eta * dynamic_data[k].script1.chgAh
             Q = dynamic_data[k].script1.disAh[-1] + dynamic_data[k].script2.disAh[-1] - dynamic_data[k].script1.chgAh[-1] - dynamic_data[k].script2.chgAh[-1]
-            dynamic_data[k].Q = Q
-            dynamic_data[k].eta = eta
+        else:
+            Q = Q25
+            eta = eta25
 
         # Populate model with parameters from the dynamic data
-        model.QParam.append(dynamic_data[k].Q)
-        model.etaParam.append(dynamic_data[k].eta)
+        model.QParam.append(model.QParam_static[k] if generate_pickled_cell_model.use_static_Q_eta else Q)
+        model.etaParam.append(model.etaParam_static[k] if generate_pickled_cell_model.use_static_Q_eta else eta)
+
         if model.temps[k] != dynamic_data[k].temp:
             print("Dynamic data temperatures are not matching the static data temperatures or their numbering order.")
             raise Exception()
 
-        # Todo: Delete this after testing
-        # model.QParam[k]  = model.QParam_static[k]
-        # model.etaParam[k]= model.etaParam_static[k]
-
-    # Second step: Compute OCV for "discharge portion" of test, based on static test data
-    for k in range(len(dynamic_data)):
+        # Second step: Compute OCV for "discharge portion" of test, based on static test data
         corrected_current = [0]*len(dynamic_data[k].script1.current)
         for index, current in enumerate(dynamic_data[k].script1.current):
             if current < 0:  # if current is flowing into the battery and charging it, apply a coefficient
                 corrected_current[index] = current * model.etaParam[k]
             else:
                 corrected_current[index] = current
-        dynamic_data[k].Z = np.ones(np.size(corrected_current)) - np.cumsum(corrected_current)/(dynamic_data[k].Q*3600)
+        dynamic_data[k].Z = np.ones(np.size(corrected_current)) - np.cumsum(corrected_current)/(model.QParam[k]*3600)
         dynamic_data[k].OCV = OCVfromSOCtemp(dynamic_data[k].Z, dynamic_data[k].temp, model)
         # plt.plot(data[k].script1.time, data[k].Z)
 
     # Third step: Use optimization algorythm to find parameters M, M0, G, RC, R and R0
-    model.GParam = [0] * len(dynamic_data)
-    model.MParam = [0] * len(dynamic_data)
-    model.M0Param = [0] * len(dynamic_data)
-    model.RParam = [0] * len(dynamic_data)
-    model.R0Param = [0] * len(dynamic_data)
-    model.RCParam = [0] * len(dynamic_data)
-    model.CParam = [0] * len(dynamic_data)
-
     for k in range(len(dynamic_data)):
         global bestcost
         bestcost = np.inf
         print("Processing temperature: ", dynamic_data[k].temp, " degrees celsius")
         if doHyst:
-            model.GParam[k] = abs(fminbnd(optfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, k), xtol=0.1, maxfun=40, disp=0))
+            GParam_optimal = fminbnd(minfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, typhoon_origin, k), xtol=0.1, maxfun=40, disp=0)
+            # model.GParam[k] = abs(GParam_optimal)
+            print(f"Converged value of GParam is {round(GParam_optimal)}")
         else:  # Todo check functionality and extend it if it doesnt work
-            model.GParam[k] = 0
-            optfn(0, dynamic_data, model, model.temps[k], doHyst, k)
-
-        # Todo I dont think this last thing here is even needed
-        [_, model] = minfn(dynamic_data, model, model.temps[k], doHyst)
+            # model.GParam[k] = 0
+            minfn(0, dynamic_data, model, model.temps[k], doHyst, typhoon_origin, k)
 
     print("Dynamic model created!")
     return model
@@ -105,26 +101,12 @@ def OCVfromSOCtemp(soc, temp, model):
     return function(soc)
 
 
-def optfn(theGParam, dynamic_data, model, temperature, doHyst, index):
-    """
-    Optimization function copied from the Octave code
-    # Todo: Fuse with minfn as it doesn't have to be separated like in octave
-    """
-    print("optfn function was triggered")
-    global bestcost
-    model.GParam[index] = abs(theGParam)
-    [cost, _] = minfn(dynamic_data, model, temperature, doHyst)
-    if cost < bestcost:
-        bestcost = cost
-        print("The model created for this value of gamma is the best ESC model yet!")
-    return cost
-
-
-def minfn(dynamic_data, model, temperature, doHyst):
+def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_origin, numpoles=1):
     """
     Minimization function
     """
     print("minfn function was triggered")
+    model.GParam[index] = abs(theGParam)
     alltemps = [dynamic_data[i].temp for i in range(len(dynamic_data))]
     index_array = np.where(np.array(alltemps) == temperature)
     ind = index_array[0][0]  # index of current temperature in the temperatures vector of model (and data?)
@@ -138,7 +120,7 @@ def minfn(dynamic_data, model, temperature, doHyst):
     Q = model.QParam[ind]             # Boulder data: temp_5 -> Q = 14.5924882
     eta = model.etaParam[ind]         # Boulder data: temp_5 -> eta = 0.981744
     # RC = model.RCParam[ind]
-    numpoles = 1  # len(RC)          # todo extend this functionality
+    # numpoles = len(RC)          # todo extend this functionality
 
     for thefile in range(numfiles):  # should always be 1 file as long as there is one test per temperature
         script_1_current = dynamic_data[ind].script1.current[:]
@@ -155,7 +137,10 @@ def minfn(dynamic_data, model, temperature, doHyst):
         h = [0] * len(script_1_current)  # 'h' is a variable that relates to hysteresis voltage
         current_sign = [0] * len(script_1_current)
         # time step between two calculated current points
-        delta_T = generate_battery_cell_data.SIMULATION_SPEED_UP*generate_battery_cell_data.Ts_cell
+        if typhoon_origin:
+            delta_T = generate_battery_cell_data.SIMULATION_SPEED_UP*generate_battery_cell_data.Ts_cell
+        else:
+            delta_T = 1
         fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
         # debug looks the same as octave up until this point
         for k in range(1, len(script_1_current)):  # todo check why it starts with 1
@@ -204,8 +189,8 @@ def minfn(dynamic_data, model, temperature, doHyst):
         RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4 s (or minutes)
         # 1 in previous function is delta_T and should be a variable but then that must also be propagated in SISOSubid
         # Simulate the R - C filters to find R - C currents
-        resistor_current_rc = np.zeros((numpoles, len(h)))
-        for k in range(1, len(script_1_current)):
+        resistor_current_rc = np.zeros((numpoles, len(script_1_current)))
+        for k in range(numpoles, len(script_1_current)):
             resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current_corrected[k - 1]
         resistor_current_rc = np.transpose(resistor_current_rc)  # Close enough to Octave vrcRaw
 
@@ -262,7 +247,7 @@ def minfn(dynamic_data, model, temperature, doHyst):
     print(f'RMS error for present value of gamma = {cost * 1000} (mV)\n')
     assert cost, 'Exception: Cost is empty'
 
-    return [cost, model]
+    return cost
 
 
 def SISOsubid(y, u, n):  # Subspace system identification function

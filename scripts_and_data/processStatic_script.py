@@ -40,7 +40,7 @@ def processStatic(static_data, model, typhoon_origin=False):
 
         # Third step: calculate OCV curve
         print(f"Calculating static tests for temperature: {static_data[k].temp}")
-        if typhoon_origin:
+        if typhoon_origin:  # Typhoon data
             index_discharge = list(np.where(np.array(static_data[k].script1.current) < 0)[0])
             # First voltage drop when the current starts flowing, step[1] is when the first voltage drop happens
             I_R0_dis_start = static_data[k].script1.voltage[index_discharge[0] - 1] - static_data[k].script1.voltage[index_discharge[0]]
@@ -54,7 +54,7 @@ def processStatic(static_data, model, typhoon_origin=False):
             IR2D = min(I_R0_dis_start, I_R0_chg_start)
             IR1C = min(I_R0_dis_start, I_R0_chg_start)
             IR2C = min(I_R0_dis_start, I_R0_chg_start)
-        else:
+        else:  # Colorado Boulder data scenario
             index_discharge  = np.where(np.array(static_data[k].script1.step) == 2)[0]  # index list of all slow discharge
             # First voltage drop when the current starts flowing
             I_R0_dis_start = static_data[k].script1.voltage[index_discharge[0] - 1] - static_data[k].script1.voltage[index_discharge[0]]
