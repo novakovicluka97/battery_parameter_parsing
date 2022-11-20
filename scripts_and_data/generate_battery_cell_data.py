@@ -27,9 +27,9 @@ M0Param = [0.0031315, 0.0023535, 0.0011502]
 MParam = [0.039929, 0.020018, 0.020545]
 R1 = 4e-3                                    # 0.64769e-3 default but in Coursera quizzes more like 8 mili-ohm
 RC1 = 60/SIMULATION_SPEED_UP                 # RC is the time constant so it must be scaled (60 seconds seem right)
-GParam = [67.207, 92.645, 67.840]            # Todo Gamma parameter should depend on SIMULATION_SPEED_UP in some way
+GParam = [67.207, 92.645, 67.840]            # Todo Should Gamma parameter depend on SIMULATION_SPEED_UP in some way?
 numpoles = 1
-doHyst = 1
+doHyst = 0
 test_temperatures = ['5', '25', '45']        # must exist in the model as well
 # Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)
 

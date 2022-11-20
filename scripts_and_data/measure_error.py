@@ -35,6 +35,8 @@ eta = Typhoon_captured_data.etaParam_static
 
 R0 = Typhoon_captured_data.R0Param
 OCV = Typhoon_captured_data.ocv_vector
+for index, i in enumerate(OCV):  # Small reformatting from arrays to lists
+    OCV[index] = list(OCV[index])
 temps = Typhoon_captured_data.temps
 test_temperatures = ['5', '25', '45']        # must exist in the model as well
 
@@ -75,7 +77,7 @@ rest_time_for_temperature_equilibrium = 7200/SIMULATION_SPEED_UP  # 7200s or 2h
 counter_cooldown_max = rest_time_for_temperature_equilibrium/Ts
 counter_cooldown_max = counter_cooldown_max/SIMULATION_SPEED_UP
 
-OCV = {str(OCV)}
+OCV = {OCV}
 
 Vmin_5 = min(OCV[0])  # Volts
 Vmin_25 = min(OCV[1]) # Volts

@@ -81,11 +81,9 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
         bestcost = np.inf
         print("Processing temperature: ", dynamic_data[k].temp, " degrees celsius")
         if doHyst:
-            GParam_optimal = fminbnd(minfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, typhoon_origin, k), xtol=0.1, maxfun=40, disp=0)
-            # model.GParam[k] = abs(GParam_optimal)
+            GParam_optimal = fminbnd(minfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, typhoon_origin, k), xtol=0.1, maxfun=40, disp=2)
             print(f"Converged value of GParam is {round(GParam_optimal)}")
-        else:  # Todo check functionality and extend it if it doesnt work
-            # model.GParam[k] = 0
+        else:
             minfn(0, dynamic_data, model, model.temps[k], doHyst, typhoon_origin, k)
 
     print("Dynamic model created!")
@@ -141,6 +139,7 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
             delta_T = generate_battery_cell_data.SIMULATION_SPEED_UP*generate_battery_cell_data.Ts_cell
         else:
             delta_T = 1
+
         fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
         # debug looks the same as octave up until this point
         for k in range(1, len(script_1_current)):  # todo check why it starts with 1
@@ -157,70 +156,109 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
         numpoles_loop_no = numpoles
 
         # Data needed to determine RC circuits (poles) is saved for external processing
-        SISOSubid_data = {'v_error': v_error,
-                          'script_1_current_corrected': script_1_current_corrected}
-        scipy.io.savemat("SISOSubid_data.mat", SISOSubid_data)
+        SISOSubid_data = {'verr': v_error,
+                          'curr_corrected': script_1_current_corrected,
+                          'curr': script_1_current}
+        scipy.io.savemat("SUB_ID.mat", SISOSubid_data)
 
         # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
-        # Octave code was not up to date with lessons from here
-        # diff works fine
-        # https://www.coursera.org/lecture/equivalent-circuit-cell-model-simulation/2-3-3-introducing-octave-code-to-determine-dynamic-part-of-an-ecm-NILTD
-        while True:
-            A = SISOsubid(-np.diff(v_error), np.diff(script_1_current_corrected), numpoles_loop_no)
-            eigA = LA.eig(A)[0]     # For Boulder: eigA = [0.2389149], [0.6528]
-            if eigA != np.conj(eigA):
-                print("WARNING: eigA is not a real number, results may not be proper. eigA = ", eigA)
-                eigA = abs(eigA)
-            if not (1 > eigA > 0):
-                print("WARNING: eigA is not in proper range, results may not be proper. eigA = ", eigA)
-                if eigA < 0:
-                    eigA = -eigA
-                elif eigA > 1:
-                    eigA = 1/eigA
-            okpoles = len(eigA)
-            numpoles_loop_no = numpoles_loop_no + 1
-            if okpoles >= numpoles:
-                break
-            print(f'Trying {numpoles_loop_no=}\n')
+        if generate_pickled_cell_model.minimization != "double_minimize":
+            # Octave code was not up to date with lessons from here
+            # diff works fine
+            # https://www.coursera.org/lecture/equivalent-circuit-cell-model-simulation/2-3-3-introducing-octave-code-to-determine-dynamic-part-of-an-ecm-NILTD
+            while True:
+                A = SISOsubid(-np.diff(v_error), np.diff(script_1_current_corrected), numpoles_loop_no)
+                eigA = LA.eig(A)[0]     # For Boulder: eigA = [0.2389149], [0.6528]
+                if eigA != np.conj(eigA):
+                    print("WARNING: eigA is not a real number, results may not be proper. eigA = ", eigA)
+                    eigA = abs(eigA)
+                if not (1 > eigA > 0):
+                    print("WARNING: eigA is not in proper range, results may not be proper. eigA = ", eigA)
+                    if eigA < 0:
+                        eigA = -eigA
+                    elif eigA > 1:
+                        eigA = 1/eigA
+                okpoles = len(eigA)
+                numpoles_loop_no = numpoles_loop_no + 1
+                if okpoles >= numpoles:
+                    break
+                print(f'Trying {numpoles_loop_no=}\n')
 
-        # Solution of SISOSubid is RCfact which is np.exp(-delta_T/Tau) and as exponential function, the solution should be between 0 and 1
-        RCfact_var = np.sort(eigA)  # [0.66075] for boulder data
-        RCfact = RCfact_var[len(RCfact_var) - numpoles:]  # looks like it makes no sense to be different then previous variable
-        RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4 s (or minutes)
-        # 1 in previous function is delta_T and should be a variable but then that must also be propagated in SISOSubid
-        # Simulate the R - C filters to find R - C currents
-        resistor_current_rc = np.zeros((numpoles, len(script_1_current)))
-        for k in range(numpoles, len(script_1_current)):
-            resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current_corrected[k - 1]
-        resistor_current_rc = np.transpose(resistor_current_rc)  # Close enough to Octave vrcRaw
+            # Solution of SISOSubid is RCfact which is np.exp(-delta_T/Tau) and as exponential function, the solution should be between 0 and 1
+            RCfact_var = np.sort(eigA)  # [0.66075] for boulder data
+            RCfact = RCfact_var[len(RCfact_var) - numpoles:]  # looks like it makes no sense to be different then previous variable
+            RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4 s (or minutes)
+            # 1 in previous function is delta_T and should be a variable but then that must also be propagated in SISOSubid
+            # Simulate the R - C filters to find R - C currents
+            resistor_current_rc = np.zeros((numpoles, len(script_1_current)))
+            for k in range(numpoles, len(script_1_current)):
+                resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current_corrected[k - 1]
+            resistor_current_rc = np.transpose(resistor_current_rc)  # Close enough to Octave vrcRaw
 
-        # Third modeling step: Hysteresis parameters
-        if doHyst:
-            H_1 = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
-            H_2 = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
-            H = np.append(H_1, H_2, 1)
-            W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
-            M  = W[0][0]
-            M0 = W[0][1]
-            R0 = W[0][2]
-            Rfact = np.transpose(W[0][3:])  # rest of the lstsq array values
-        else:
-            H = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
-            W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
-            M = 0
-            M0 = 0
-            R0 = W[0][0]
-            Rfact = np.transpose(W[0][1:])  # rest of the lstsq array values
+            # Third modeling step: Hysteresis parameters
+            if doHyst:
+                H_1 = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
+                H_2 = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
+                H = np.append(H_1, H_2, 1)
+                W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
+                M  = W[0][0]
+                M0 = W[0][1]
+                R0 = W[0][2]
+                R1 = np.transpose(W[0][3:])  # rest of the lstsq array values
+            else:
+                H = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
+                W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
+                M = 0
+                M0 = 0
+                R0 = W[0][0]
+                R1 = np.transpose(W[0][1:])  # rest of the lstsq array values
 
-        # Populate the model
-        model.R0Param[ind] = R0
-        model.M0Param[ind] = M0
-        model.MParam[ind] = M
-        model.RCParam[ind] = np.transpose(RC)[0]
-        model.RParam[ind] = np.transpose(Rfact)[0]
-        model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
+            # Populate the model
+            model.RCParam[ind] = np.transpose(RC)[0]
+            model.RParam[ind] = np.transpose(R1)[0]
+            model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
+            model.R0Param[ind] = R0
+            model.M0Param[ind] = M0
+            model.MParam[ind] = M
 
-        v_est_full = v_est_ocv + np.array(h)*M + M0*np.array(current_sign) - R0*np.array(script_1_current_corrected) - np.transpose(resistor_current_rc) * Rfact
+            v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) - R0 * np.array(script_1_current_corrected) - np.transpose(resistor_current_rc) * R1
+
+        else:  # Improvized minimization algorythm
+            bnds = ((0, 1), (0, 1), (0, 300e3))  # Bounds for minimization functions
+            init_guess = [4.62e-3, 4e-3, 0/4e-3]  # R0, R1, C1
+            # params = optimize.minimize(double_minimization, init_guess, method="BFGS",
+            #                            args=(v_error, -script_1_current, delta_T), bounds=bnds, tol=1e-6)
+            params = optimize.differential_evolution(double_minimization, args=(v_error, -script_1_current, delta_T),
+                                                     bounds=bnds)
+            R0 = params.x[0]
+            R1 = params.x[1]
+            C1 = params.x[2]
+
+            model.R0Param[ind] = R0
+            model.RParam[ind] = R1
+            model.CParam[ind] = C1
+            model.RCParam[ind] = C1*R1
+
+            # Initialize RC resistor current for error calculation
+            resistor_current_rc = [0]*len(script_1_current)
+            resistor_current_rc[0] = script_1_current[0]
+            for k in range(1, len(script_1_current)):  # start from index 1
+                # forward euler like in the model of the battery cell
+                resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*R1*C1)/(1+R1*C1)
+
+            # Third modeling step: Hysteresis parameters
+            if doHyst:
+                H = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
+                W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
+                model.MParam[ind] = W[0][0]
+                model.M0Param[ind] = W[0][1]
+            else:
+                model.M0Param[ind] = 0
+                model.MParam[ind] = 0
+
+            v_est_full = v_est_ocv + np.array(h) * model.MParam[ind] + model.M0Param[ind] * np.array(current_sign) - R0 * np.array(
+                script_1_current) - np.array(resistor_current_rc) * R1
+
         verr = script_1_voltage - v_est_full
         # starting to look different
 
@@ -241,7 +279,10 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
             N1=1
         if not N2:
             N2=len(verr)
-        root_mean_square_error[thefile] = np.sqrt(np.mean(verr[0, N1:N2]**2))
+        if generate_pickled_cell_model.minimization != "double_minimize":  # Todo; make this cleaner
+            root_mean_square_error[thefile] = np.sqrt(np.mean(verr[0, N1:N2]**2))
+        else:
+            root_mean_square_error[thefile] = np.sqrt(np.mean(verr[N1:N2]**2))
 
     cost = sum(root_mean_square_error)
     print(f'RMS error for present value of gamma = {cost * 1000} (mV)\n')
@@ -359,3 +400,22 @@ def SISOsubid(y, u, n):  # Subspace system identification function
     A = sol[0:n, 0: n]  # Extract A
 
     return A
+
+def double_minimization(params, verr, curr, Ts):
+    """
+    Minimization function that should find the best values for R1, C1 and R0
+    Formula is derived using forward euler discretization method, similar to how it is implemented in software
+    """
+    R0=params[0]
+    R1=params[1]
+    C1=params[2]
+    verr_calculated = [0]*len(curr)
+    verr_calculated[0] = verr[0]
+    error = 0
+    for k in range(1, len(curr)):  # start from index 1
+        verr_calculated[k] = curr[k]*(R0*R1*C1+R0*Ts+R1*Ts)/(Ts+R1*C1) - curr[k-1]*(R0*R1*C1)/(Ts+R1*C1) + verr_calculated[k-1]*(R1*C1)/(Ts+R1*C1)
+        error += (verr[k]-verr_calculated[k])**2  # RMS error calculation
+    error = error/len(curr)
+    print(f"RMS Error for double minimization function is = {error} coming from the data: R0:{R0}, R1:{R1}, C1:{C1}")
+
+    return error
