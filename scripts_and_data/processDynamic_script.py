@@ -75,10 +75,7 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
         dynamic_data[k].OCV = OCVfromSOCtemp(dynamic_data[k].Z, dynamic_data[k].temp, model)
         # plt.plot(data[k].script1.time, data[k].Z)
 
-    # Third step: Use optimization algorythm to find parameters M, M0, G, RC, R and R0
-    for k in range(len(dynamic_data)):
-        global bestcost
-        bestcost = np.inf
+        # Third step: Use optimization algorythm to find parameters M, M0, G, RC, R and R0
         print("Processing temperature: ", dynamic_data[k].temp, " degrees celsius")
         if doHyst:
             GParam_optimal = fminbnd(minfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, typhoon_origin, k), xtol=0.1, maxfun=40, disp=2)
@@ -138,15 +135,13 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
         if typhoon_origin:
             delta_T = generate_battery_cell_data.SIMULATION_SPEED_UP*generate_battery_cell_data.Ts_cell
         else:
-            delta_T = 1
+            delta_T = 1  # For Colorado Boulder, delta T for samples is 1 second (at least for dynamic data)
 
         fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
         # debug looks the same as octave up until this point
-        for k in range(1, len(script_1_current)):  # todo check why it starts with 1
-            h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * np.sign(script_1_current[k - 1])
+        for k in range(1, len(script_1_current)):
             current_sign[k] = np.sign(script_1_current[k])
-            if abs(script_1_current[k]) < current_sign_threshold:  # threshold for current sign
-                current_sign[k] = current_sign[k-1]
+            h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * current_sign[k - 1]
 
         # First modeling step: Compute error with model represented only with OCV
         # debug looks the same as octave up until this point (except OCV and SOC arrays)
@@ -240,8 +235,7 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
             model.RCParam[ind] = C1*R1
 
             # Initialize RC resistor current for error calculation
-            resistor_current_rc = [0]*len(script_1_current)
-            resistor_current_rc[0] = script_1_current[0]
+            resistor_current_rc = script_1_current.copy()
             for k in range(1, len(script_1_current)):  # start from index 1
                 # forward euler like in the model of the battery cell
                 resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*R1*C1)/(1+R1*C1)

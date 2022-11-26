@@ -5,6 +5,7 @@ import processStatic_script as static
 import pickle
 import scipy.io
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 # This script will parse out the battery cell parameters from the battery cell data obtained from
@@ -15,7 +16,7 @@ use_static_Q_eta = True  # Use parameters Q and eta from static test instead of 
 data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
 # data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
 output_filename = data_origin + '.pickle'  # Name of the pickled file
-minimization = "double_minimize"
+minimization = "double_minimize"  # "double_minimize"
 
 
 if __name__ == "__main__":
@@ -48,19 +49,33 @@ if __name__ == "__main__":
 
     # Printing the output cell parameters, if enabled
     if printout:
-        print(f"\nPrintout of model params:\n")
+        if minimization == "double_minimize":
+            print("\nMinimization algorithm used: Fminbdn for Gamma and minimize for R0, R1, RC")
+        else:
+            print("\nMinimization algorithm used: Fminbdn for Gamma and SISOSubid for R0, R1, RC")
+        print(f"Printout of model params:\n")
         print(f"{cell_model.temps=}  Relative error: {model_data.error_func(cell_model.temps, 'temps')}")
+        print(f"{cell_model.etaParam_static=}  Relative error: {model_data.error_func(cell_model.etaParam_static, 'etaParam_static')}")
         print(f"{cell_model.etaParam=}  Relative error: {model_data.error_func(cell_model.etaParam, 'etaParam')}")
-        print(f"{cell_model.R0Param=}  Relative error: {model_data.error_func(cell_model.R0Param, 'R0Param')}")
+        print(f"{cell_model.QParam_static=}  Relative error: {model_data.error_func(cell_model.QParam_static, 'QParam_static')}")
         print(f"{cell_model.QParam=}  Relative error: {model_data.error_func(cell_model.QParam, 'QParam')}")
+        print(f"{cell_model.R0Param=}  Relative error: {model_data.error_func(cell_model.R0Param, 'R0Param')}")
         print(f"{cell_model.RParam=}  Relative error: {model_data.error_func(cell_model.RParam, 'RParam')}")
         print(f"{cell_model.RCParam=}  Relative error: {model_data.error_func(cell_model.RCParam, 'RCParam')}")
-        print(f"{cell_model.etaParam_static=}  Relative error: {model_data.error_func(cell_model.etaParam_static, 'etaParam_static')}")
-        print(f"{cell_model.QParam_static=}  Relative error: {model_data.error_func(cell_model.QParam_static, 'QParam_static')}")
         print(f"{cell_model.M0Param=}  Relative error: {model_data.error_func(cell_model.M0Param, 'M0Param')}")
         print(f"{cell_model.MParam=}  Relative error: {model_data.error_func(cell_model.MParam, 'MParam')}")
         print(f"{cell_model.GParam=}  Relative error: {model_data.error_func(cell_model.GParam, 'GParam')}")
-        plt.plot(cell_model.soc_vector[1], cell_model.ocv_vector[1])
-        plt.plot(model_data.SOC_default, model_data.OCV_default[1])  # OCV curve
-        plt.title(f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius")
-        plt.show()
+        print(f"cell_model.ocv_vector at 25 degrees RMS error: {model_data.error_func(cell_model.ocv_vector[1], 'OCV')}")
+        try:
+            data.plot_func([cell_model.soc_vector[1], model_data.SOC_default],
+                           [cell_model.ocv_vector[1], model_data.OCV_default[1]],
+                           [f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius",
+                            f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius"],
+                           flag_show=False)
+            data.plot_func([model_data.SOC_default],
+                           [np.array(model_data.OCV_default[1])-np.array(cell_model.ocv_vector[1])],
+                           ['RMS error in OCV [V] as a function of SOC'],
+                           flag_show=True)
+        except:
+            print(f"Unable to plot {data_origin}")
+            pass

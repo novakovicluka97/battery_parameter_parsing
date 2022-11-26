@@ -18,20 +18,21 @@ import time
 # results from the Typhoon HIL capture. Right now, only VHIL is supported.
 
 # Parameters:
-# Todo static test fix because its hardcoded to work with Ts = 1e-2
+# Todo: static test needs fix because its hardcoded to work with Ts = 1e-2
 Ts = 1e-2                                    # SP execution rate (Should be maximum 1/SIMULATION_SPEED_UP)
 Ts_cell = Ts/5                               # Battery cells should run faster than the scripts
 SIMULATION_SPEED_UP = 100                    # 1 if not sped up
 capture_duration = 50e4/SIMULATION_SPEED_UP  # default for HIL (30*60*60) seconds, for VHIL full no hyst and no RC 23e4
+
 M0Param = [0.0031315, 0.0023535, 0.0011502]
 MParam = [0.039929, 0.020018, 0.020545]
-R1 = 4e-3                                    # 0.64769e-3 default but in Coursera quizzes more like 8 mili-ohm
+R1 = 8e-3                                    # 0.64769e-3 default but in Coursera quizzes more like 8 mili-ohm
 RC1 = 60/SIMULATION_SPEED_UP                 # RC is the time constant so it must be scaled (60 seconds seem right)
-GParam = [67.207, 92.645, 67.840]            # Todo Should Gamma parameter depend on SIMULATION_SPEED_UP in some way?
-numpoles = 1
-doHyst = 0
+GParam = [67.207, 92.645, 67.840]
 test_temperatures = ['5', '25', '45']        # must exist in the model as well
 # Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)
+numpoles = 1
+doHyst = 1
 
 capture_rate = SIMULATION_SPEED_UP
 output_data_filename = 'Typhoon_captured_data.mat'
@@ -83,7 +84,7 @@ total_Q_original = [14.592, 14.532, 14.444]
 total_Q = [i/SIMULATION_SPEED_UP for i in total_Q_original]
 
 C = 14.532  # C rate of a battery is current that will empty the cell in one hour
-DISCHG_RATE =  0.5 # 0.5 if its normal battery discharg speed
+DISCHG_RATE =  0.5 # 0.5 if its normal battery discharge speed
 CHG_RATE = -DISCHG_RATE
 
 # when the dynamic script executes, current profiles don't push the cell voltage
@@ -195,7 +196,7 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
         pickle.dump(current_profiles_dict, file)
         print("Current profiles saved as: ", current_profile_filename)
 
-    print('STEP 1: Initializing the model')
+    print('\nSTEP 1: Initializing the model')
     # Run very fast simulations and thus to obtain the data quickly before the physical tests take place
     model.load(model_path)
     model_device = model.get_model_property_value("hil_device")
@@ -307,33 +308,34 @@ RCparam = [RC1*SIMULATION_SPEED_UP] * 3
 etaParam_static = [0.98174, 0.99102, 0.98965]
 QParam_static = [14.592, 14.532, 14.444]
 
-OCV_Typhoon = [2.7959764, 2.92032004, 3.00517251, 3.06865418, 3.12190095, 3.16862305, 3.21030271, 3.24750352, 3.28106613, 3.31171404, 3.33985442, 3.36579207, 3.38976362, 3.41200262, 3.43268866, 3.4520849 , 3.47021674, 3.48713713, 3.5030564 , 3.5177525 , 3.53085508, 3.54154451, 3.54882255, 3.55310383, 3.55592105, 3.55824688, 3.56035692, 3.56249258, 3.56471424, 3.56699753, 3.56938591, 3.57196933, 3.57467297, 3.57751755, 3.5805914 , 3.58396194, 3.58757009, 3.5915979 , 3.59595852, 3.60068474, 3.60581254, 3.61114488, 3.61669499, 3.62243072, 3.62824953, 3.63417081, 3.64003704, 3.64592675, 3.65193432, 3.65806845, 3.66448954, 3.6710776 , 3.67746585, 3.68344277, 3.68919648, 3.69501999, 3.70113753, 3.70760844, 3.71440755, 3.72142264, 3.72821616, 3.73442628, 3.73991974, 3.7449058 , 3.74957712, 3.75415275, 3.7587602 , 3.76329252, 3.76780196, 3.77230849, 3.77678371, 3.78108384, 3.78532269, 3.78936662, 3.79318191, 3.79684579, 3.80023761, 3.80363645, 3.80693904, 3.81015106, 3.81313712, 3.81608628, 3.81903616, 3.82188288, 3.82454075, 3.82722064, 3.82978901, 3.83230635, 3.83479374, 3.83714358, 3.839503  , 3.84183166, 3.84412484, 3.84632838, 3.84854527, 3.85072746, 3.85289324, 3.85508048, 3.85717544, 3.85930021, 3.86130316, 3.86326712, 3.86519041, 3.86704442, 3.8690165 , 3.87098652, 3.87285885, 3.87476108, 3.87654505, 3.87844917, 3.88030633, 3.88212964, 3.88412826, 3.88605734, 3.88792571, 3.88978024, 3.89171459, 3.89365292, 3.89572678, 3.89767618, 3.89967608, 3.90187288, 3.90396751, 3.9061962 , 3.90842413, 3.91073275, 3.91320224, 3.91576897, 3.91845651, 3.92120935, 3.92440474, 3.92785089, 3.93177549, 3.93616255, 3.94102865, 3.94606155, 3.95136997, 3.95652616, 3.96117301, 3.96570124, 3.96978205, 3.9735838 , 3.97717448, 3.98050546, 3.98365677, 3.98670239, 3.9896607 , 3.99253031, 3.99533452, 3.99793305, 4.00046426, 4.00292843, 4.00532679, 4.00757501, 4.00980004, 4.01187421, 4.01384386, 4.01583448, 4.01771955, 4.01949064, 4.02125076, 4.02297465, 4.02453118, 4.02604126, 4.02757803, 4.0291067 , 4.03065397, 4.03215879, 4.03354394, 4.03497594, 4.03650394, 4.03788079, 4.03951079, 4.04101595, 4.04258673, 4.04421792, 4.04584982, 4.04752798, 4.04927647, 4.05118789, 4.0531111 , 4.05512204, 4.05716773, 4.0594627 , 4.06171959, 4.06414004, 4.06673856, 4.06952867, 4.07248749, 4.07551026, 4.07876004, 4.08227605, 4.08615518, 4.09014336, 4.09463233, 4.09915541, 4.10444777, 4.11002323, 4.11671366, 4.12657983, 4.15168238]
-
 
 def error_func(model_param, param_name):
-    error = []
-    for i in range(len(model_param)):
-        if param_name == 'temps':
-            error.append(round((int(test_temperatures[i])-model_param[i])/int(test_temperatures[i]), 2))
-        elif param_name == 'R0Param':
-            error.append(round((R0Param[i]-model_param[i])/R0Param[i], 2))
-        elif param_name == 'etaParam':
-            error.append(round((etaParam[i]-model_param[i])/etaParam[i], 2))
-        elif param_name == 'QParam':
-            error.append(round((QParam[i]-model_param[i])/QParam[i], 2))
-        elif param_name == 'RParam':
-            error.append(round((Rparam[i]-model_param[i])/Rparam[i], 2))
-        elif param_name == 'RCParam':
-            error.append(round((RCparam[i]-model_param[i])/RCparam[i], 2))
-        elif param_name == 'etaParam_static':
-            error.append(round((etaParam_static[i]-model_param[i])/etaParam_static[i], 2))
-        elif param_name == 'QParam_static':
-            error.append(round((QParam_static[i]-model_param[i])/QParam_static[i], 2))
-        elif param_name == 'M0Param':
-            error.append(round((M0Param[i]-model_param[i])/M0Param[i], 2))
-        elif param_name == 'MParam':
-            error.append(round((MParam[i]-model_param[i])/MParam[i], 2))
-        elif param_name == 'GParam':
-            error.append(round((GParam[i]-model_param[i])/GParam[i], 2))
+    if param_name == 'OCV':
+        error = sum((np.array(OCV_default[1])-np.array(model_param))**2)  # RMS of entire OCV
+    else:
+        error = []
+        for i in range(len(model_param)):
+            if param_name == 'temps':
+                error.append(round((int(test_temperatures[i])-model_param[i])/int(test_temperatures[i]), 2))
+            elif param_name == 'R0Param':
+                error.append(round((R0Param[i]-model_param[i])/R0Param[i], 2))
+            elif param_name == 'etaParam':
+                error.append(round((etaParam[i]-model_param[i])/etaParam[i], 2))
+            elif param_name == 'QParam':
+                error.append(round((QParam[i]-model_param[i])/QParam[i], 2))
+            elif param_name == 'RParam':
+                error.append(round((Rparam[i]-model_param[i])/Rparam[i], 2))
+            elif param_name == 'RCParam':
+                error.append(round((RCparam[i]-model_param[i])/RCparam[i], 2))
+            elif param_name == 'etaParam_static':
+                error.append(round((etaParam_static[i]-model_param[i])/etaParam_static[i], 2))
+            elif param_name == 'QParam_static':
+                error.append(round((QParam_static[i]-model_param[i])/QParam_static[i], 2))
+            elif param_name == 'M0Param':
+                error.append(round((M0Param[i]-model_param[i])/M0Param[i], 2))
+            elif param_name == 'MParam':
+                error.append(round((MParam[i]-model_param[i])/MParam[i], 2))
+            elif param_name == 'GParam':
+                error.append(round((GParam[i]-model_param[i])/GParam[i], 2))
 
     return error
