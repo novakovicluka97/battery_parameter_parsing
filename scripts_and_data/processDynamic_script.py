@@ -164,8 +164,7 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, n
 
         # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
 
-        if cell_model.minimization == "double_minimize" or \
-                cell_model.minimization == "differential_evolution":
+        if cell_model.minimization == "double_minimize" or cell_model.minimization == "differential_evolution":
 
             bnds = ((0, 1), (0, 1), (5, 120))  # Bounds for minimization functions
             if cell_model.minimization == "differential_evolution":
@@ -207,8 +206,8 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, n
                 model.M0Param[ind] = 0
                 model.MParam[ind] = 0
 
-            v_est_full = v_est_ocv + np.array(h) * model.MParam[ind] + model.M0Param[ind] * np.array(current_sign) - R0 * np.array(
-                script_1_current) - np.array(resistor_current_rc) * R1
+            v_est_full = v_est_ocv + np.array(h) * model.MParam[ind] + model.M0Param[ind] * np.array(current_sign) - \
+                         R0 * np.array(script_1_current) - np.array(resistor_current_rc) * R1
 
         else:
             # Octave code was not up to date with lessons from here
