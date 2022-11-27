@@ -16,7 +16,7 @@ use_static_Q_eta = True  # Use parameters Q and eta from static test instead of 
 data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
 # data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
 output_filename = data_origin + '.pickle'  # Name of the pickled file
-minimization = "double_minimize"  # "double_minimize"
+minimization = "double_minimized"  # "double_minimize"
 
 
 if __name__ == "__main__":
@@ -36,6 +36,12 @@ if __name__ == "__main__":
         dynamic.processDynamic([P14_DYN_30_P05, P14_DYN_50_P25, P14_DYN_50_P45], cell_model, numpoles=1, doHyst=1)
 
     else:  # Normal, Typhoon data format
+        OCVData_full25 = scipy.io.loadmat(data_origin + ".mat")['OCVData_full25']
+        OCVData_full25_voltage = OCVData_full25[2]
+        plt.plot(OCVData_full25_voltage)
+        plt.show()  # 2.81 is the minimum of the T25 OCV
+        # Todo: fix the tither profiles!!!!!!!!!
+
         TYPHOON_FULL_CELL_DATA = data.CellAllData(scipy.io.loadmat(data_origin + ".mat"), [5, 25, 45], [5, 25, 45])
 
         static.processStatic(TYPHOON_FULL_CELL_DATA.static_data, cell_model, typhoon_origin=True)
@@ -73,8 +79,16 @@ if __name__ == "__main__":
                             f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius"],
                            flag_show=False)
             data.plot_func([model_data.SOC_default],
+                           [np.array(model_data.OCV_default[0])-np.array(cell_model.ocv_vector[0])],
+                           ['T5 RMS error in OCV [V] as a function of SOC'],
+                           flag_show=True)
+            data.plot_func([model_data.SOC_default],
                            [np.array(model_data.OCV_default[1])-np.array(cell_model.ocv_vector[1])],
-                           ['RMS error in OCV [V] as a function of SOC'],
+                           ['T25 RMS error in OCV [V] as a function of SOC'],
+                           flag_show=True)
+            data.plot_func([model_data.SOC_default],
+                           [np.array(model_data.OCV_default[2])-np.array(cell_model.ocv_vector[2])],
+                           ['T45 RMS error in OCV [V] as a function of SOC'],
                            flag_show=True)
         except:
             print(f"Unable to plot {data_origin}")

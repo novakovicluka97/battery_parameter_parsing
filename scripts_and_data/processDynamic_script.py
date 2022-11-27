@@ -6,6 +6,7 @@ fminbnd = scipy.optimize.fminbound
 import generate_battery_cell_data
 import generate_pickled_cell_model
 import matplotlib.pyplot as plt
+import battery_cell_data_functions as data
 
 
 current_sign_threshold = 1e-8  # threshold for current sign (in octave it is Q/100 and this gives me the negative M0)
@@ -73,15 +74,26 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
                 corrected_current[index] = current
         dynamic_data[k].Z = np.ones(np.size(corrected_current)) - np.cumsum(corrected_current)/(model.QParam[k]*3600)
         dynamic_data[k].OCV = OCVfromSOCtemp(dynamic_data[k].Z, dynamic_data[k].temp, model)
-        # plt.plot(data[k].script1.time, data[k].Z)
 
-        # Third step: Use optimization algorythm to find parameters M, M0, G, RC, R and R0
+        OCV_error = (dynamic_data[k].script1.OCV_real - dynamic_data[k].OCV)
+        data.plot_func([dynamic_data[k].script1.time], [OCV_error],
+                       [f"OCV real vs OCV calculated through time, calculated for dynamic script 1 "
+                        f"(discharging) for temp = {dynamic_data[k].temp}"],
+                       flag_show=True)
+
+        # Data needed to determine RC circuits (poles) is saved for external processing
+        SISOSubid_data = {'verr': np.array(dynamic_data[k].script1.voltage) - np.array(dynamic_data[k].OCV),
+                          'curr_corrected': corrected_current,
+                          'curr': dynamic_data[k].script1.current}
+        scipy.io.savemat("SUB_ID.mat", SISOSubid_data)
+
+        # Third step: Use optimization algorithm to find parameters M, M0, G, RC, R and R0
         print("Processing temperature: ", dynamic_data[k].temp, " degrees celsius")
         if doHyst:
-            GParam_optimal = fminbnd(minfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, typhoon_origin, k), xtol=0.1, maxfun=40, disp=2)
+            GParam_optimal = fminbnd(minfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, typhoon_origin), xtol=0.1, maxfun=40, disp=2)
             print(f"Converged value of GParam is {round(GParam_optimal)}")
         else:
-            minfn(0, dynamic_data, model, model.temps[k], doHyst, typhoon_origin, k)
+            minfn(0, dynamic_data, model, model.temps[k], doHyst, typhoon_origin)
 
     print("Dynamic model created!")
     return model
@@ -96,15 +108,15 @@ def OCVfromSOCtemp(soc, temp, model):
     return function(soc)
 
 
-def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_origin, numpoles=1):
+def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=1):
     """
     Minimization function
     """
     print("minfn function was triggered")
-    model.GParam[index] = abs(theGParam)
     alltemps = [dynamic_data[i].temp for i in range(len(dynamic_data))]
     index_array = np.where(np.array(alltemps) == temperature)
     ind = index_array[0][0]  # index of current temperature in the temperatures vector of model (and data?)
+    model.GParam[ind] = theGParam
     numfiles = len(index_array)  # will be 1 for now
 
     xplots = np.ceil(np.sqrt(numfiles))
@@ -120,7 +132,6 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
     for thefile in range(numfiles):  # should always be 1 file as long as there is one test per temperature
         script_1_current = dynamic_data[ind].script1.current[:]
         script_1_voltage = dynamic_data[ind].script1.voltage[:]
-        # tk = range(len(vk))  # never used again
         script_1_current_corrected = np.copy(script_1_current)
         for i in range(len(script_1_current)):
             if script_1_current[i] < 0:
@@ -130,7 +141,7 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
 
         # Calculating hysteresis variables
         h = [0] * len(script_1_current)  # 'h' is a variable that relates to hysteresis voltage
-        current_sign = [0] * len(script_1_current)
+        current_sign = np.sign(script_1_current)
         # time step between two calculated current points
         if typhoon_origin:
             delta_T = generate_battery_cell_data.SIMULATION_SPEED_UP*generate_battery_cell_data.Ts_cell
@@ -140,7 +151,6 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
         fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
         # debug looks the same as octave up until this point
         for k in range(1, len(script_1_current)):
-            current_sign[k] = np.sign(script_1_current[k])
             h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * current_sign[k - 1]
 
         # First modeling step: Compute error with model represented only with OCV
@@ -149,12 +159,6 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
         v_error = np.array(script_1_voltage) - np.array(v_est_ocv)  # therefore v_error is not the same as in Octave
         # v_error = [-0.001688.....] for Boulder data
         numpoles_loop_no = numpoles
-
-        # Data needed to determine RC circuits (poles) is saved for external processing
-        SISOSubid_data = {'verr': v_error,
-                          'curr_corrected': script_1_current_corrected,
-                          'curr': script_1_current}
-        scipy.io.savemat("SUB_ID.mat", SISOSubid_data)
 
         # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
         if generate_pickled_cell_model.minimization != "double_minimize":
@@ -187,11 +191,16 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
             # Simulate the R - C filters to find R - C currents
             resistor_current_rc = np.zeros((numpoles, len(script_1_current)))
             for k in range(numpoles, len(script_1_current)):
-                resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current_corrected[k - 1]
+                if typhoon_origin:  # In typhoon, correction coefficient is not applied to current, only to SOC
+                    resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current[k - 1]
+                else:
+                    resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current_corrected[k - 1]
             resistor_current_rc = np.transpose(resistor_current_rc)  # Close enough to Octave vrcRaw
 
             # Third modeling step: Hysteresis parameters
             if doHyst:
+                # Todo: shorten into one line
+                # Todo: if typhoon origin
                 H_1 = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
                 H_2 = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
                 H = np.append(H_1, H_2, 1)
@@ -201,7 +210,10 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, index, typhoon_or
                 R0 = W[0][2]
                 R1 = np.transpose(W[0][3:])  # rest of the lstsq array values
             else:
-                H = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
+                if typhoon_origin:  # In typhoon, correction coefficient is not applied to current, only to SOC
+                    H = np.append(np.transpose([-script_1_current]), -resistor_current_rc, 1)
+                else:
+                    H = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
                 W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
                 M = 0
                 M0 = 0

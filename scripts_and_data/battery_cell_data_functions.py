@@ -9,13 +9,16 @@ import matplotlib.pyplot as plt
 
 
 def plot_func(x_axis_list, y_axis_list, names, flag_show: bool = False):
-    for i in range(len(x_axis_list)):
-        # Optional, but must be between subplot and show
-        plt.title(names[i])
-        plt.grid(True)
-        plt.plot(x_axis_list[i], y_axis_list[i], linewidth=2.0)
-
+    """
+    Plotting function template that makes it easier to plot multiple graphs with less code
+    """
     if flag_show:
+        for i in range(len(x_axis_list)):
+            # Optional, but must be between subplot and show
+            plt.title(names[i])
+            plt.grid(True)
+            plt.plot(x_axis_list[i], y_axis_list[i], linewidth=2.0)
+
         plt.show()  # Last line
 
 
@@ -179,11 +182,12 @@ class CellAllData:
             # time, temp, voltage, current, chgAh, disAh
             def __init__(self, script):
                 self.time = script[0][0][0][0]
-                self.time = script[0][0][1][0]
+                self.temp = script[0][0][1][0]
                 self.voltage = script[0][0][2][0]
                 self.current = script[0][0][3][0]
                 self.chgAh = script[0][0][4][0]
                 self.disAh = script[0][0][5][0]
+                self.OCV_real = script[0][0][6][0]
 
     class StaticData(OneTempStaticData):
         """
@@ -210,7 +214,7 @@ class CellAllData:
             # time, temp, voltage, current, chgAh, disAh
             def __init__(self, script):
                 self.time = script[0][0][0][0]
-                self.voltage = script[0][0][1][0]
+                self.temp = script[0][0][1][0]
                 self.voltage = script[0][0][2][0]
                 self.current = script[0][0][3][0]
                 self.chgAh = script[0][0][4][0]

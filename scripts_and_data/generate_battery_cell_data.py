@@ -11,6 +11,8 @@ import pickle
 from scipy.interpolate import interp1d
 import numpy as np
 import time
+import scipy.signal as signal
+
 
 
 # This script will parse the general load current and tither profiles from Static and Dynamic scripts,
@@ -22,17 +24,18 @@ import time
 Ts = 1e-2                                    # SP execution rate (Should be maximum 1/SIMULATION_SPEED_UP)
 Ts_cell = Ts/5                               # Battery cells should run faster than the scripts
 SIMULATION_SPEED_UP = 100                    # 1 if not sped up
-capture_duration = 50e4/SIMULATION_SPEED_UP  # default for HIL (30*60*60) seconds, for VHIL full no hyst and no RC 23e4
+capture_duration = 30e4/SIMULATION_SPEED_UP  # default for HIL (30*60*60) seconds, for VHIL full no hyst and no RC 23e4
+tither_type = "chirp"                        # default is Boulder, but a cleaner signal exists in "chirp" type
 
 M0Param = [0.0031315, 0.0023535, 0.0011502]
 MParam = [0.039929, 0.020018, 0.020545]
-R1 = 8e-3                                    # 0.64769e-3 default but in Coursera quizzes more like 8 mili-ohm
+R1 = 4e-3                                    # 0.64769e-3 default but in Coursera quizzes more like 8 mili-ohm
 RC1 = 60/SIMULATION_SPEED_UP                 # RC is the time constant so it must be scaled (60 seconds seem right)
 GParam = [67.207, 92.645, 67.840]
 test_temperatures = ['5', '25', '45']        # must exist in the model as well
 # Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)
 numpoles = 1
-doHyst = 1
+doHyst = 0
 
 capture_rate = SIMULATION_SPEED_UP
 output_data_filename = 'Typhoon_captured_data.mat'
@@ -123,58 +126,79 @@ DYN_PROFILE_STOP_TIME            = DYN_PROFILE_STOP_TIME      /SIMULATION_SPEED_
 
 
 class Script:  # Format for the pickled cell data is this class per temperature, per script
-    def __init__(self, time, temperature, voltage, current, chgAh, disAh):
+    def __init__(self, time, temperature, voltage, current, chgAh, disAh, OCV=None):
+        if OCV is None:
+            OCV = voltage
         self.time = time
         self.temperature = temperature
         self.voltage = voltage
         self.current = current
         self.chgAh = chgAh
         self.disAh = disAh
+        self.OCV = OCV
 
 
-if __name__ == "__main__":  # If this script is instantiated manually, recalculate current profiles
-    # Loading the script data
-    P14_OCV_P45 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P45.mat"), 45)
-    P14_OCV_P25 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P25.mat"), 25)
-    P14_OCV_P05 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
-    P14_DYN_50_P45 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
+if __name__ == "__main__":
+    if tither_type == "chirp":
+        chirp_t1 = np.linspace(0, 1790, 1791)  # because that was the length of time for original tither profile
+        chirp_a1 = signal.chirp(chirp_t1, f0=0.0025, f1=0.025, t1=1800, method='linear', phi=90)
+        # chirp_a1 represents the chirp signal amplitude, increasing in frequency from f0 to f1 during time chirp_t1
+        chirp_t2 = np.linspace(1, 267, 267)  # 1800 was original (1790)
+        chirp_a2 = signal.chirp(chirp_t2, f0=0.025, f1=0.0025, t1=300, method='linear', phi=90)
+        # chirp_a2 represents the chirp signal amplitude, decreasing in frequency from f0 to f1 during time chirp_t2
+        CURRENT_TITHER = np.append(-chirp_a1, chirp_a2)
+        CURRENT_TITHER = CURRENT_TITHER - 0.0398629 + tither_offset
+        # 0.03986 is an average of chirp signal during this period
+        CURRENT_TITHER[0], CURRENT_TITHER[-1] = 0, 0
+        # total time of tither profile
+        TIME_TITHER = np.linspace(0, 2057, 2058)
+        TITHER_STOP_TIME = max(TIME_TITHER)
+        # optional plotting
+        # plt.plot(TIME_TITHER, CURRENT_TITHER)
+        # plt.show()
+
+    else:  # Boulder type of tither signal
+        # Loading the script data
+        P14_OCV_P45 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P45.mat"), 45)
+        P14_OCV_P25 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P25.mat"), 25)
+        P14_OCV_P05 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
+        P14_DYN_50_P45 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
+        P14_DYN_30_P05 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
+
+        # Extracting the time vectors and resetting the x_axis to start with 0 for interpolator
+        OCV_25_SCRIPT_2_TIME = P14_OCV_P25.script2.time - min(P14_OCV_P25.script2.time)
+        OCV_25_SCRIPT_4_TIME = P14_OCV_P25.script4.time - min(P14_OCV_P25.script4.time)
+
+        # Extracting the current vectors
+        OCV_25_SCRIPT_2_CURRENT = P14_OCV_P25.script2.current
+        OCV_25_SCRIPT_4_CURRENT = P14_OCV_P25.script4.current
+
+        # Current profiles extraction
+        TIME_TITHER_DISCHARGE = np.linspace(9370, 11170, 11170 - 9370 + 1)  # setting x_axis for tither profile LUT
+        TITHER_DISCHARGE_interpolator = interp1d(OCV_25_SCRIPT_2_TIME, OCV_25_SCRIPT_2_CURRENT)  # interpolator
+        CURRENT_TITHER_DISCHARGE = TITHER_DISCHARGE_interpolator(TIME_TITHER_DISCHARGE)  # y_axis for tither profile
+        TIME_TITHER_DISCHARGE = TIME_TITHER_DISCHARGE - min(TIME_TITHER_DISCHARGE)  # redefining x_axis for tither profile
+        TITHER_DISCHARGE_STOP_TIME = max(TIME_TITHER_DISCHARGE)
+
+        TIME_TITHER_CHARGE = np.linspace(7440, 9030, 9030 - 7440 + 1)  # x_axis for tither profile start and finish
+        TITHER_CHARGE_interpolator = interp1d(OCV_25_SCRIPT_4_TIME, OCV_25_SCRIPT_4_CURRENT)  # interpolator
+        CURRENT_TITHER_CHARGE = TITHER_CHARGE_interpolator(TIME_TITHER_CHARGE)  # y_axis for charge tither profile
+        TIME_TITHER_CHARGE = TIME_TITHER_CHARGE - min(TIME_TITHER_CHARGE)  # redefining x_axis for charge tither profile
+        TITHER_CHARGE_STOP_TIME = max(TIME_TITHER_CHARGE)
+
+        # Further modifications to tither profiles
+        CURRENT_TITHER_DISCHARGE = -(CURRENT_TITHER_DISCHARGE - 0.01)  # more dc-current to speed up profiles
+        CURRENT_TITHER_CHARGE = (CURRENT_TITHER_CHARGE - 0.01)   # more dc-current to speed up profiles
+        CURRENT_TITHER_DISCHARGE[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
+        CURRENT_TITHER_CHARGE[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
+
+    # Dynamic script extraction
     P14_DYN_50_P25 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
-    P14_DYN_30_P05 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
-
-    # Extracting the time vectors and resetting the x_axis to start with 0 for interpolator
-    OCV_25_SCRIPT_2_TIME = P14_OCV_P25.script2.time - min(P14_OCV_P25.script2.time)
-    OCV_25_SCRIPT_4_TIME = P14_OCV_P25.script4.time - min(P14_OCV_P25.script4.time)
-
     DYN_25_SCRIPT_1_TIME = P14_DYN_50_P25.script1.time - min(P14_DYN_50_P25.script1.time)
-
-    # Extracting the current vectors
-    OCV_25_SCRIPT_2_CURRENT = P14_OCV_P25.script2.current
-    OCV_25_SCRIPT_4_CURRENT = P14_OCV_P25.script4.current
-
     DYN_25_SCRIPT_1_CURRENT = P14_DYN_50_P25.script1.current
-
-    # Current profiles extraction  # Todo: possibly better discharge tither profile at (12781 - 14585)
-    TIME_TITHER_DISCHARGE = np.linspace(9370, 11170, 11170 - 9370 + 1)  # setting x_axis for tither profile LUT
-    TITHER_DISCHARGE_interpolator = interp1d(OCV_25_SCRIPT_2_TIME, OCV_25_SCRIPT_2_CURRENT)  # interpolator
-    CURRENT_TITHER_DISCHARGE = TITHER_DISCHARGE_interpolator(TIME_TITHER_DISCHARGE)  # y_axis for tither profile
-    TIME_TITHER_DISCHARGE = TIME_TITHER_DISCHARGE - min(TIME_TITHER_DISCHARGE)  # redefining x_axis for tither profile
-    TITHER_DISCHARGE_STOP_TIME = max(TIME_TITHER_DISCHARGE)
-
-    TIME_TITHER_CHARGE = np.linspace(7440, 9030, 9030 - 7440 + 1)  # x_axis for tither profile start and finish
-    TITHER_CHARGE_interpolator = interp1d(OCV_25_SCRIPT_4_TIME, OCV_25_SCRIPT_4_CURRENT)  # interpolator
-    CURRENT_TITHER_CHARGE = TITHER_CHARGE_interpolator(TIME_TITHER_CHARGE)  # y_axis for charge tither profile
-    TIME_TITHER_CHARGE = TIME_TITHER_CHARGE - min(TIME_TITHER_CHARGE)  # redefining x_axis for charge tither profile
-    TITHER_CHARGE_STOP_TIME = max(TIME_TITHER_CHARGE)
-
     DYN_CURRENT_PROFILE = DYN_25_SCRIPT_1_CURRENT[1930:3380]  # extracting a single segment of this current profile
     DYN_TIME_PROFILE = DYN_25_SCRIPT_1_TIME[0:(3380-1930)]
     DYN_PROFILE_STOP_TIME = DYN_25_SCRIPT_1_TIME[(3380-1930)]
-
-    # Further modifications to current profiles
-    CURRENT_TITHER_DISCHARGE = -(CURRENT_TITHER_DISCHARGE - 0.01)  # more dc-current to speed up profiles
-    CURRENT_TITHER_CHARGE = (CURRENT_TITHER_CHARGE - 0.01)   # more dc-current to speed up profiles
-    CURRENT_TITHER_DISCHARGE[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
-    CURRENT_TITHER_CHARGE[-3:-1] = [0, 0]  # needed so internal resistance voltage drop can be calculated
     DYN_CURRENT_PROFILE[-1] = 0
     DYN_CURRENT_PROFILE[0] = 0
 
@@ -186,7 +210,7 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
         'TITHER_DISCHARGE_STOP_TIME': TITHER_DISCHARGE_STOP_TIME,
         'TITHER_CHARGE_STOP_TIME': TITHER_CHARGE_STOP_TIME,
 
-        'DYN_CURRENT_PROFILE': DYN_CURRENT_PROFILE,  # mean is 1.981
+        'DYN_CURRENT_PROFILE': DYN_CURRENT_PROFILE,
         'DYN_TIME_PROFILE': DYN_TIME_PROFILE,
         'DYN_PROFILE_STOP_TIME': DYN_PROFILE_STOP_TIME
     }
@@ -217,7 +241,7 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
     # signals for capturing
     channel_signals = ['Time', 'done_flag']
     for temp in test_temperatures:
-        for measurement in ['temperature', 'voltage', 'current', 'chgAh', 'disAh', 'script_no']:
+        for measurement in ['temperature', 'voltage', 'current', 'chgAh', 'disAh', 'script_no', 'Battery Cell.OCV']:
             channel_signals.append('static_' + temp + '.' + measurement)
             channel_signals.append('dynamic_' + temp + '.' + measurement)
 
@@ -253,6 +277,7 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
             voltage = list(cap_data[script_type + '_' + temp + '.voltage'])
             script_no = list(cap_data[script_type + '_' + temp + '.script_no'])
             temperature = list(cap_data[script_type + '_' + temp + '.temperature'])
+            OCV = list(cap_data[script_type + '_' + temp + '.Battery Cell.OCV'])
             chgAh = list(cap_data[script_type + '_' + temp + '.chgAh']/3600)  # converting to Ah from As
             disAh = list(cap_data[script_type + '_' + temp + '.disAh']/3600)  # converting to Ah from As
 
@@ -264,7 +289,8 @@ if __name__ == "__main__":  # If this script is instantiated manually, recalcula
 
             # Create script objects for each part of the simulation. Lists are segmented using script_x_stop variables
             Script_1 = Script(time_vec[0:script_1_stop], temperature[0:script_1_stop], voltage[0:script_1_stop],
-                              current[0:script_1_stop], chgAh[0:script_1_stop], disAh[0:script_1_stop])
+                              current[0:script_1_stop], chgAh[0:script_1_stop], disAh[0:script_1_stop],
+                              OCV[0:script_1_stop])
             Script_2 = Script(time_vec[script_1_stop:script_2_stop], temperature[script_1_stop:script_2_stop],
                               voltage[script_1_stop:script_2_stop],
                               current[script_1_stop:script_2_stop], chgAh[script_1_stop:script_2_stop],

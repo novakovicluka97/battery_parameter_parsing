@@ -2973,6 +2973,12 @@ V_h = M0*current_sign + M*h;
                     hide_name = True
                 ]
 
+                component gen_probe OCV {
+                }
+                [
+                    position = 8488, 7888
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -3649,6 +3655,7 @@ V_h = M0*current_sign + M*h;
                 connect From44 Cell_NO1.in as Connection1252
                 connect Cell_NO1.out Hysteresis.Q as Connection1253
                 connect From12 Sum3.in1 as Connection1254
+                connect OCV.in Termination4.in as Connection1255
 
                 C1 = "C1"
                 M = "M"
@@ -3659,7 +3666,6 @@ V_h = M0*current_sign + M*h;
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
-                meas_OCV = "False"
                 meas_Q = "False"
                 meas_Rint = "False"
                 meas_SOH = "False"
@@ -7426,6 +7432,12 @@ V_h = M0*current_sign + M*h;
                     hide_name = True
                 ]
 
+                component gen_probe OCV {
+                }
+                [
+                    position = 8488, 7888
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -8128,6 +8140,7 @@ V_h = M0*current_sign + M*h;
                 connect SOC.in Termination3.in as Connection1251
                 connect From44 Cell_NO1.in as Connection1252
                 connect Cell_NO1.out Hysteresis.Q as Connection1253
+                connect OCV.in Termination4.in as Connection1254
 
                 C1 = "C1"
                 Init_SOC = "init_dynamic"
@@ -8139,7 +8152,6 @@ V_h = M0*current_sign + M*h;
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
-                meas_OCV = "False"
                 meas_Q = "False"
                 meas_Rint = "False"
                 meas_SOH = "False"
@@ -12200,6 +12212,12 @@ V_h = M0*current_sign + M*h;
                     hide_name = True
                 ]
 
+                component gen_probe OCV {
+                }
+                [
+                    position = 8488, 7888
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -12876,6 +12894,7 @@ V_h = M0*current_sign + M*h;
                 connect From11 Sum3.in as Connection1091
                 connect From12 Sum3.in1 as Connection1254
                 connect Sum3.out "Signal switch1.in1" as Connection1255
+                connect OCV.in Termination4.in as Connection1256
 
                 C1 = "C1"
                 M = "M"
@@ -12886,7 +12905,6 @@ V_h = M0*current_sign + M*h;
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
-                meas_OCV = "False"
                 meas_Q = "False"
                 meas_Rint = "False"
                 meas_SOH = "False"
@@ -16629,6 +16647,12 @@ V_h = M0*current_sign + M*h;
                     hide_name = True
                 ]
 
+                component gen_probe OCV {
+                }
+                [
+                    position = 8488, 7888
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -17331,6 +17355,7 @@ V_h = M0*current_sign + M*h;
                 connect SOC.in Termination3.in as Connection1251
                 connect From44 Cell_NO1.in as Connection1252
                 connect Cell_NO1.out Hysteresis.Q as Connection1253
+                connect OCV.in Termination4.in as Connection1254
 
                 C1 = "C1"
                 Init_SOC = "init_dynamic"
@@ -17342,7 +17367,6 @@ V_h = M0*current_sign + M*h;
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
-                meas_OCV = "False"
                 meas_Q = "False"
                 meas_Rint = "False"
                 meas_SOH = "False"
@@ -21403,6 +21427,12 @@ V_h = M0*current_sign + M*h;
                     hide_name = True
                 ]
 
+                component gen_probe OCV {
+                }
+                [
+                    position = 8488, 7888
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -22079,6 +22109,7 @@ V_h = M0*current_sign + M*h;
                 connect From11 Sum3.in as Connection1091
                 connect From12 Sum3.in1 as Connection1254
                 connect Sum3.out "Signal switch1.in1" as Connection1255
+                connect OCV.in Termination4.in as Connection1256
 
                 C1 = "C1"
                 M = "M"
@@ -22089,7 +22120,6 @@ V_h = M0*current_sign + M*h;
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
-                meas_OCV = "False"
                 meas_Q = "False"
                 meas_Rint = "False"
                 meas_SOH = "False"
@@ -25832,6 +25862,12 @@ V_h = M0*current_sign + M*h;
                     hide_name = True
                 ]
 
+                component gen_probe OCV {
+                }
+                [
+                    position = 8488, 7888
+                ]
+
                 port P {
                     position = top center
                     kind = pe
@@ -26534,6 +26570,7 @@ V_h = M0*current_sign + M*h;
                 connect SOC.in Termination3.in as Connection1251
                 connect From44 Cell_NO1.in as Connection1252
                 connect Cell_NO1.out Hysteresis.Q as Connection1253
+                connect OCV.in Termination4.in as Connection1254
 
                 C1 = "C1"
                 Init_SOC = "init_dynamic"
@@ -26545,7 +26582,6 @@ V_h = M0*current_sign + M*h;
                 gamma = "G"
                 meas_Ibal = "False"
                 meas_Icell = "False"
-                meas_OCV = "False"
                 meas_Q = "False"
                 meas_Rint = "False"
                 meas_SOH = "False"
@@ -28551,7 +28587,7 @@ else {
         total_Q = [i/SIMULATION_SPEED_UP for i in total_Q_original]
         
         C = 14.532  # C rate of a battery is current that will empty the cell in one hour
-        DISCHG_RATE =  0.5 # 0.5 if its normal battery discharg speed
+        DISCHG_RATE =  0.5 # 0.5 if its normal battery discharge speed
         CHG_RATE = -DISCHG_RATE
         
         # when the dynamic script executes, current profiles don't push the cell voltage

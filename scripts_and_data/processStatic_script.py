@@ -20,23 +20,37 @@ def processStatic(static_data, model, typhoon_origin=False):
         print("There is no (default) temperature of 25 degrees celsius!")
         raise Exception()
 
+    # Integrators that represent chgAh and disAh have a bug where they don't recognize reset signal after a certain
+    # point in time during simulation, which is why I need to delete the first element for every part
     totDisAh = static_data[ind25].script1.disAh[-1] + static_data[ind25].script2.disAh[-1] + \
-               static_data[ind25].script3.disAh[-1] + static_data[ind25].script4.disAh[-1]
+               static_data[ind25].script3.disAh[-1] + static_data[ind25].script4.disAh[-1] - \
+               static_data[ind25].script1.disAh[0] - static_data[ind25].script2.disAh[0] - \
+               static_data[ind25].script3.disAh[0] - static_data[ind25].script4.disAh[0]
     totChgAh = static_data[ind25].script1.chgAh[-1] + static_data[ind25].script2.chgAh[-1] + \
-               static_data[ind25].script3.chgAh[-1] + static_data[ind25].script4.chgAh[-1]
+               static_data[ind25].script3.chgAh[-1] + static_data[ind25].script4.chgAh[-1] - \
+               static_data[ind25].script1.chgAh[0] - static_data[ind25].script2.chgAh[0] - \
+               static_data[ind25].script3.chgAh[0] - static_data[ind25].script4.chgAh[0]
     eta25 = totDisAh / totChgAh
     # Q doesn't need to be calculated differently for temp = 25
 
     for k in range(len(static_data)):
         # First step: calculate eta
         # scripts 1 and 3 are at test temperature but scripts 2 and 4 are always at 25 degrees
-        totDisAh = static_data[k].script1.disAh[-1] + static_data[k].script2.disAh[-1] + static_data[k].script3.disAh[-1] + static_data[k].script4.disAh[-1]
-        totChgAh_at_X_temp = static_data[k].script1.chgAh[-1] + static_data[k].script3.chgAh[-1]
-        totChgAh_at_25_temp = static_data[k].script2.chgAh[-1] + static_data[k].script4.chgAh[-1]
+        totDisAh = static_data[k].script1.disAh[-1] + static_data[k].script2.disAh[-1] + \
+                   static_data[k].script3.disAh[-1] + static_data[k].script4.disAh[-1] - \
+                   static_data[k].script1.disAh[0] - static_data[k].script2.disAh[0] - \
+                   static_data[k].script3.disAh[0] - static_data[k].script4.disAh[0]
+        totChgAh_at_X_temp = static_data[k].script1.chgAh[-1] + static_data[k].script3.chgAh[-1] - \
+                             static_data[k].script1.chgAh[0] - static_data[k].script3.chgAh[0]
+        totChgAh_at_25_temp = static_data[k].script2.chgAh[-1] + static_data[k].script4.chgAh[-1] - \
+                              static_data[k].script2.chgAh[0] + static_data[k].script4.chgAh[0]
         eta = (totDisAh - totChgAh_at_25_temp*eta25) / totChgAh_at_X_temp
 
         # Second step: calculate Q
-        Q = static_data[k].script1.disAh[-1] + static_data[k].script2.disAh[-1] - eta * static_data[k].script1.chgAh[-1] - eta * static_data[k].script2.chgAh[-1]
+        Q = static_data[k].script1.disAh[-1] - static_data[k].script1.disAh[0] + \
+            static_data[k].script2.disAh[-1] - static_data[k].script2.disAh[0] - \
+            (eta * static_data[k].script1.chgAh[-1] - eta * static_data[k].script1.chgAh[0]) - \
+            (eta * static_data[k].script2.chgAh[-1] - eta * static_data[k].script2.chgAh[0])
 
         # Third step: calculate OCV curve
         print(f"Calculating static tests for temperature: {static_data[k].temp}")
@@ -74,14 +88,14 @@ def processStatic(static_data, model, typhoon_origin=False):
         IR0_blend = IR1D + (IR2D - IR1D) * blend  # IR0_blend exists because R0 measured on end and on beginning aren't necesserily the same
         # and so this list is scaled from R0 beginning to R0 end with this line
         discharged_voltage_without_IR0 = static_data[k].script1.voltage[index_discharge[0]:(index_discharge[-1] + 1)] + IR0_blend
-        disZ = 1 - static_data[k].script1.disAh[index_discharge[0]:(index_discharge[-1] + 1)] / Q
+        disZ = 1 - static_data[k].script1.disAh[index_discharge[0] : (index_discharge[-1] + 1)] / Q
         disZ = disZ + (1 - disZ[0])  # small shift in the case of measuring at the sub 100% soc
 
         blend = np.array(range(len(index_charge))) / (len(index_charge) - 1)
         IR0_blend = IR1C + (IR2C - IR1C) * blend
-        charged_voltage_without_IR0 = static_data[k].script3.voltage[index_charge[0]:index_charge[-1] + 1] - IR0_blend
-        chgZ = static_data[k].script3.chgAh[index_charge[0]:index_charge[-1] + 1] / Q
-        chgZ = chgZ - chgZ[0]
+        charged_voltage_without_IR0 = static_data[k].script3.voltage[index_charge[0] : index_charge[-1] + 1] - IR0_blend
+        chgZ = static_data[k].script3.chgAh[index_charge[0]:index_charge[-1] + 1] / Q * eta
+        chgZ = chgZ - chgZ[0]  # Todo fix the starting value of chgZ
 
         Voltage_SOC_curve = interpolate.interp1d(chgZ, charged_voltage_without_IR0)
         Discharge_SOC_curve = interpolate.interp1d(disZ, discharged_voltage_without_IR0)
@@ -90,11 +104,13 @@ def processStatic(static_data, model, typhoon_origin=False):
         # Now only look at values of SOC under 50%
         ind = np.where(chgZ < 0.5)[0]
         vChg = charged_voltage_without_IR0[ind] - chgZ[ind] * deltaV50
-        zChg = chgZ[ind]
+        zChg = chgZ[ind]  # Todo This part of the curve is lacking. To fix
+
         # Now only look at values of SOC over 50%
         ind = np.where(disZ > 0.5)[0]
         vDis = np.flipud(discharged_voltage_without_IR0[ind] + (1 - disZ[ind]) * deltaV50)
         zDis = np.flipud(disZ[ind])
+
         np.append(zChg, zDis)
         FULL_SOC_curve = interpolate.interp1d(np.append(zChg, zDis), np.append(vChg, vDis), fill_value="extrapolate")
 
