@@ -1,5 +1,5 @@
-import generate_battery_cell_data as model_data
-import battery_cell_data_functions as data
+import generate_battery_cell_data as cell_data
+import battery_cell_functions as cell_functions
 import processDynamic_script as dynamic
 import processStatic_script as static
 import pickle
@@ -16,21 +16,22 @@ use_static_Q_eta = True  # Use parameters Q and eta from static test instead of 
 data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
 # data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
 output_filename = data_origin + '.pickle'  # Name of the pickled file
-minimization = "double_minimize"  # "differential_evolution" / "anything"
+minimization = "double_minimize"  # "differential_evolution" / "double_minimize"
+minimization = "SISOSubid"
 
 
 if __name__ == "__main__":
     # Initialize model
-    cell_model = data.ESC_battery_model()
+    cell_model = cell_functions.ESC_battery_model()
 
     # Initialize data
     if data_origin == 'P14_Boulder_cell_data':  # test data from the Boulder university
-        P14_DYN_50_P45 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
-        P14_DYN_50_P25 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
-        P14_DYN_30_P05 = data.OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
-        P14_OCV_P45 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P45.mat"), 45)
-        P14_OCV_P25 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P25.mat"), 25)
-        P14_OCV_P05 = data.OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
+        P14_DYN_50_P45 = cell_functions.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P45.mat"), 45)
+        P14_DYN_50_P25 = cell_functions.OneTempDynData(scipy.io.loadmat("P14_DYN_50_P25.mat"), 25)
+        P14_DYN_30_P05 = cell_functions.OneTempDynData(scipy.io.loadmat("P14_DYN_30_P05.mat"), 5)
+        P14_OCV_P45 = cell_functions.OneTempStaticData(scipy.io.loadmat("P14_OCV_P45.mat"), 45)
+        P14_OCV_P25 = cell_functions.OneTempStaticData(scipy.io.loadmat("P14_OCV_P25.mat"), 25)
+        P14_OCV_P05 = cell_functions.OneTempStaticData(scipy.io.loadmat("P14_OCV_P05.mat"), 5)
 
         static.processStatic([P14_OCV_P05, P14_OCV_P25, P14_OCV_P45], cell_model)
         dynamic.processDynamic([P14_DYN_30_P05, P14_DYN_50_P25, P14_DYN_50_P45], cell_model, numpoles=1, doHyst=1)
@@ -44,7 +45,7 @@ if __name__ == "__main__":
         # plt.plot(DYNData_full25_voltage)
         # plt.show()  # 2.81 is the minimum of the T25 OCV
 
-        TYPHOON_FULL_CELL_DATA = data.CellAllData(scipy.io.loadmat(data_origin + ".mat"), [5, 25, 45], [5, 25, 45])
+        TYPHOON_FULL_CELL_DATA = cell_functions.CellAllData(scipy.io.loadmat(data_origin + ".mat"), [5, 25, 45], [5, 25, 45])
 
         static.processStatic(TYPHOON_FULL_CELL_DATA.static_data, cell_model, typhoon_origin=True)
         dynamic.processDynamic(TYPHOON_FULL_CELL_DATA.dynamic_data, cell_model, TYPHOON_FULL_CELL_DATA.numpoles, TYPHOON_FULL_CELL_DATA.doHyst, typhoon_origin=True)
@@ -57,41 +58,41 @@ if __name__ == "__main__":
 
     # Printing the output cell parameters, if enabled
     if printout:
-        if minimization == "double_minimize":
+        if minimization == "double_minimize" or minimization == "differential_evolution":
             print("\nMinimization algorithm used: Fminbdn for Gamma and minimize for R0, R1, RC")
         else:
             print("\nMinimization algorithm used: Fminbdn for Gamma and SISOSubid for R0, R1, RC")
         print(f"Printout of model params:\n")
-        print(f"{cell_model.temps=}  Relative error: {model_data.error_func(cell_model.temps, 'temps')}")
-        print(f"{cell_model.etaParam_static=}  Relative error: {model_data.error_func(cell_model.etaParam_static, 'etaParam_static')}")
-        print(f"{cell_model.etaParam=}  Relative error: {model_data.error_func(cell_model.etaParam, 'etaParam')}")
-        print(f"{cell_model.QParam_static=}  Relative error: {model_data.error_func(cell_model.QParam_static, 'QParam_static')}")
-        print(f"{cell_model.QParam=}  Relative error: {model_data.error_func(cell_model.QParam, 'QParam')}")
-        print(f"{cell_model.R0Param=}  Relative error: {model_data.error_func(cell_model.R0Param, 'R0Param')}")
-        print(f"{cell_model.RParam=}  Relative error: {model_data.error_func(cell_model.RParam, 'RParam')}")
-        print(f"{cell_model.RCParam=}  Relative error: {model_data.error_func(cell_model.RCParam, 'RCParam')}")
-        print(f"{cell_model.M0Param=}  Relative error: {model_data.error_func(cell_model.M0Param, 'M0Param')}")
-        print(f"{cell_model.MParam=}  Relative error: {model_data.error_func(cell_model.MParam, 'MParam')}")
-        print(f"{cell_model.GParam=}  Relative error: {model_data.error_func(cell_model.GParam, 'GParam')}")
-        print(f"cell_model.ocv_vector at 25 degrees RMS error: {model_data.error_func(cell_model.ocv_vector[1], 'OCV')}")
+        print(f"{cell_model.temps=}  Relative error: {cell_functions.error_func(cell_model.temps, 'temps')}")
+        print(f"{cell_model.etaParam_static=}  Relative error: {cell_functions.error_func(cell_model.etaParam_static, 'etaParam_static')}")
+        print(f"{cell_model.etaParam=}  Relative error: {cell_functions.error_func(cell_model.etaParam, 'etaParam')}")
+        print(f"{cell_model.QParam_static=}  Relative error: {cell_functions.error_func(cell_model.QParam_static, 'QParam_static')}")
+        print(f"{cell_model.QParam=}  Relative error: {cell_functions.error_func(cell_model.QParam, 'QParam')}")
+        print(f"{cell_model.R0Param=}  Relative error: {cell_functions.error_func(cell_model.R0Param, 'R0Param')}")
+        print(f"{cell_model.RParam=}  Relative error: {cell_functions.error_func(cell_model.RParam, 'RParam')}")
+        print(f"{cell_model.RCParam=}  Relative error: {cell_functions.error_func(cell_model.RCParam, 'RCParam')}")
+        print(f"{cell_model.M0Param=}  Relative error: {cell_functions.error_func(cell_model.M0Param, 'M0Param')}")
+        print(f"{cell_model.MParam=}  Relative error: {cell_functions.error_func(cell_model.MParam, 'MParam')}")
+        print(f"{cell_model.GParam=}  Relative error: {cell_functions.error_func(cell_model.GParam, 'GParam')}")
+        print(f"cell_model.ocv_vector at 25 degrees RMS error: {cell_functions.error_func(cell_model.ocv_vector[1], 'OCV')}")
         try:
-            data.plot_func([cell_model.soc_vector[1], model_data.SOC_default],
-                           [cell_model.ocv_vector[1], model_data.OCV_default[1]],
+            cell_functions.plot_func([cell_model.soc_vector[1], cell_data.SOC_default],
+                           [cell_model.ocv_vector[1], cell_data.OCV_default[1]],
                            [f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius",
                             f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius"],
                            flag_show=False)
-            data.plot_func([model_data.SOC_default],
-                           [np.array(model_data.OCV_default[0])-np.array(cell_model.ocv_vector[0])],
+            cell_functions.plot_func([cell_data.SOC_default],
+                           [np.array(cell_data.OCV_default[0])-np.array(cell_model.ocv_vector[0])],
                            ['T5 RMS error in OCV [V] as a function of SOC'],
-                           flag_show=True)
-            data.plot_func([model_data.SOC_default],
-                           [np.array(model_data.OCV_default[1])-np.array(cell_model.ocv_vector[1])],
+                           flag_show=False)
+            cell_functions.plot_func([cell_data.SOC_default],
+                           [np.array(cell_data.OCV_default[1])-np.array(cell_model.ocv_vector[1])],
                            ['T25 RMS error in OCV [V] as a function of SOC'],
-                           flag_show=True)
-            data.plot_func([model_data.SOC_default],
-                           [np.array(model_data.OCV_default[2])-np.array(cell_model.ocv_vector[2])],
+                           flag_show=False)
+            cell_functions.plot_func([cell_data.SOC_default],
+                           [np.array(cell_data.OCV_default[2])-np.array(cell_model.ocv_vector[2])],
                            ['T45 RMS error in OCV [V] as a function of SOC'],
-                           flag_show=True)
+                           flag_show=False)
         except:
             print(f"Unable to plot {data_origin}")
             pass

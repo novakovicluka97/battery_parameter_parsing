@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import interpolate
 import matplotlib.pyplot as plt
-import battery_cell_data_functions as data
+import battery_cell_functions as cell_functions
 
 
 def processStatic(static_data, model, typhoon_origin=False):
@@ -95,7 +95,7 @@ def processStatic(static_data, model, typhoon_origin=False):
         IR0_blend = IR1C + (IR2C - IR1C) * blend
         charged_voltage_without_IR0 = static_data[k].script3.voltage[index_charge[0] : index_charge[-1] + 1] - IR0_blend
         chgZ = static_data[k].script3.chgAh[index_charge[0]:index_charge[-1] + 1] / Q * eta
-        chgZ = chgZ - chgZ[0]  # Todo fix the starting value of chgZ
+        chgZ = chgZ - chgZ[0]
 
         Voltage_SOC_curve = interpolate.interp1d(chgZ, charged_voltage_without_IR0)
         Discharge_SOC_curve = interpolate.interp1d(disZ, discharged_voltage_without_IR0)
@@ -124,6 +124,6 @@ def processStatic(static_data, model, typhoon_origin=False):
         model.soc_vector.append(SOC_vector)
         model.ocv_vector.append(rawocv)
 
-        data.plot_func([SOC_vector], [rawocv], ["OCV_SOC_static_temp_"+str(static_data[k].temp)], flag_show=False)
+        cell_functions.plot_func([SOC_vector], [rawocv], ["OCV_SOC_static_temp_"+str(static_data[k].temp)], flag_show=False)
 
     plt.show()

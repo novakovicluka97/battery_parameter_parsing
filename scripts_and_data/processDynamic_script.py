@@ -3,10 +3,10 @@ from numpy import linalg as LA
 import scipy
 from scipy import optimize
 fminbnd = scipy.optimize.fminbound
-import generate_battery_cell_data
-import generate_pickled_cell_model
+import generate_battery_cell_data as cell_data
+import generate_pickled_cell_model as cell_model
+import battery_cell_functions as cell_functions
 import matplotlib.pyplot as plt
-import battery_cell_data_functions as data
 
 
 current_sign_threshold = 1e-8  # threshold for current sign (in octave it is Q/100 and this gives me the negative M0)
@@ -14,7 +14,7 @@ current_sign_threshold = 1e-8  # threshold for current sign (in octave it is Q/1
 
 def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
     """
-    Script that populates the model parameters based on dynamic test data
+    Script that populates the model parameters (R0, R1 - C1 pairs, M0, M, Gamma) based on dynamic test data
     """
 
     model.GParam = [0] * len(dynamic_data)
@@ -58,8 +58,8 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
             eta = eta25
 
         # Populate model with parameters from the dynamic data
-        model.QParam.append(model.QParam_static[k] if generate_pickled_cell_model.use_static_Q_eta else Q)
-        model.etaParam.append(model.etaParam_static[k] if generate_pickled_cell_model.use_static_Q_eta else eta)
+        model.QParam.append(model.QParam_static[k] if cell_model.use_static_Q_eta else Q)
+        model.etaParam.append(model.etaParam_static[k] if cell_model.use_static_Q_eta else eta)
 
         if model.temps[k] != dynamic_data[k].temp:
             print("Dynamic data temperatures are not matching the static data temperatures or their numbering order.")
@@ -76,7 +76,7 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
         dynamic_data[k].OCV = OCVfromSOCtemp(dynamic_data[k].Z, dynamic_data[k].temp, model)
 
         OCV_error = (dynamic_data[k].script1.OCV_real - dynamic_data[k].OCV)
-        data.plot_func([dynamic_data[k].script1.time], [OCV_error],
+        cell_functions.plot_func([dynamic_data[k].script1.time], [OCV_error],
                        [f"OCV real vs OCV calculated through time, calculated for dynamic script 1 "
                         f"(discharging) for temp = {dynamic_data[k].temp}"],
                        flag_show=False)
@@ -144,9 +144,11 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, n
         current_sign = np.sign(script_1_current)
         # time step between two calculated current points
         if typhoon_origin:
-            delta_T = generate_battery_cell_data.SIMULATION_SPEED_UP*generate_battery_cell_data.Ts_cell
+            delta_T = cell_data.SIMULATION_SPEED_UP*cell_data.Ts
+            delta_T_hyst = cell_data.SIMULATION_SPEED_UP*cell_data.Ts_cell
         else:
             delta_T = 1  # For Colorado Boulder, delta T for samples is 1 second (at least for dynamic data)
+            delta_T_hyst = 1  # For Colorado Boulder, delta T for samples is 1 second (at least for dynamic data)
 
         fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
         # debug looks the same as octave up until this point
@@ -162,32 +164,38 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, n
 
         # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
 
-        if generate_pickled_cell_model.minimization == "double_minimize" or \
-                generate_pickled_cell_model.minimization == "differential_evolution":
+        if cell_model.minimization == "double_minimize" or \
+                cell_model.minimization == "differential_evolution":
 
-            bnds = ((0, 1), (0, 1), (0, 300e3))  # Bounds for minimization functions
-
-            if generate_pickled_cell_model.minimization == "differential_evolution":
+            bnds = ((0, 1), (0, 1), (5, 120))  # Bounds for minimization functions
+            if cell_model.minimization == "differential_evolution":
                 params = optimize.differential_evolution(double_minimization, args=(v_error, -script_1_current, delta_T),
                                                          bounds=bnds)
             else:
-                init_guess = [4.62e-3, 4e-3, 0/4e-3]  # R0, R1, C1
-                params = optimize.minimize(double_minimization, init_guess, method="BFGS",
+                # Todo: init_guess is fitting the curve too much
+                # Todo: add R0 guess from static test (maybe even RC and R1)
+                init_guess = [cell_data.R0Param[ind], cell_data.Rparam[ind], cell_data.RCparam[ind]]  # R0, R1, C1
+                # init_guess = [4e-3, 3e-3, 120]  # R0, R1, C1
+                params = optimize.minimize(double_minimization, init_guess, method="Powell",
                                            args=(v_error, -script_1_current, delta_T), bounds=bnds, tol=1e-6)
+                """
+                Nelder-Mead     # actually good
+                Powell          # actually good
+                """
+
             R0 = params.x[0]
             R1 = params.x[1]
-            C1 = params.x[2]
-
+            RC1 = params.x[2]
             model.R0Param[ind] = R0
             model.RParam[ind] = R1
-            model.CParam[ind] = C1
-            model.RCParam[ind] = C1*R1
+            model.RCParam[ind] = RC1
+            model.CParam[ind] = RC1/R1
 
             # Initialize RC resistor current for error calculation
             resistor_current_rc = script_1_current.copy()
             for k in range(1, len(script_1_current)):  # start from index 1
                 # forward euler like in the model of the battery cell
-                resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*R1*C1)/(1+R1*C1)
+                resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*RC1)/(delta_T+RC1)
 
             # Third modeling step: Hysteresis parameters
             if doHyst:
@@ -290,10 +298,10 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, n
             N1=1
         if not N2:
             N2=len(verr)
-        if generate_pickled_cell_model.minimization != "double_minimize":  # Todo; make this cleaner
-            root_mean_square_error[thefile] = np.sqrt(np.mean(verr[0, N1:N2]**2))
-        else:
+        if cell_model.minimization == "double_minimize" or cell_model.minimization == "differential_evolution":  # Todo; make this cleaner
             root_mean_square_error[thefile] = np.sqrt(np.mean(verr[N1:N2]**2))
+        else:
+            root_mean_square_error[thefile] = np.sqrt(np.mean(verr[0, N1:N2]**2))
 
     cost = sum(root_mean_square_error)
     print(f'RMS error for present value of gamma = {cost * 1000} (mV)\n')
@@ -412,6 +420,7 @@ def SISOsubid(y, u, n):  # Subspace system identification function
 
     return A
 
+
 def double_minimization(params, verr, curr, Ts):
     """
     Minimization function that should find the best values for R1, C1 and R0
@@ -419,14 +428,19 @@ def double_minimization(params, verr, curr, Ts):
     """
     R0=params[0]
     R1=params[1]
-    C1=params[2]
+    RC1=params[2]
     verr_calculated = [0]*len(curr)
     verr_calculated[0] = verr[0]
     error = 0
+    Tau_Ts = RC1/Ts
     for k in range(1, len(curr)):  # start from index 1
-        verr_calculated[k] = curr[k]*(R0*R1*C1+R0*Ts+R1*Ts)/(Ts+R1*C1) - curr[k-1]*(R0*R1*C1)/(Ts+R1*C1) + verr_calculated[k-1]*(R1*C1)/(Ts+R1*C1)
+        # verr_calculated[k] = curr[k]*(R0*R1*C1+R0*Ts+R1*Ts)/(Ts+R1*C1) - curr[k-1]*(R0*R1*C1)/(Ts+R1*C1) + verr_calculated[k-1]*(R1*C1)/(Ts+R1*C1)
+
+        verr_calculated[k] = Tau_Ts*verr_calculated[k-1] + curr[k]*(R0+R1+Tau_Ts*R0) - curr[k-1]*(Tau_Ts*R0)
+        verr_calculated[k] = verr_calculated[k]/(1+Tau_Ts)
+
         error += (verr[k]-verr_calculated[k])**2  # RMS error calculation
     error = error/len(curr)
-    print(f"RMS Error for double minimization function is = {error} coming from the data: R0:{R0}, R1:{R1}, C1:{C1}")
+    print(f"RMS Error for double minimization function is = {error} coming from the data: R0:{R0}, R1:{R1}, RC1:{RC1}")
 
     return error

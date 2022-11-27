@@ -2525,6 +2525,13 @@ V_h = M0*current_sign + M*h;
                         position = 7976, 8336
                     ]
 
+                    component gen_gain SIMULATION_SPEED_UP {
+                        gain = "SIMULATION_SPEED_UP"
+                    }
+                    [
+                        position = 8224, 8040
+                    ]
+
                     port I {
                         position = left:3
                         kind = sp
@@ -2648,6 +2655,11 @@ V_h = M0*current_sign + M*h;
                         position = 7936, 8008
                     ]
 
+                    comment Comment1 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">THIS IS ONLY CREATED FOR TESTING CELLS WITH HIGHER SIMULATION SPEED</p></body></html> ENDCOMMENT 
+                    [
+                        position = 7968, 7864
+                    ]
+
                     connect C_function.V_h V_hyst as Connection1164
                     connect M_LUT_1D.addr Junction1 as Connection1165
                     connect M0_LUT_1D.addr Junction2 as Connection1168
@@ -2670,7 +2682,6 @@ V_h = M0*current_sign + M*h;
                     [
                         position = 0, 0
                     ]
-                    connect Junction12 C_function.Ts as Connection1213
                     connect termination_Ts.in Junction12 as Connection1214
                     connect M_LUT_1D.value Junction8 as Connection1196
                     connect Junction8 C_function.M as Connection1197
@@ -2691,6 +2702,8 @@ V_h = M0*current_sign + M*h;
                         breakpoints = 8024, 8080; 8024, 8008
                     ]
                     connect SOC termination_SOC.in as Connection1215
+                    connect Junction12 SIMULATION_SPEED_UP.in as Connection1216
+                    connect SIMULATION_SPEED_UP.out C_function.Ts as Connection1217
 
                     hysteresis_model = "One state"
 
@@ -6984,6 +6997,13 @@ V_h = M0*current_sign + M*h;
                         position = 7976, 8336
                     ]
 
+                    component gen_gain SIMULATION_SPEED_UP {
+                        gain = "SIMULATION_SPEED_UP"
+                    }
+                    [
+                        position = 8224, 8040
+                    ]
+
                     port I {
                         position = left:3
                         kind = sp
@@ -7107,6 +7127,11 @@ V_h = M0*current_sign + M*h;
                         position = 7936, 8008
                     ]
 
+                    comment Comment1 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">THIS IS ONLY CREATED FOR TESTING CELLS WITH HIGHER SIMULATION SPEED</p></body></html> ENDCOMMENT 
+                    [
+                        position = 7968, 7864
+                    ]
+
                     connect C_function.V_h V_hyst as Connection1164
                     connect M_LUT_1D.addr Junction1 as Connection1165
                     connect M0_LUT_1D.addr Junction2 as Connection1168
@@ -7129,7 +7154,6 @@ V_h = M0*current_sign + M*h;
                     [
                         position = 0, 0
                     ]
-                    connect Junction12 C_function.Ts as Connection1213
                     connect termination_Ts.in Junction12 as Connection1214
                     connect M_LUT_1D.value Junction8 as Connection1196
                     connect Junction8 C_function.M as Connection1197
@@ -7150,6 +7174,8 @@ V_h = M0*current_sign + M*h;
                         breakpoints = 8024, 8080; 8024, 8008
                     ]
                     connect SOC termination_SOC.in as Connection1215
+                    connect Junction12 SIMULATION_SPEED_UP.in as Connection1216
+                    connect SIMULATION_SPEED_UP.out C_function.Ts as Connection1217
 
                     hysteresis_model = "One state"
 
@@ -11756,6 +11782,13 @@ V_h = M0*current_sign + M*h;
                         position = 7976, 8336
                     ]
 
+                    component gen_gain SIMULATION_SPEED_UP {
+                        gain = "SIMULATION_SPEED_UP"
+                    }
+                    [
+                        position = 8224, 8040
+                    ]
+
                     port I {
                         position = left:3
                         kind = sp
@@ -11879,6 +11912,11 @@ V_h = M0*current_sign + M*h;
                         position = 7936, 8008
                     ]
 
+                    comment Comment1 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">THIS IS ONLY CREATED FOR TESTING CELLS WITH HIGHER SIMULATION SPEED</p></body></html> ENDCOMMENT 
+                    [
+                        position = 7968, 7864
+                    ]
+
                     connect C_function.V_h V_hyst as Connection1164
                     connect M_LUT_1D.addr Junction1 as Connection1165
                     connect M0_LUT_1D.addr Junction2 as Connection1168
@@ -11901,7 +11939,6 @@ V_h = M0*current_sign + M*h;
                     [
                         position = 0, 0
                     ]
-                    connect Junction12 C_function.Ts as Connection1213
                     connect termination_Ts.in Junction12 as Connection1214
                     connect M_LUT_1D.value Junction8 as Connection1196
                     connect Junction8 C_function.M as Connection1197
@@ -11922,6 +11959,8 @@ V_h = M0*current_sign + M*h;
                         breakpoints = 8024, 8080; 8024, 8008
                     ]
                     connect SOC termination_SOC.in as Connection1215
+                    connect Junction12 SIMULATION_SPEED_UP.in as Connection1216
+                    connect SIMULATION_SPEED_UP.out C_function.Ts as Connection1217
 
                     hysteresis_model = "One state"
 
@@ -16199,6 +16238,13 @@ V_h = M0*current_sign + M*h;
                         position = 7976, 8336
                     ]
 
+                    component gen_gain SIMULATION_SPEED_UP {
+                        gain = "SIMULATION_SPEED_UP"
+                    }
+                    [
+                        position = 8216, 8040
+                    ]
+
                     port I {
                         position = left:3
                         kind = sp
@@ -16322,6 +16368,11 @@ V_h = M0*current_sign + M*h;
                         position = 7936, 8008
                     ]
 
+                    comment Comment1 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">THIS IS ONLY CREATED FOR TESTING CELLS WITH HIGHER SIMULATION SPEED</p></body></html> ENDCOMMENT 
+                    [
+                        position = 7960, 7864
+                    ]
+
                     connect C_function.V_h V_hyst as Connection1164
                     connect M_LUT_1D.addr Junction1 as Connection1165
                     connect M0_LUT_1D.addr Junction2 as Connection1168
@@ -16344,7 +16395,6 @@ V_h = M0*current_sign + M*h;
                     [
                         position = 0, 0
                     ]
-                    connect Junction12 C_function.Ts as Connection1213
                     connect termination_Ts.in Junction12 as Connection1214
                     connect M_LUT_1D.value Junction8 as Connection1196
                     connect Junction8 C_function.M as Connection1197
@@ -16365,6 +16415,8 @@ V_h = M0*current_sign + M*h;
                         breakpoints = 8024, 8080; 8024, 8008
                     ]
                     connect SOC termination_SOC.in as Connection1215
+                    connect Junction12 SIMULATION_SPEED_UP.in as Connection1216
+                    connect SIMULATION_SPEED_UP.out C_function.Ts as Connection1217
 
                     hysteresis_model = "One state"
 
@@ -20962,13 +21014,20 @@ V_h = M0*current_sign + M*h;
                         value = "Ts"
                     }
                     [
-                        position = 8160, 8040
+                        position = 8072, 8032
                     ]
 
                     component gen_terminator termination_SOC {
                     }
                     [
                         position = 7976, 8336
+                    ]
+
+                    component gen_gain SIMULATION_SPEED_UP {
+                        gain = "SIMULATION_SPEED_UP"
+                    }
+                    [
+                        position = 8224, 8040
                     ]
 
                     port I {
@@ -21094,6 +21153,11 @@ V_h = M0*current_sign + M*h;
                         position = 7936, 8008
                     ]
 
+                    comment Comment1 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">THIS IS ONLY CREATED FOR TESTING CELLS WITH HIGHER SIMULATION SPEED</p></body></html> ENDCOMMENT 
+                    [
+                        position = 7968, 7864
+                    ]
+
                     connect C_function.V_h V_hyst as Connection1164
                     connect M_LUT_1D.addr Junction1 as Connection1165
                     connect M0_LUT_1D.addr Junction2 as Connection1168
@@ -21116,7 +21180,6 @@ V_h = M0*current_sign + M*h;
                     [
                         position = 0, 0
                     ]
-                    connect Junction12 C_function.Ts as Connection1213
                     connect termination_Ts.in Junction12 as Connection1214
                     connect M_LUT_1D.value Junction8 as Connection1196
                     connect Junction8 C_function.M as Connection1197
@@ -21137,6 +21200,8 @@ V_h = M0*current_sign + M*h;
                         breakpoints = 8024, 8080; 8024, 8008
                     ]
                     connect SOC termination_SOC.in as Connection1215
+                    connect Junction12 SIMULATION_SPEED_UP.in as Connection1216
+                    connect SIMULATION_SPEED_UP.out C_function.Ts as Connection1217
 
                     hysteresis_model = "One state"
 
@@ -25414,6 +25479,13 @@ V_h = M0*current_sign + M*h;
                         position = 7976, 8336
                     ]
 
+                    component gen_gain SIMULATION_SPEED_UP {
+                        gain = "SIMULATION_SPEED_UP"
+                    }
+                    [
+                        position = 8224, 8040
+                    ]
+
                     port I {
                         position = left:3
                         kind = sp
@@ -25537,6 +25609,11 @@ V_h = M0*current_sign + M*h;
                         position = 7936, 8008
                     ]
 
+                    comment Comment1 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">THIS IS ONLY CREATED FOR TESTING CELLS WITH HIGHER SIMULATION SPEED</p></body></html> ENDCOMMENT 
+                    [
+                        position = 7968, 7864
+                    ]
+
                     connect C_function.V_h V_hyst as Connection1164
                     connect M_LUT_1D.addr Junction1 as Connection1165
                     connect M0_LUT_1D.addr Junction2 as Connection1168
@@ -25559,7 +25636,6 @@ V_h = M0*current_sign + M*h;
                     [
                         position = 0, 0
                     ]
-                    connect Junction12 C_function.Ts as Connection1213
                     connect termination_Ts.in Junction12 as Connection1214
                     connect M_LUT_1D.value Junction8 as Connection1196
                     connect Junction8 C_function.M as Connection1197
@@ -25580,6 +25656,8 @@ V_h = M0*current_sign + M*h;
                         breakpoints = 8024, 8080; 8024, 8008
                     ]
                     connect SOC termination_SOC.in as Connection1215
+                    connect Junction12 SIMULATION_SPEED_UP.in as Connection1216
+                    connect SIMULATION_SPEED_UP.out C_function.Ts as Connection1217
 
                     hysteresis_model = "One state"
 
@@ -28187,7 +28265,7 @@ else {
 
         comment Comment7 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Unlinked to lower SOC limit</p></body></html> ENDCOMMENT 
         [
-            position = 8648, 7960
+            position = 8648, 7936
         ]
 
         comment Comment13 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">hardcoded delay</p></body></html> ENDCOMMENT 
@@ -28207,7 +28285,7 @@ else {
 
         comment Comment20 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Unlinked to lower SOC limit</p></body></html> ENDCOMMENT 
         [
-            position = 9384, 7960
+            position = 9376, 7952
         ]
 
         comment Comment21 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">STATIC TEST<br />TEMP 5 DEG  </p><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">DYNAMIC TEST  </p></body></html> ENDCOMMENT 
@@ -28222,7 +28300,62 @@ else {
 
         comment Comment23 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
         [
-            position = 8168, 8768
+            position = 7576, 8664
+        ]
+
+        comment Comment1 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Added hysteresis SIMULATION_SPEED_UP on Ts</p></body></html> ENDCOMMENT 
+        [
+            position = 7784, 7920
+        ]
+
+        comment Comment24 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Added hysteresis SIMULATION_SPEED_UP on Ts</p></body></html> ENDCOMMENT 
+        [
+            position = 8584, 7904
+        ]
+
+        comment Comment25 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Added hysteresis SIMULATION_SPEED_UP on Ts</p></body></html> ENDCOMMENT 
+        [
+            position = 9344, 7912
+        ]
+
+        comment Comment26 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Added hysteresis SIMULATION_SPEED_UP on Ts</p></body></html> ENDCOMMENT 
+        [
+            position = 7640, 8632
+        ]
+
+        comment Comment27 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Added hysteresis SIMULATION_SPEED_UP on Ts</p></body></html> ENDCOMMENT 
+        [
+            position = 8440, 8616
+        ]
+
+        comment Comment28 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Added hysteresis SIMULATION_SPEED_UP on Ts</p></body></html> ENDCOMMENT 
+        [
+            position = 9200, 8624
+        ]
+
+        comment Comment29 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
+        [
+            position = 8368, 8640
+        ]
+
+        comment Comment30 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
+        [
+            position = 9144, 8656
+        ]
+
+        comment Comment31 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
+        [
+            position = 9224, 7880
+        ]
+
+        comment Comment32 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
+        [
+            position = 7728, 7888
+        ]
+
+        comment Comment33 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
+        [
+            position = 8496, 7872
         ]
 
         connect Time.in Gain1.out as Connection750
@@ -28559,14 +28692,14 @@ else {
     CODE model_init
         R1 = 0.004
         C1 = 150.0
-        M0 = [1e-05, 1e-05, 1e-05]
-        M = [1e-05, 1e-05, 1e-05]
+        M0 = [0.0031315, 0.0023535, 0.0011502]
+        M = [0.039929, 0.020018, 0.020545]
         SIMULATION_SPEED_UP = 100
         init_dynamic = 100  # 90% initial state of charge for dynamic scripts so that the voltage doesnt go over Vmax
         Ts = 0.01
         Ts_cell = 0.002
         G = [67.207, 92.645, 67.84]  # G param is wrong for default battery
-        do_dyn_tither = 0  # dynamic tither makes no sense if there is no hysteresis
+        do_dyn_tither = 1  # dynamic tither makes no sense if there is no hysteresis
         
         rest_time_for_temperature_equilibrium = 7200/SIMULATION_SPEED_UP  # 7200s or 2h
         counter_cooldown_max = rest_time_for_temperature_equilibrium/Ts

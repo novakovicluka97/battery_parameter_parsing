@@ -6,6 +6,7 @@ from scipy import optimize
 fminbnd = scipy.optimize.fminbound
 from scipy import interpolate
 import matplotlib.pyplot as plt
+import generate_battery_cell_data as cell_data
 
 
 def plot_func(x_axis_list, y_axis_list, names, flag_show: bool = False):
@@ -20,6 +21,38 @@ def plot_func(x_axis_list, y_axis_list, names, flag_show: bool = False):
             plt.plot(x_axis_list[i], y_axis_list[i], linewidth=2.0)
 
         plt.show()  # Last line
+
+
+def error_func(model_param, param_name):
+    if param_name == 'OCV':
+        error = sum((np.array(cell_data.OCV_default[1])-np.array(model_param))**2)  # RMS of entire OCV
+    else:
+        error = []
+        for i in range(len(model_param)):
+            if param_name == 'temps':
+                error.append(round((int(cell_data.test_temperatures[i])-model_param[i])/int(cell_data.test_temperatures[i]), 2))
+            elif param_name == 'R0Param':
+                error.append(round((cell_data.R0Param[i]-model_param[i])/cell_data.R0Param[i], 2))
+            elif param_name == 'etaParam':
+                error.append(round((cell_data.etaParam[i]-model_param[i])/cell_data.etaParam[i], 2))
+            elif param_name == 'QParam':
+                error.append(round((cell_data.QParam[i]-model_param[i])/cell_data.QParam[i], 2))
+            elif param_name == 'RParam':
+                error.append(round((cell_data.Rparam[i]-model_param[i])/cell_data.Rparam[i], 2))
+            elif param_name == 'RCParam':
+                error.append(round((cell_data.RCparam[i]-model_param[i])/cell_data.RCparam[i], 2))
+            elif param_name == 'etaParam_static':
+                error.append(round((cell_data.etaParam_static[i]-model_param[i])/cell_data.etaParam_static[i], 2))
+            elif param_name == 'QParam_static':
+                error.append(round((cell_data.QParam_static[i]-model_param[i])/cell_data.QParam_static[i], 2))
+            elif param_name == 'M0Param':
+                error.append(round((cell_data.M0Param[i]-model_param[i])/cell_data.M0Param[i], 2))
+            elif param_name == 'MParam':
+                error.append(round((cell_data.MParam[i]-model_param[i])/cell_data.MParam[i], 2))
+            elif param_name == 'GParam':
+                error.append(round((cell_data.GParam[i]-model_param[i])/cell_data.GParam[i], 2))
+
+    return error
 
 
 class ESC_battery_model:
@@ -219,3 +252,16 @@ class CellAllData:
                 self.current = script[0][0][3][0]
                 self.chgAh = script[0][0][4][0]
                 self.disAh = script[0][0][5][0]
+
+
+class Script:  # Format for the pickled cell data is this class per temperature, per script
+    def __init__(self, time, temperature, voltage, current, chgAh, disAh, OCV=None):
+        if OCV is None:
+            OCV = voltage
+        self.time = time
+        self.temperature = temperature
+        self.voltage = voltage
+        self.current = current
+        self.chgAh = chgAh
+        self.disAh = disAh
+        self.OCV = OCV
