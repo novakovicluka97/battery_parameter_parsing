@@ -14,7 +14,6 @@ import time
 import scipy.signal as signal
 
 
-
 # This script will parse the general load current and tither profiles from Static and Dynamic scripts,
 # from the original lab data from University of Boulder Colorado. Then it will collect the capture
 # results from the Typhoon HIL capture. Right now, only VHIL is supported.
@@ -26,6 +25,7 @@ Ts_cell = Ts/5                               # Battery cells should run faster t
 SIMULATION_SPEED_UP = 100                    # 1 if not sped up
 capture_duration = 30e4/SIMULATION_SPEED_UP  # default for HIL (30*60*60) seconds, for VHIL full no hyst and no RC 23e4
 tither_type = "chirp"                        # default is Boulder, but a cleaner signal exists in "chirp" type
+tither_offset = 0.03                         # parameter that relates to amount of Ah recharged during tither profile
 
 M0Param = [0.0031315, 0.0023535, 0.0011502]
 MParam = [0.039929, 0.020018, 0.020545]
@@ -139,23 +139,29 @@ class Script:  # Format for the pickled cell data is this class per temperature,
 
 
 if __name__ == "__main__":
-    if tither_type == "chirp":
-        chirp_t1 = np.linspace(0, 1790, 1791)  # because that was the length of time for original tither profile
-        chirp_a1 = signal.chirp(chirp_t1, f0=0.0025, f1=0.025, t1=1800, method='linear', phi=90)
+    if tither_type == "chirp":  # A cleaner version of the tither signal obtained mathematically (shorter and denser)
+        chirp_t1 = np.linspace(0, 200, 201)
+        chirp_a1 = signal.chirp(chirp_t1, f0=0.01, f1=0.1, t1=200, method='linear', phi=90)
         # chirp_a1 represents the chirp signal amplitude, increasing in frequency from f0 to f1 during time chirp_t1
-        chirp_t2 = np.linspace(1, 267, 267)  # 1800 was original (1790)
-        chirp_a2 = signal.chirp(chirp_t2, f0=0.025, f1=0.0025, t1=300, method='linear', phi=90)
+        chirp_t2 = np.linspace(1, 23, 23)
+        chirp_a2 = signal.chirp(chirp_t2, f0=0.1, f1=0.01, t1=30, method='linear', phi=90)
         # chirp_a2 represents the chirp signal amplitude, decreasing in frequency from f0 to f1 during time chirp_t2
-        CURRENT_TITHER = np.append(-chirp_a1, chirp_a2)
-        CURRENT_TITHER = CURRENT_TITHER - 0.0398629 + tither_offset
-        # 0.03986 is an average of chirp signal during this period
-        CURRENT_TITHER[0], CURRENT_TITHER[-1] = 0, 0
+        CURRENT_TITHER = np.append(chirp_a1, chirp_a2)
+        CURRENT_TITHER = CURRENT_TITHER + 0.0711197697059883  # an average of chirp signal during this period
         # total time of tither profile
-        TIME_TITHER = np.linspace(0, 2057, 2058)
+        TIME_TITHER = np.linspace(0, 223, 223+1)
         TITHER_STOP_TIME = max(TIME_TITHER)
         # optional plotting
         # plt.plot(TIME_TITHER, CURRENT_TITHER)
         # plt.show()
+
+        CURRENT_TITHER_DISCHARGE = CURRENT_TITHER + tither_offset
+        CURRENT_TITHER_CHARGE = CURRENT_TITHER - tither_offset
+        CURRENT_TITHER_CHARGE[0], CURRENT_TITHER_CHARGE[-1] = 0, 0
+        CURRENT_TITHER_DISCHARGE[0], CURRENT_TITHER_DISCHARGE[-1] = 0, 0
+
+        TIME_TITHER_CHARGE = TIME_TITHER_DISCHARGE = TIME_TITHER
+        TITHER_CHARGE_STOP_TIME = TITHER_DISCHARGE_STOP_TIME = TITHER_STOP_TIME
 
     else:  # Boulder type of tither signal
         # Loading the script data

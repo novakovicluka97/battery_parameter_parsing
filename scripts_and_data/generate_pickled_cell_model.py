@@ -11,12 +11,12 @@ import numpy as np
 # This script will parse out the battery cell parameters from the battery cell data obtained from
 # "generate_battery_cell_data.py" python script. The parameters will be saved in the .pickle format.
 
-printout = True  # Print out the output model parameters
+printout = False  # Print out the output model parameters
 use_static_Q_eta = True  # Use parameters Q and eta from static test instead of dynamic test
 data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
 # data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
 output_filename = data_origin + '.pickle'  # Name of the pickled file
-minimization = "double_minimized"  # "double_minimize"
+minimization = "double_minimize"  # "double_minimize"
 
 
 if __name__ == "__main__":
@@ -38,9 +38,11 @@ if __name__ == "__main__":
     else:  # Normal, Typhoon data format
         OCVData_full25 = scipy.io.loadmat(data_origin + ".mat")['OCVData_full25']
         OCVData_full25_voltage = OCVData_full25[2]
-        plt.plot(OCVData_full25_voltage)
-        plt.show()  # 2.81 is the minimum of the T25 OCV
-        # Todo: fix the tither profiles!!!!!!!!!
+        DYNData_full25 = scipy.io.loadmat(data_origin + ".mat")['DYNData_full25']
+        DYNData_full25_voltage = DYNData_full25[2]
+        # plt.plot(OCVData_full25_voltage)
+        # plt.plot(DYNData_full25_voltage)
+        # plt.show()  # 2.81 is the minimum of the T25 OCV
 
         TYPHOON_FULL_CELL_DATA = data.CellAllData(scipy.io.loadmat(data_origin + ".mat"), [5, 25, 45], [5, 25, 45])
 

@@ -81,12 +81,6 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
                         f"(discharging) for temp = {dynamic_data[k].temp}"],
                        flag_show=True)
 
-        # Data needed to determine RC circuits (poles) is saved for external processing
-        SISOSubid_data = {'verr': np.array(dynamic_data[k].script1.voltage) - np.array(dynamic_data[k].OCV),
-                          'curr_corrected': corrected_current,
-                          'curr': dynamic_data[k].script1.current}
-        scipy.io.savemat("SUB_ID.mat", SISOSubid_data)
-
         # Third step: Use optimization algorithm to find parameters M, M0, G, RC, R and R0
         print("Processing temperature: ", dynamic_data[k].temp, " degrees celsius")
         if doHyst:
@@ -94,6 +88,12 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
             print(f"Converged value of GParam is {round(GParam_optimal)}")
         else:
             minfn(0, dynamic_data, model, model.temps[k], doHyst, typhoon_origin)
+
+        # Data needed to determine RC circuits (poles) is saved for external processing
+        SISOSubid_data = {'verr': np.array(dynamic_data[k].script1.voltage) - np.array(dynamic_data[k].OCV),
+                          'curr_corrected': corrected_current,
+                          'curr': dynamic_data[k].script1.current}
+        scipy.io.savemat("SUB_ID.mat", SISOSubid_data)
 
     print("Dynamic model created!")
     return model
