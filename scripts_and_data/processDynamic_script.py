@@ -79,7 +79,7 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
         data.plot_func([dynamic_data[k].script1.time], [OCV_error],
                        [f"OCV real vs OCV calculated through time, calculated for dynamic script 1 "
                         f"(discharging) for temp = {dynamic_data[k].temp}"],
-                       flag_show=True)
+                       flag_show=False)
 
         # Third step: Use optimization algorithm to find parameters M, M0, G, RC, R and R0
         print("Processing temperature: ", dynamic_data[k].temp, " degrees celsius")
@@ -161,7 +161,48 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, n
         numpoles_loop_no = numpoles
 
         # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
-        if generate_pickled_cell_model.minimization != "double_minimize":
+
+        if generate_pickled_cell_model.minimization == "double_minimize" or \
+                generate_pickled_cell_model.minimization == "differential_evolution":
+
+            bnds = ((0, 1), (0, 1), (0, 300e3))  # Bounds for minimization functions
+
+            if generate_pickled_cell_model.minimization == "differential_evolution":
+                params = optimize.differential_evolution(double_minimization, args=(v_error, -script_1_current, delta_T),
+                                                         bounds=bnds)
+            else:
+                init_guess = [4.62e-3, 4e-3, 0/4e-3]  # R0, R1, C1
+                params = optimize.minimize(double_minimization, init_guess, method="BFGS",
+                                           args=(v_error, -script_1_current, delta_T), bounds=bnds, tol=1e-6)
+            R0 = params.x[0]
+            R1 = params.x[1]
+            C1 = params.x[2]
+
+            model.R0Param[ind] = R0
+            model.RParam[ind] = R1
+            model.CParam[ind] = C1
+            model.RCParam[ind] = C1*R1
+
+            # Initialize RC resistor current for error calculation
+            resistor_current_rc = script_1_current.copy()
+            for k in range(1, len(script_1_current)):  # start from index 1
+                # forward euler like in the model of the battery cell
+                resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*R1*C1)/(1+R1*C1)
+
+            # Third modeling step: Hysteresis parameters
+            if doHyst:
+                H = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
+                W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
+                model.MParam[ind] = W[0][0]
+                model.M0Param[ind] = W[0][1]
+            else:
+                model.M0Param[ind] = 0
+                model.MParam[ind] = 0
+
+            v_est_full = v_est_ocv + np.array(h) * model.MParam[ind] + model.M0Param[ind] * np.array(current_sign) - R0 * np.array(
+                script_1_current) - np.array(resistor_current_rc) * R1
+
+        else:
             # Octave code was not up to date with lessons from here
             # diff works fine
             # https://www.coursera.org/lecture/equivalent-circuit-cell-model-simulation/2-3-3-introducing-octave-code-to-determine-dynamic-part-of-an-ecm-NILTD
@@ -230,43 +271,7 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, n
 
             v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) - R0 * np.array(script_1_current_corrected) - np.transpose(resistor_current_rc) * R1
 
-        else:  # Improvized minimization algorythm
-            bnds = ((0, 1), (0, 1), (0, 300e3))  # Bounds for minimization functions
-            init_guess = [4.62e-3, 4e-3, 0/4e-3]  # R0, R1, C1
-            # params = optimize.minimize(double_minimization, init_guess, method="BFGS",
-            #                            args=(v_error, -script_1_current, delta_T), bounds=bnds, tol=1e-6)
-            params = optimize.differential_evolution(double_minimization, args=(v_error, -script_1_current, delta_T),
-                                                     bounds=bnds)
-            R0 = params.x[0]
-            R1 = params.x[1]
-            C1 = params.x[2]
-
-            model.R0Param[ind] = R0
-            model.RParam[ind] = R1
-            model.CParam[ind] = C1
-            model.RCParam[ind] = C1*R1
-
-            # Initialize RC resistor current for error calculation
-            resistor_current_rc = script_1_current.copy()
-            for k in range(1, len(script_1_current)):  # start from index 1
-                # forward euler like in the model of the battery cell
-                resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*R1*C1)/(1+R1*C1)
-
-            # Third modeling step: Hysteresis parameters
-            if doHyst:
-                H = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
-                W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
-                model.MParam[ind] = W[0][0]
-                model.M0Param[ind] = W[0][1]
-            else:
-                model.M0Param[ind] = 0
-                model.MParam[ind] = 0
-
-            v_est_full = v_est_ocv + np.array(h) * model.MParam[ind] + model.M0Param[ind] * np.array(current_sign) - R0 * np.array(
-                script_1_current) - np.array(resistor_current_rc) * R1
-
-        verr = script_1_voltage - v_est_full
-        # starting to look different
+        verr = script_1_voltage - v_est_full  # v_est_full represents fully estimated data
 
         # Compute RMS error only on data roughly in 5 % to 95 % SOC
         v1 = OCVfromSOCtemp(0.95, dynamic_data[ind].temp, model)
