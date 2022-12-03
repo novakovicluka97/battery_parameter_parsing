@@ -7,16 +7,16 @@ import generate_battery_cell_data as cell_data
 import generate_pickled_cell_model as cell_model
 import battery_cell_functions as cell_functions
 import matplotlib.pyplot as plt
-
-
-current_sign_threshold = 1e-8  # threshold for current sign (in octave it is Q/100 and this gives me the negative M0)
+from openpyxl import load_workbook, Workbook
+import pandas as pd
+import os
 
 
 def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
     """
     Script that populates the model parameters (R0, R1 - C1 pairs, M0, M, Gamma) based on dynamic test data
     """
-
+    excel_data, row_index = [], []  # for result compilation
     model.GParam = [0] * len(dynamic_data)
     model.MParam = [0] * len(dynamic_data)
     model.M0Param = [0] * len(dynamic_data)
@@ -89,26 +89,49 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
         else:
             minfn(0, dynamic_data, model, model.temps[k], doHyst, typhoon_origin)
 
-        # Data needed to determine RC circuits (poles) is saved for external processing
+        # Data needed to determine RC circuits (poles) is saved for external processing as well as excel data for visualizing
         SISOSubid_data = {'verr': np.array(dynamic_data[k].script1.voltage) - np.array(dynamic_data[k].OCV),
                           'curr_corrected': corrected_current,
                           'curr': dynamic_data[k].script1.current}
         scipy.io.savemat("SUB_ID.mat", SISOSubid_data)
 
+        V_resistor = model.R0Param[k]*np.array(dynamic_data[k].script1.current)
+        rc_current = get_rc_current(dynamic_data[k].script1.current, delta_T=1, RC1=model.RCParam[k], discretization="euler")
+        V_diff = np.array(rc_current) * model.RParam[k]
+        h = get_h_list(dynamic_data[k].script1.current, model.GParam[k], model.QParam[k], eta=model.etaParam[k], delta_T=1)
+        V_h = np.array(h) * model.MParam[k] + np.sign(dynamic_data[k].script1.current) * model.M0Param[k]
+        err = np.array(dynamic_data[k].script1.voltage) - (np.array(dynamic_data[k].OCV) + V_resistor + V_diff + V_h)
+
+        excel_data.append(np.array(dynamic_data[k].script1.voltage))  # reference dynamic voltage data
+        excel_data.append(np.array(dynamic_data[k].OCV) + V_resistor + V_diff + V_h)  # generated dynamic voltage data
+        excel_data.append(dynamic_data[k].OCV)  # generated OCV data
+        excel_data.append(V_resistor)  # generated internal resistance voltage drop
+        excel_data.append(V_diff)  # generated diffusion voltage drop
+        excel_data.append(V_h)  # generated hysteresis voltage drop
+        excel_data.append(err)  # generated error between reference and results
+        excel_data.append([sum(err**2)] * len(err))  # RMS error combined, but has to be of certain length
+        row_index.append(f'{model.temps[k]} reference dynamic voltage data')
+        row_index.append(f'{model.temps[k]} generated dynamic voltage data')
+        row_index.append(f'{model.temps[k]} generated OCV data')
+        row_index.append(f'{model.temps[k]} generated internal resistance voltage drop')
+        row_index.append(f'{model.temps[k]} generated diffusion voltage drop')
+        row_index.append(f'{model.temps[k]} generated hysteresis voltage drop')
+        row_index.append('Error calculation')
+        row_index.append('Total RMS')
+
     print("Dynamic model created!")
+
+    df = pd.DataFrame(data=excel_data,
+                      index=row_index)
+    df = df.T
+    df.to_excel(cell_model.data_origin + ".xlsx")
+    print("Excel data saved as ", cell_model.data_origin + ".xlsx")
+    os.system("start EXCEL.EXE " + cell_model.data_origin + ".xlsx")
+
     return model
 
 
-def OCVfromSOCtemp(soc, temp, model):
-    """
-    Extrapolates OCV vector from the soc vector but based on the previous static OCV/SOC test contained in the model.
-    """
-    index = np.where(np.array(model.temps) == temp)[0][0]
-    function = scipy.interpolate.interp1d(model.soc_vector[index], model.ocv_vector[index], fill_value="extrapolate")
-    return function(soc)
-
-
-def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=1):
+def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=1):
     """
     Minimization function
     """
@@ -116,197 +139,177 @@ def minfn(theGParam, dynamic_data, model, temperature, doHyst, typhoon_origin, n
     alltemps = [dynamic_data[i].temp for i in range(len(dynamic_data))]
     index_array = np.where(np.array(alltemps) == temperature)
     ind = index_array[0][0]  # index of current temperature in the temperatures vector of model (and data?)
-    model.GParam[ind] = theGParam
-    numfiles = len(index_array)  # will be 1 for now
 
-    xplots = np.ceil(np.sqrt(numfiles))
-    yplots = np.ceil(numfiles / xplots)
-    root_mean_square_error = np.zeros(1, xplots * yplots)
-
-    G = model.GParam[ind]             # Boulder data: temp_5 -> G = 96.10954, 154.89
+    model.GParam[ind] = G             # Boulder data: temp_5 -> G = 96.10954, 154.89
     Q = model.QParam[ind]             # Boulder data: temp_5 -> Q = 14.5924882
     eta = model.etaParam[ind]         # Boulder data: temp_5 -> eta = 0.981744
     # RC = model.RCParam[ind]
-    # numpoles = len(RC)          # todo extend this functionality
+    # numpoles = len(RC)                # todo extend this functionality
 
-    for thefile in range(numfiles):  # should always be 1 file as long as there is one test per temperature
-        script_1_current = dynamic_data[ind].script1.current[:]
-        script_1_voltage = dynamic_data[ind].script1.voltage[:]
-        script_1_current_corrected = np.copy(script_1_current)
-        for i in range(len(script_1_current)):
-            if script_1_current[i] < 0:
-                script_1_current_corrected[i] = script_1_current[i] * eta
-            else:
-                script_1_current_corrected[i] = script_1_current[i]
-
-        # Calculating hysteresis variables
-        h = [0] * len(script_1_current)  # 'h' is a variable that relates to hysteresis voltage
-        current_sign = np.sign(script_1_current)
-        # time step between two calculated current points
-        if typhoon_origin:
-            delta_T = cell_data.SIMULATION_SPEED_UP*cell_data.Ts
-            delta_T_hyst = cell_data.SIMULATION_SPEED_UP*cell_data.Ts_cell
+    script_1_current = dynamic_data[ind].script1.current[:]
+    current_sign = np.sign(script_1_current)
+    script_1_voltage = dynamic_data[ind].script1.voltage[:]
+    script_1_current_corrected = np.copy(script_1_current)
+    for i in range(len(script_1_current)):
+        if script_1_current[i] < 0:
+            script_1_current_corrected[i] = script_1_current[i] * eta
         else:
-            delta_T = 1  # For Colorado Boulder, delta T for samples is 1 second (at least for dynamic data)
-            delta_T_hyst = 1  # For Colorado Boulder, delta T for samples is 1 second (at least for dynamic data)
+            script_1_current_corrected[i] = script_1_current[i]
 
-        fac = np.exp(-abs(G * np.array(script_1_current_corrected) / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
-        # debug looks the same as octave up until this point
-        for k in range(1, len(script_1_current)):
-            h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * current_sign[k - 1]
+    # Calculating hysteresis variables
+    # time step between two calculated current points
+    if typhoon_origin:
+        delta_T = cell_data.SIMULATION_SPEED_UP*cell_data.Ts
+        delta_T_hyst = cell_data.SIMULATION_SPEED_UP*cell_data.Ts_cell
+    else:
+        delta_T = 1  # For Colorado Boulder, delta T for samples is 1 second (at least for dynamic data)
+        delta_T_hyst = 1  # For Colorado Boulder, delta T for samples is 1 second (at least for dynamic data)
 
-        # First modeling step: Compute error with model represented only with OCV
-        # debug looks the same as octave up until this point (except OCV and SOC arrays)
-        v_est_ocv = dynamic_data[ind].OCV  # OCV is not completely the same but script_1_voltage is the same
-        v_error = np.array(script_1_voltage) - np.array(v_est_ocv)  # therefore v_error is not the same as in Octave
-        # v_error = [-0.001688.....] for Boulder data
-        numpoles_loop_no = numpoles
+    h = get_h_list(script_1_current, G, Q, eta, delta_T)
 
-        # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
+    # First modeling step: Compute error with model represented only with OCV
+    # debug looks the same as octave up until this point (except OCV and SOC arrays)
+    v_est_ocv = dynamic_data[ind].OCV  # OCV is not completely the same but script_1_voltage is the same
+    v_error = np.array(script_1_voltage) - np.array(v_est_ocv)  # therefore v_error is not the same as in Octave
+    # v_error = [-0.001688.....] for Boulder data
+    numpoles_loop_no = numpoles
 
-        if cell_model.minimization == "double_minimize" or cell_model.minimization == "differential_evolution":
+    # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
+    if cell_model.minimization == "double_minimize" or cell_model.minimization == "differential_evolution":
 
-            bnds = ((0, 1), (0, 1), (5, 120))  # Bounds for minimization functions
-            if cell_model.minimization == "differential_evolution":
-                params = optimize.differential_evolution(double_minimization, args=(v_error, -script_1_current, delta_T),
-                                                         bounds=bnds)
-            else:
-                # Todo: init_guess is fitting the curve too much
-                # Todo: add R0 guess from static test (maybe even RC and R1)
-                init_guess = [cell_data.R0Param[ind], cell_data.Rparam[ind], cell_data.RCparam[ind]]  # R0, R1, C1
-                # init_guess = [4e-3, 3e-3, 120]  # R0, R1, C1
-                params = optimize.minimize(double_minimization, init_guess, method="Powell",
-                                           args=(v_error, -script_1_current, delta_T), bounds=bnds, tol=1e-6)
-                """
-                Nelder-Mead     # actually good
-                Powell          # actually good
-                """
+        bnds = ((0, 1), (0, 1), (5, 120))  # Bounds for minimization functions  R0, R1, RC1
+        if cell_model.minimization == "differential_evolution":
+            params = optimize.differential_evolution(double_minimization, args=(v_error, -script_1_current, delta_T),
+                                                     bounds=bnds)
+        else:  # double_minimize
+            # Todo: init_guess is fitting the curve too much
+            # Todo: add R0 guess from static test (maybe even RC and R1)
+            init_guess = [cell_data.R0Param[ind], cell_data.Rparam[ind], cell_data.RCparam[ind]]  # R0, R1, RC1
+            # init_guess = [4e-3, 3e-3, 120]  # R0, R1, RC1
+            params = optimize.minimize(double_minimization, init_guess, method="Nelder-Mead",
+                                       args=(v_error, -script_1_current, delta_T), bounds=bnds, tol=1e-6)
+            """
+            Nelder-Mead     # actually good
+            Powell          # actually good
+            """
 
-            R0 = params.x[0]
-            R1 = params.x[1]
-            RC1 = params.x[2]
-            model.R0Param[ind] = R0
-            model.RParam[ind] = R1
-            model.RCParam[ind] = RC1
-            model.CParam[ind] = RC1/R1
+        R0 = params.x[0]
+        R1 = params.x[1]
+        RC1 = params.x[2]
+        model.R0Param[ind] = R0
+        model.RParam[ind] = R1
+        model.RCParam[ind] = RC1
+        model.CParam[ind] = RC1/R1
 
-            # Initialize RC resistor current for error calculation
-            resistor_current_rc = script_1_current.copy()
-            for k in range(1, len(script_1_current)):  # start from index 1
-                # forward euler like in the model of the battery cell
-                resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*RC1)/(delta_T+RC1)
+        # Initialize RC resistor current for error calculation
+        resistor_current_rc = get_rc_current(script_1_current, delta_T=delta_T, RC1=RC1, discretization="euler")
 
-            # Third modeling step: Hysteresis parameters
-            if doHyst:
-                H = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
-                W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
-                model.MParam[ind] = W[0][0]
-                model.M0Param[ind] = W[0][1]
-            else:
-                model.M0Param[ind] = 0
-                model.MParam[ind] = 0
-
-            v_est_full = v_est_ocv + np.array(h) * model.MParam[ind] + model.M0Param[ind] * np.array(current_sign) - \
-                         R0 * np.array(script_1_current) - np.array(resistor_current_rc) * R1
-
+        # Third modeling step: Hysteresis parameters
+        if doHyst:
+            # Todo -current_sign when I finally update the battery cell
+            H = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
+            W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
+            model.MParam[ind] = W[0][0]
+            model.M0Param[ind] = W[0][1]
         else:
-            # Octave code was not up to date with lessons from here
-            # diff works fine
-            # https://www.coursera.org/lecture/equivalent-circuit-cell-model-simulation/2-3-3-introducing-octave-code-to-determine-dynamic-part-of-an-ecm-NILTD
-            while True:
-                A = SISOsubid(-np.diff(v_error), np.diff(script_1_current_corrected), numpoles_loop_no)
-                eigA = LA.eig(A)[0]     # For Boulder: eigA = [0.2389149], [0.6528]
-                if eigA != np.conj(eigA):
-                    print("WARNING: eigA is not a real number, results may not be proper. eigA = ", eigA)
-                    eigA = abs(eigA)
-                if not (1 > eigA > 0):
-                    print("WARNING: eigA is not in proper range, results may not be proper. eigA = ", eigA)
-                    if eigA < 0:
-                        eigA = -eigA
-                    elif eigA > 1:
-                        eigA = 1/eigA
-                okpoles = len(eigA)
-                numpoles_loop_no = numpoles_loop_no + 1
-                if okpoles >= numpoles:
-                    break
-                print(f'Trying {numpoles_loop_no=}\n')
+            model.M0Param[ind] = 0
+            model.MParam[ind] = 0
 
-            # Solution of SISOSubid is RCfact which is np.exp(-delta_T/Tau) and as exponential function, the solution should be between 0 and 1
-            RCfact_var = np.sort(eigA)  # [0.66075] for boulder data
-            RCfact = RCfact_var[len(RCfact_var) - numpoles:]  # looks like it makes no sense to be different then previous variable
-            RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4 s (or minutes)
-            # 1 in previous function is delta_T and should be a variable but then that must also be propagated in SISOSubid
-            # Simulate the R - C filters to find R - C currents
-            resistor_current_rc = np.zeros((numpoles, len(script_1_current)))
-            for k in range(numpoles, len(script_1_current)):
-                if typhoon_origin:  # In typhoon, correction coefficient is not applied to current, only to SOC
-                    resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current[k - 1]
-                else:
-                    resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current_corrected[k - 1]
-            resistor_current_rc = np.transpose(resistor_current_rc)  # Close enough to Octave vrcRaw
+        v_est_full = v_est_ocv + np.array(h) * model.MParam[ind] + model.M0Param[ind] * current_sign - \
+                     R0 * np.array(script_1_current) - np.array(resistor_current_rc) * R1
 
-            # Third modeling step: Hysteresis parameters
-            if doHyst:
-                # Todo: shorten into one line
-                # Todo: if typhoon origin
+    else:
+        # Octave code was not up to date with lessons from here
+        # diff works fine
+        # https://www.coursera.org/lecture/equivalent-circuit-cell-model-simulation/2-3-3-introducing-octave-code-to-determine-dynamic-part-of-an-ecm-NILTD
+        while True:
+            A = SISOsubid(-np.diff(v_error), np.diff(script_1_current_corrected), numpoles_loop_no)
+            eigA = LA.eig(A)[0]     # For Boulder: eigA = [0.2389149], [0.6528]
+            if eigA != np.conj(eigA):
+                print("WARNING: eigA is not a real number, results may not be proper. eigA = ", eigA)
+                eigA = abs(eigA)
+            if not (1 > eigA > 0):
+                print("WARNING: eigA is not in proper range, results may not be proper. eigA = ", eigA)
+                if eigA < 0:
+                    eigA = -eigA
+                elif eigA > 1:
+                    eigA = 1/eigA
+            okpoles = len(eigA)
+            numpoles_loop_no = numpoles_loop_no + 1
+            if okpoles >= numpoles:
+                break
+            print(f'Trying {numpoles_loop_no=}\n')
+
+        # Solution of SISOSubid is RCfact which is np.exp(-delta_T/Tau) and as exponential function, the solution should be between 0 and 1
+        RCfact_var = np.sort(eigA)  # [0.66075] for boulder data
+        RCfact = (RCfact_var[len(RCfact_var) - numpoles:])[0]  # looks like it makes no sense to be different then previous variable
+        RC = (-1 / np.log(RCfact))[0]  # reference code says 2.3844, but we get slightly over 2.4 s (or minutes)
+        # 1 in previous function is delta_T and should be a variable but then that must also be propagated in SISOSubid
+        # Simulate the R - C filters to find R - C currents
+        RC = 60
+        resistor_current_rc = get_rc_current(script_1_current, discretization="euler", numpoles=numpoles, RCfact=RCfact, RC1=RC)
+
+        # Third modeling step: Hysteresis parameters
+        if doHyst:
+            # Todo: shorten into one line
+            if typhoon_origin:
+                H_1 = np.append(np.transpose([h]), -np.transpose([current_sign]), 1)  # in typhoon current sign is opposite
+                H_2 = np.append(-np.transpose([script_1_current]), -np.transpose([resistor_current_rc]), 1)  # In typhoon, correction coefficient is not applied to current, only to SOC
+            else:
                 H_1 = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
-                H_2 = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
-                H = np.append(H_1, H_2, 1)
-                W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
-                M  = W[0][0]
-                M0 = W[0][1]
-                R0 = W[0][2]
-                R1 = np.transpose(W[0][3:])  # rest of the lstsq array values
-            else:
-                if typhoon_origin:  # In typhoon, correction coefficient is not applied to current, only to SOC
-                    H = np.append(np.transpose([-script_1_current]), -resistor_current_rc, 1)
-                else:
-                    H = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
-                W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
-                M = 0
-                M0 = 0
-                R0 = W[0][0]
-                R1 = np.transpose(W[0][1:])  # rest of the lstsq array values
-
-            # Populate the model
-            model.RCParam[ind] = np.transpose(RC)[0]
-            model.RParam[ind] = np.transpose(R1)[0]
-            model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
-            model.R0Param[ind] = R0
-            model.M0Param[ind] = M0
-            model.MParam[ind] = M
-
-            v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) - R0 * np.array(script_1_current_corrected) - np.transpose(resistor_current_rc) * R1
-
-        verr = script_1_voltage - v_est_full  # v_est_full represents fully estimated data
-
-        # Compute RMS error only on data roughly in 5 % to 95 % SOC
-        v1 = OCVfromSOCtemp(0.95, dynamic_data[ind].temp, model)
-        v2 = OCVfromSOCtemp(0.05, dynamic_data[ind].temp, model)
-        N1_array = np.where(script_1_voltage < v1, 1, 0)
-        N2_array = np.where(script_1_voltage < v2, 1, 0)
-        for i in range(len(N1_array)):
-            if N1_array[i] == 1:
-                N1 = i
-                break
-        for i in range(len(N2_array)):
-            if N2_array[i] == 1:
-                N2 = i
-                break
-        if not N1:
-            N1=1
-        if not N2:
-            N2=len(verr)
-        if cell_model.minimization == "double_minimize" or cell_model.minimization == "differential_evolution":  # Todo; make this cleaner
-            root_mean_square_error[thefile] = np.sqrt(np.mean(verr[N1:N2]**2))
+                H_2 = np.append(np.transpose([-script_1_current_corrected]), -np.transpose([resistor_current_rc]), 1)
+            H = np.append(H_1, H_2, 1)
+            W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
+            M  = W[0][0]
+            M0 = W[0][1]
+            R0 = W[0][2]
+            R1 = np.transpose(W[0][3:])  # rest of the lstsq array values
         else:
-            root_mean_square_error[thefile] = np.sqrt(np.mean(verr[0, N1:N2]**2))
+            if typhoon_origin:  # In typhoon, correction coefficient is not applied to current, only to SOC
+                H = np.append(np.transpose([-script_1_current]), -resistor_current_rc, 1)
+            else:
+                H = np.append(np.transpose([-script_1_current_corrected]), -resistor_current_rc, 1)
+            W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
+            M = 0
+            M0 = 0
+            R0 = W[0][0]
+            R1 = np.transpose(W[0][1:])  # rest of the lstsq array values
 
-    cost = sum(root_mean_square_error)
-    print(f'RMS error for present value of gamma = {cost * 1000} (mV)\n')
-    assert cost, 'Exception: Cost is empty'
+        # Populate the model
+        model.RCParam[ind] = RC
+        model.RParam[ind] = np.transpose(R1)[0]
+        model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
+        model.R0Param[ind] = R0
+        model.M0Param[ind] = M0
+        model.MParam[ind] = M
 
-    return cost
+        v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) - R0 * np.array(script_1_current_corrected) - np.transpose(resistor_current_rc) * R1
+
+    verr = script_1_voltage - v_est_full  # v_est_full represents fully estimated data
+
+    # Compute RMS error only on data roughly in 5 % to 95 % SOC
+    v1 = OCVfromSOCtemp(0.95, dynamic_data[ind].temp, model)
+    v2 = OCVfromSOCtemp(0.05, dynamic_data[ind].temp, model)
+    N1_array = np.where(script_1_voltage < v1, 1, 0)
+    N2_array = np.where(script_1_voltage < v2, 1, 0)
+    for i in range(len(N1_array)):
+        if N1_array[i] == 1:
+            N1 = i
+            break
+    for i in range(len(N2_array)):
+        if N2_array[i] == 1:
+            N2 = i
+            break
+    if not N1:
+        N1 = 1
+    if not N2:
+        N2 = len(verr)
+
+    root_mean_square_error = np.sqrt(np.mean(verr[N1:N2]**2))
+    print(f'RMS error for present value of gamma = {root_mean_square_error * 1000} (mV)\n')
+    assert root_mean_square_error, 'Exception: Cost is empty'
+
+    return root_mean_square_error
 
 
 def SISOsubid(y, u, n):  # Subspace system identification function
@@ -440,6 +443,57 @@ def double_minimization(params, verr, curr, Ts):
 
         error += (verr[k]-verr_calculated[k])**2  # RMS error calculation
     error = error/len(curr)
-    print(f"RMS Error for double minimization function is = {error} coming from the data: R0:{R0}, R1:{R1}, RC1:{RC1}")
 
     return error
+
+
+def get_h_list(script_1_current, G, Q, eta, delta_T=1):
+    """
+    Returns list of h values which in conjuction with M and M0 params creates a hysteresis voltage drop
+    """
+    current_sign = np.sign(script_1_current)
+    script_1_current_corrected = np.copy(script_1_current)
+    for i in range(len(script_1_current)):
+        if script_1_current[i] < 0:
+            script_1_current_corrected[i] = script_1_current[i] * eta
+        else:
+            script_1_current_corrected[i] = script_1_current[i]
+
+    h = [0] * len(script_1_current)  # 'h' is a variable that relates to hysteresis voltage
+    fac = np.exp(-abs(G * script_1_current_corrected / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
+    for k in range(1, len(script_1_current)):
+        h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * current_sign[k - 1]
+
+    return h
+
+
+def get_rc_current(script_1_current, delta_T=1, RC1=None, discretization="euler", numpoles=1, RCfact=None):
+    """
+    Returns list or array of rc_current values which in conjuction with R1 creates a diffusion voltage drop
+    """
+
+    if discretization == "euler":
+        resistor_current_rc = [0]*len(script_1_current)  # Initialize RC resistor current for error calculation
+        for k in range(numpoles, len(script_1_current)):  # start from index 1
+            # forward euler like in the model of the battery cell
+            resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*RC1)/(delta_T+RC1)
+    else:  # exact
+        # resistor_current_rc = np.zeros((numpoles, len(script_1_current)))  # Initialize RC resistor current for error calculation
+        # for k in range(numpoles, len(script_1_current)):
+        #     resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current[k - 1]
+        # resistor_current_rc = np.transpose(resistor_current_rc)  # Close enough to Octave vrcRaw
+
+        resistor_current_rc = [0]*len(script_1_current)  # Initialize RC resistor current for error calculation
+        for k in range(numpoles, len(script_1_current)):
+            resistor_current_rc[k] = RCfact * resistor_current_rc[k - 1] + (1 - RCfact) * script_1_current[k - 1]
+
+    return resistor_current_rc
+
+
+def OCVfromSOCtemp(soc, temp, model):
+    """
+    Extrapolates OCV vector from the soc vector but based on the previous static OCV/SOC test contained in the model.
+    """
+    index = np.where(np.array(model.temps) == temp)[0][0]
+    function = scipy.interpolate.interp1d(model.soc_vector[index], model.ocv_vector[index], fill_value="extrapolate")
+    return function(soc)

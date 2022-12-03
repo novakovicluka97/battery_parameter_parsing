@@ -32,8 +32,7 @@ MParam = [0.039929, 0.020018, 0.020545]
 R1 = 4e-3                                    # 0.64769e-3 default but in Coursera quizzes more like 8 mili-ohm
 RC1 = 60/SIMULATION_SPEED_UP                 # RC is the time constant so it must be scaled (60 seconds seem right)
 GParam = [67.207, 92.645, 67.840]
-test_temperatures = ['5', '25', '45']        # must exist in the model as well
-# Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation) # Todo check if it changed anything
+test_temperatures = [5, 25, 45]              # must exist in the model as well
 numpoles = 1
 doHyst = 1
 
@@ -71,6 +70,8 @@ R1 = {str(R1)}
 C1 = {str(RC1/R1)}
 M0 = {str(M0Param)}
 M = {str(MParam)}
+R0 = {str(R0Param)}
+T_vector = {str(test_temperatures)}
 SIMULATION_SPEED_UP = {str(SIMULATION_SPEED_UP)}
 init_dynamic = 100  # 90% initial state of charge for dynamic scripts so that the voltage doesnt go over Vmax
 Ts = {str(Ts)}
@@ -245,8 +246,8 @@ if __name__ == "__main__":
     channel_signals = ['Time', 'done_flag']
     for temp in test_temperatures:
         for measurement in ['temperature', 'voltage', 'current', 'chgAh', 'disAh', 'script_no', 'Battery Cell.OCV']:
-            channel_signals.append('static_' + temp + '.' + measurement)
-            channel_signals.append('dynamic_' + temp + '.' + measurement)
+            channel_signals.append('static_' + str(temp) + '.' + measurement)
+            channel_signals.append('dynamic_' + str(temp) + '.' + measurement)
 
     capture.start_capture(duration=capture_duration,
                           rate=capture_rate,
@@ -276,13 +277,13 @@ if __name__ == "__main__":
 
     for temp in test_temperatures:
         for script_type in ['static', 'dynamic']:
-            current = list(cap_data[script_type + '_' + temp + '.current'])
-            voltage = list(cap_data[script_type + '_' + temp + '.voltage'])
-            script_no = list(cap_data[script_type + '_' + temp + '.script_no'])
-            temperature = list(cap_data[script_type + '_' + temp + '.temperature'])
-            OCV = list(cap_data[script_type + '_' + temp + '.Battery Cell.OCV'])
-            chgAh = list(cap_data[script_type + '_' + temp + '.chgAh']/3600)  # converting to Ah from As
-            disAh = list(cap_data[script_type + '_' + temp + '.disAh']/3600)  # converting to Ah from As
+            current = list(cap_data[script_type + '_' + str(temp) + '.current'])
+            voltage = list(cap_data[script_type + '_' + str(temp) + '.voltage'])
+            script_no = list(cap_data[script_type + '_' + str(temp) + '.script_no'])
+            temperature = list(cap_data[script_type + '_' + str(temp) + '.temperature'])
+            OCV = list(cap_data[script_type + '_' + str(temp) + '.Battery Cell.OCV'])
+            chgAh = list(cap_data[script_type + '_' + str(temp) + '.chgAh']/3600)  # converting to Ah from As
+            disAh = list(cap_data[script_type + '_' + str(temp) + '.disAh']/3600)  # converting to Ah from As
 
             voltage[0] = voltage[1]  # this line of code is necessary because the voltage from probe starts with 0
 
@@ -315,11 +316,11 @@ if __name__ == "__main__":
                                                  chgAh[script_3_stop:script_4_stop],
                                                  disAh[script_3_stop:script_4_stop])
 
-                mat_data['OCVData_' + temp] = [Script_1, Script_2, Script_3, Script_4]
-                mat_data['OCVData_full' + temp] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
+                mat_data['OCVData_' + str(temp)] = [Script_1, Script_2, Script_3, Script_4]
+                mat_data['OCVData_full' + str(temp)] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
             else:
-                mat_data['DYNData_' + temp] = [Script_1, Script_2, Script_3]
-                mat_data['DYNData_full' + temp] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
+                mat_data['DYNData_' + str(temp)] = [Script_1, Script_2, Script_3]
+                mat_data['DYNData_full' + str(temp)] = [time_vec, current, voltage, chgAh, disAh, temperature, script_no]
 
     print('STEP 4b: Adding the data about hysteresis and numpoles')
     mat_data['doHyst'] = doHyst

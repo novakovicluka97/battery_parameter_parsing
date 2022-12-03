@@ -17,7 +17,7 @@ data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obta
 # data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
 output_filename = data_origin + '.pickle'  # Name of the pickled file
 minimization = "double_minimize"  # "differential_evolution" / "double_minimize"
-# minimization = "SISOSubid"
+minimization = "SISOSubid"
 
 
 if __name__ == "__main__":
