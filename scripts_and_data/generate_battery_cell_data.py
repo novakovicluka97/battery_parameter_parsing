@@ -236,11 +236,11 @@ if __name__ == "__main__":
     print('STEP 2: Compiling and loading the model, vhil_device = ', vhil_device)
     if model.compile():
         print("     Compile successful.")
+        model.close_model()
+        hil.load_model(compiled_model_path, vhil_device=vhil_device)
     else:
         print("     Compile failed.")
-    model.close_model()
-
-    hil.load_model(compiled_model_path, vhil_device=vhil_device)
+        model.close_model()
 
     # signals for capturing
     channel_signals = ['Time', 'done_flag']

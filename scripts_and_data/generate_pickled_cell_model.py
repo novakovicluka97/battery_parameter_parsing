@@ -18,6 +18,7 @@ data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obta
 output_filename = data_origin + '.pickle'  # Name of the pickled file
 minimization = "double_minimize"  # "differential_evolution" / "double_minimize"
 minimization = "SISOSubid"
+# minimization = "triple_minimize"
 
 
 if __name__ == "__main__":
@@ -77,22 +78,22 @@ if __name__ == "__main__":
         print(f"cell_model.ocv_vector at 25 degrees RMS error: {cell_functions.error_func(cell_model.ocv_vector[1], 'OCV')}")
         try:
             cell_functions.plot_func([cell_model.soc_vector[1], cell_data.SOC_default],
-                           [cell_model.ocv_vector[1], cell_data.OCV_default[1]],
-                           [f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius",
-                            f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius"],
-                           flag_show=False)
+                                     [cell_model.ocv_vector[1], cell_data.OCV_default[1]],
+                                     [f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius",
+                                      f"OCV vs SOC graph (Colorado, octave vs {data_origin}) for 25 celsius"],
+                                     flag_show=False)
             cell_functions.plot_func([cell_data.SOC_default],
-                           [np.array(cell_data.OCV_default[0])-np.array(cell_model.ocv_vector[0])],
-                           ['T5 RMS error in OCV [V] as a function of SOC'],
-                           flag_show=False)
+                                     [np.array(cell_data.OCV_default[0]) - np.array(cell_model.ocv_vector[0])],
+                                     ['T5 RMS error in OCV [V] as a function of SOC'],
+                                     flag_show=False)
             cell_functions.plot_func([cell_data.SOC_default],
-                           [np.array(cell_data.OCV_default[1])-np.array(cell_model.ocv_vector[1])],
-                           ['T25 RMS error in OCV [V] as a function of SOC'],
-                           flag_show=False)
+                                     [np.array(cell_data.OCV_default[1]) - np.array(cell_model.ocv_vector[1])],
+                                     ['T25 RMS error in OCV [V] as a function of SOC'],
+                                     flag_show=False)
             cell_functions.plot_func([cell_data.SOC_default],
-                           [np.array(cell_data.OCV_default[2])-np.array(cell_model.ocv_vector[2])],
-                           ['T45 RMS error in OCV [V] as a function of SOC'],
-                           flag_show=False)
+                                     [np.array(cell_data.OCV_default[2]) - np.array(cell_model.ocv_vector[2])],
+                                     ['T45 RMS error in OCV [V] as a function of SOC'],
+                                     flag_show=False)
         except:
             print(f"Unable to plot {data_origin}")
             pass

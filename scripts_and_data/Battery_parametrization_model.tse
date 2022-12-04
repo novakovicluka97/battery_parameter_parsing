@@ -561,7 +561,6 @@ else {
                 R1 = "R1"
                 RC_NO = "1"
                 T_vector = "T_vector"
-                T_vector_diff = "T_vector"
                 T_vector_h = "T_vector"
                 execution_rate = "Ts_cell"
                 gamma = "G"
@@ -959,14 +958,6 @@ else {
                 hide_name = True
             ]
 
-            component gen_gain Gain14 {
-                gain = "-1"
-            }
-            [
-                position = 8360, 8136
-                hide_name = True
-            ]
-
             component "core/Rate Transition" "Rate Transition1" {
                 execution_rate = "Ts_cell"
             }
@@ -992,7 +983,6 @@ else {
                 R1 = "R1"
                 RC_NO = "1"
                 T_vector = "T_vector"
-                T_vector_diff = "T_vector"
                 T_vector_h = "T_vector"
                 execution_rate = "Ts_cell"
                 gamma = "G"
@@ -1110,11 +1100,6 @@ else {
                 position = 8392, 8080
             ]
 
-            junction Junction148 sp
-            [
-                position = 8200, 8136
-            ]
-
             junction Junction160 sp
             [
                 position = 8056, 8008
@@ -1133,6 +1118,11 @@ else {
             junction Junction163 pe
             [
                 position = 8120, 8192
+            ]
+
+            junction Junction164 sp
+            [
+                position = 8200, 8136
             ]
 
             connect Junction160 switch_select as Connection988
@@ -1165,11 +1155,7 @@ else {
             connect Junction147 Integrator8.reset as Connection858
             connect Integrator7.reset Junction147 as Connection859
             connect script_no.in "Unit Delay6.out" as Connection870
-            connect Gain4.in Junction148 as Connection872
-            connect Junction148 current_.out as Connection873
             connect "Unit Delay12.out" Junction147 as Connection905
-            connect current.in Gain14.out as Connection906
-            connect Gain14.in Junction148 as Connection907
             connect "Multiport signal switch4.ctrl" Junction160 as Connection981
             [
                 breakpoints = 8056, 8048; 8056, 8048
@@ -1189,6 +1175,12 @@ else {
             connect "Battery Cell.P" Junction163 as Connection1002
             connect voltage_.n_node "Battery Cell.N" as Connection1003
             connect Isp25.p_node "Battery Cell.N" as Connection1004
+            connect Gain4.in Junction164 as Connection1006
+            connect Junction164 current_.out as Connection1007
+            [
+                breakpoints = 8200, 8136
+            ]
+            connect current.in Junction164 as Connection1008
         }
         [
             position = 8744, 8464
@@ -1564,7 +1556,6 @@ else {
                 R1 = "R1"
                 RC_NO = "1"
                 T_vector = "T_vector"
-                T_vector_diff = "T_vector"
                 T_vector_h = "T_vector"
                 execution_rate = "Ts_cell"
                 gamma = "G"
@@ -1938,14 +1929,6 @@ else {
                 hide_name = True
             ]
 
-            component gen_gain Gain14 {
-                gain = "-1"
-            }
-            [
-                position = 8360, 8136
-                hide_name = True
-            ]
-
             component "core/Rate Transition" "Rate Transition1" {
                 execution_rate = "Ts_cell"
             }
@@ -1971,7 +1954,6 @@ else {
                 R1 = "R1"
                 RC_NO = "1"
                 T_vector = "T_vector"
-                T_vector_diff = "T_vector"
                 T_vector_h = "T_vector"
                 execution_rate = "Ts_cell"
                 gamma = "G"
@@ -2089,11 +2071,6 @@ else {
                 position = 8392, 8080
             ]
 
-            junction Junction148 sp
-            [
-                position = 8200, 8136
-            ]
-
             junction Junction160 sp
             [
                 position = 8056, 8008
@@ -2112,6 +2089,11 @@ else {
             junction Junction163 pe
             [
                 position = 8144, 8192
+            ]
+
+            junction Junction164 sp
+            [
+                position = 8200, 8128
             ]
 
             connect Junction160 switch_select as Connection988
@@ -2144,11 +2126,7 @@ else {
             connect Junction147 Integrator8.reset as Connection858
             connect Integrator7.reset Junction147 as Connection859
             connect script_no.in "Unit Delay6.out" as Connection870
-            connect Gain4.in Junction148 as Connection872
-            connect Junction148 current_.out as Connection873
             connect "Unit Delay12.out" Junction147 as Connection905
-            connect current.in Gain14.out as Connection906
-            connect Gain14.in Junction148 as Connection907
             connect "Multiport signal switch4.ctrl" Junction160 as Connection981
             [
                 breakpoints = 8056, 8048; 8056, 8048
@@ -2168,6 +2146,12 @@ else {
             connect "Battery Cell.P" Junction163 as Connection1002
             connect "Battery Cell.N" Isp25.p_node as Connection1003
             connect voltage_.n_node "Battery Cell.N" as Connection1004
+            connect current_.out Junction164 as Connection1006
+            connect Junction164 Gain4.in as Connection1007
+            [
+                breakpoints = 8200, 8136
+            ]
+            connect current.in Junction164 as Connection1008
         }
         [
             position = 9480, 8464
@@ -2543,7 +2527,6 @@ else {
                 R1 = "R1"
                 RC_NO = "1"
                 T_vector = "T_vector"
-                T_vector_diff = "T_vector"
                 T_vector_h = "T_vector"
                 execution_rate = "Ts_cell"
                 gamma = "G"
@@ -2917,14 +2900,6 @@ else {
                 hide_name = True
             ]
 
-            component gen_gain Gain14 {
-                gain = "-1"
-            }
-            [
-                position = 8360, 8136
-                hide_name = True
-            ]
-
             component "core/Rate Transition" "Rate Transition1" {
                 execution_rate = "Ts_cell"
             }
@@ -2950,7 +2925,6 @@ else {
                 R1 = "R1"
                 RC_NO = "1"
                 T_vector = "T_vector"
-                T_vector_diff = "T_vector"
                 T_vector_h = "T_vector"
                 execution_rate = "Ts_cell"
                 gamma = "G"
@@ -3068,11 +3042,6 @@ else {
                 position = 8392, 8080
             ]
 
-            junction Junction148 sp
-            [
-                position = 8200, 8136
-            ]
-
             junction Junction160 sp
             [
                 position = 8056, 8008
@@ -3091,6 +3060,11 @@ else {
             junction Junction163 pe
             [
                 position = 8136, 8192
+            ]
+
+            junction Junction164 sp
+            [
+                position = 8200, 8136
             ]
 
             connect Junction160 switch_select as Connection988
@@ -3123,11 +3097,7 @@ else {
             connect Junction147 Integrator8.reset as Connection858
             connect Integrator7.reset Junction147 as Connection859
             connect script_no.in "Unit Delay6.out" as Connection870
-            connect Gain4.in Junction148 as Connection872
-            connect Junction148 current_.out as Connection873
             connect "Unit Delay12.out" Junction147 as Connection905
-            connect current.in Gain14.out as Connection906
-            connect Gain14.in Junction148 as Connection907
             connect "Multiport signal switch4.ctrl" Junction160 as Connection981
             [
                 breakpoints = 8056, 8048; 8056, 8048
@@ -3147,6 +3117,12 @@ else {
             ]
             connect "Battery Cell.P" Junction163 as Connection1003
             connect "Battery Cell.T" "Rate Transition1.out" as Connection1004
+            connect Gain4.in Junction164 as Connection1006
+            connect Junction164 current_.out as Connection1007
+            [
+                breakpoints = 8200, 8136
+            ]
+            connect current.in Junction164 as Connection1008
         }
         [
             position = 7992, 8464
