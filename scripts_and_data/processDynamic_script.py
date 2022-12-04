@@ -89,37 +89,57 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
         else:
             minfn(0, dynamic_data, model, model.temps[k], doHyst, typhoon_origin)
 
-        # Data needed to determine RC circuits (poles) is saved for external processing as well as excel data for visualizing
-        SISOSubid_data = {'verr': np.array(dynamic_data[k].script1.voltage) - np.array(dynamic_data[k].OCV),
-                          'curr_corrected': corrected_current,
-                          'curr': dynamic_data[k].script1.current}
-        scipy.io.savemat("SUB_ID.mat", SISOSubid_data)
+        if True:
+            # Data needed to determine RC circuits (poles) is saved for external processing as well as excel data for visualizing
+            SISOSubid_data = {'verr': np.array(dynamic_data[k].script1.voltage) - np.array(dynamic_data[k].OCV),
+                              'curr_corrected': corrected_current,
+                              'curr': dynamic_data[k].script1.current}
+            scipy.io.savemat("SUB_ID.mat", SISOSubid_data)
 
-        V_resistor = model.R0Param[k]*np.array(dynamic_data[k].script1.current)
-        rc_current = get_rc_current(dynamic_data[k].script1.current, delta_T=1, RC1=model.RCParam[k],
-                                    discretization="euler")
-        V_diff = np.array(rc_current) * model.RParam[k]
-        h = get_h_list(-np.array(dynamic_data[k].script1.current),
-                       model.GParam[k], model.QParam[k], eta=model.etaParam[k], delta_T=1)
-        V_h = np.array(h) * model.MParam[k] + np.sign(dynamic_data[k].script1.current) * model.M0Param[k]
-        err = np.array(dynamic_data[k].script1.voltage) - (np.array(dynamic_data[k].OCV) + V_resistor + V_diff + V_h)
+            V_resistor = model.R0Param[k]*np.array(dynamic_data[k].script1.current)
+            V_resistor_reference = np.array(dynamic_data[k].script1.voltage)-np.array(dynamic_data[k].script1.OCV_real)-np.array(dynamic_data[k].script1.voltage_diffusion)-np.array(dynamic_data[k].script1.voltage_hysteresis)
+            rc_current = get_rc_current(dynamic_data[k].script1.current, delta_T=1, RC1=model.RCParam[k],
+                                        discretization="euler")
+            V_diff = np.array(rc_current) * model.RParam[k]
+            h = get_h_list(-np.array(dynamic_data[k].script1.current),
+                           model.GParam[k], model.QParam[k], eta=model.etaParam[k], delta_T=1)
+            V_h = np.array(h) * model.MParam[k] + np.sign(dynamic_data[k].script1.current) * model.M0Param[k]
+            err = np.array(dynamic_data[k].script1.voltage) - (np.array(dynamic_data[k].OCV) + V_resistor + V_diff + V_h)
 
-        excel_data.append(np.array(dynamic_data[k].script1.voltage))  # reference dynamic voltage data
-        excel_data.append(np.array(dynamic_data[k].OCV) + V_resistor + V_diff + V_h)  # generated dynamic voltage data
-        excel_data.append(dynamic_data[k].OCV)  # generated OCV data
-        excel_data.append(V_resistor)  # generated internal resistance voltage drop
-        excel_data.append(V_diff)  # generated diffusion voltage drop
-        excel_data.append(V_h)  # generated hysteresis voltage drop
-        excel_data.append(err)  # generated error between reference and results
-        excel_data.append([sum(err**2)] * len(err))  # RMS error combined, but has to be of certain length
-        row_index.append(f'{model.temps[k]} reference dynamic voltage data')
-        row_index.append(f'{model.temps[k]} generated dynamic voltage data')
-        row_index.append(f'{model.temps[k]} generated OCV data')
-        row_index.append(f'{model.temps[k]} generated internal resistance voltage drop')
-        row_index.append(f'{model.temps[k]} generated diffusion voltage drop')
-        row_index.append(f'{model.temps[k]} generated hysteresis voltage drop')
-        row_index.append('Error calculation')
-        row_index.append('Total RMS')
+            excel_data.append(np.array(dynamic_data[k].script1.voltage))  # reference dynamic voltage data
+            row_index.append(f'{model.temps[k]} reference dynamic voltage data')
+            excel_data.append(np.array(dynamic_data[k].OCV) + V_resistor + V_diff + V_h)  # generated dynamic voltage data
+            row_index.append(f'{model.temps[k]} generated dynamic voltage data')
+            excel_data.append([sum(err**2)] * len(err))
+            row_index.append('Total RMS')
+
+            excel_data.append(dynamic_data[k].script1.OCV_real)  # reference OCV data
+            row_index.append(f'{model.temps[k]} reference OCV data')
+            excel_data.append(dynamic_data[k].OCV)  # generated OCV data
+            row_index.append(f'{model.temps[k]} generated OCV data')
+            excel_data.append([sum((np.array(dynamic_data[k].script1.OCV_real)-np.array(dynamic_data[k].OCV))**2)] * len(err))
+            row_index.append('OCV RMS')
+
+            excel_data.append(V_resistor_reference)  # reference internal resistance voltage drop
+            row_index.append(f'{model.temps[k]} reference internal resistance voltage drop')
+            excel_data.append(V_resistor)  # generated internal resistance voltage drop
+            row_index.append(f'{model.temps[k]} generated internal resistance voltage drop')
+            excel_data.append([sum((V_resistor_reference - V_resistor)**2)] * len(err))
+            row_index.append('I*R0 RMS')
+
+            excel_data.append(dynamic_data[k].script1.voltage_diffusion)  # reference diffusion voltage drop
+            row_index.append(f'{model.temps[k]} reference diffusion voltage drop')
+            excel_data.append(V_diff)  # generated diffusion voltage drop
+            row_index.append(f'{model.temps[k]} generated diffusion voltage drop')
+            excel_data.append([sum((np.array(dynamic_data[k].script1.voltage_diffusion)-V_diff)**2)] * len(err))
+            row_index.append('Voltage diffusion RMS')
+
+            excel_data.append(dynamic_data[k].script1.voltage_hysteresis)  # reference hysteresis voltage drop
+            row_index.append(f'{model.temps[k]} reference hysteresis voltage drop')
+            excel_data.append(V_h)  # generated hysteresis voltage drop
+            row_index.append(f'{model.temps[k]} generated hysteresis voltage drop')
+            excel_data.append([sum((np.array(dynamic_data[k].script1.voltage_hysteresis)-V_h)**2)] * len(err))
+            row_index.append('Voltage hysteresis RMS')
 
     print("Dynamic model created!")
 
@@ -141,7 +161,7 @@ def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=
     alltemps = [dynamic_data[i].temp for i in range(len(dynamic_data))]
     index_array = np.where(np.array(alltemps) == temperature)
     ind = index_array[0][0]  # index of current temperature in the temperatures vector of model (and data?)
-
+    G = cell_data.GParam[ind]
     model.GParam[ind] = G             # Boulder data: temp_5 -> G = 96.10954, 154.89
     Q = model.QParam[ind]             # Boulder data: temp_5 -> Q = 14.5924882
     eta = model.etaParam[ind]         # Boulder data: temp_5 -> eta = 0.981744
@@ -279,24 +299,24 @@ def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=
             R1 = np.transpose(W[0][1:])  # rest of the lstsq array values
 
         # Populate the model
-        model.RCParam[ind] = RC
-        model.RParam[ind] = np.transpose(R1)[0]
-        model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
-        model.R0Param[ind] = R0
-        model.M0Param[ind] = M0
-        model.MParam[ind] = M
+        # model.RCParam[ind] = RC
+        # model.RParam[ind] = np.transpose(R1)[0]
+        # model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
+        # model.R0Param[ind] = R0
+        # model.M0Param[ind] = M0
+        # model.MParam[ind] = M
 
         #todo delete
-        #model.RCParam      = cell_data.RCparam
-        #model.RParam      =  cell_data.Rparam
-        #model.R0Param      = cell_data.R0Param
-        #model.M0Param      = cell_data.M0Param
-        #model.MParam      =  cell_data.MParam
-        #RC      = cell_data.RCparam[ind]
-        #R1     =  cell_data.Rparam[ind]
-        #R0      = cell_data.R0Param[ind]
-        #M0      = cell_data.M0Param[ind]
-        #M     =  cell_data.MParam[ind]
+        model.RCParam      = cell_data.RCparam
+        model.RParam      =  cell_data.Rparam
+        model.R0Param      = cell_data.R0Param
+        model.M0Param      = cell_data.M0Param
+        model.MParam      =  cell_data.MParam
+        RC      = cell_data.RCparam[ind]
+        R1     =  cell_data.Rparam[ind]
+        R0      = cell_data.R0Param[ind]
+        M0      = cell_data.M0Param[ind]
+        M     =  cell_data.MParam[ind]
 
         v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) + R0 * np.array(script_1_current_corrected) + np.array(resistor_current_rc) * R1
         # v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) + R0 * np.array(script_1_current_corrected) + np.array(resistor_current_rc) * R1
@@ -456,7 +476,7 @@ def double_minimization(params, verr, curr, Ts):
         verr_calculated[k] = Tau_Ts*verr_calculated[k-1] + curr[k]*(R0+R1+Tau_Ts*R0) - curr[k-1]*(Tau_Ts*R0)
         verr_calculated[k] = verr_calculated[k]/(1+Tau_Ts)
 
-        error += abs(verr[k]-verr_calculated[k])
+        error += (verr[k]-verr_calculated[k])**2
 
     return error
 
@@ -486,7 +506,7 @@ def triple_minimization(params, v_error_after_ocv, curr, h, current_sign, model,
 
     v_estimated_full = np.array(h) * model.MParam[index] + model.M0Param[index] * current_sign + np.array(v_error_for_hysteresis)
 
-    return sum(np.array(v_error_after_ocv)-v_estimated_full)
+    return sum((np.array(v_error_after_ocv)-v_estimated_full)**2)
 
 
 def get_h_list(script_1_current, G, Q, eta, delta_T=1):

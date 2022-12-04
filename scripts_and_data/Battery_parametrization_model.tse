@@ -4,7 +4,7 @@ version = 4.2
 // Saved by sw version: 2023.1 DEV
 //
 
-model "battery_parametrization_model" {
+model "Battery_parametrization_model" {
     configuration {
         hil_device = "VHIL+"
         hil_configuration_id = 1
@@ -3845,7 +3845,7 @@ else {
         Ts = 0.01
         Ts_cell = 0.002
         G = [67.207, 92.645, 67.84]  # G param is wrong for default battery
-        do_dyn_tither = 1  # dynamic tither makes no sense if there is no hysteresis
+        do_dyn_tither = 0  # dynamic tither makes no sense if there is no hysteresis
         
         rest_time_for_temperature_equilibrium = 7200/SIMULATION_SPEED_UP  # 7200s or 2h
         counter_cooldown_max = rest_time_for_temperature_equilibrium/Ts

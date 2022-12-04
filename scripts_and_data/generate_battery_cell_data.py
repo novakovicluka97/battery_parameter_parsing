@@ -34,10 +34,11 @@ RC1 = 60/SIMULATION_SPEED_UP                 # RC is the time constant so it mus
 GParam = [67.207, 92.645, 67.840]
 test_temperatures = [5, 25, 45]              # must exist in the model as well
 numpoles = 1
-doHyst = 1
+doHyst = 0
 
 capture_rate = SIMULATION_SPEED_UP                    # capture rate should be such that parameters sample every second
-output_data_filename = 'Typhoon_captured_data.mat'    # data file that will be used to do analysis of parameters
+filename = 'Typhoon_captured_data_hyst_' + str(doHyst)
+output_filename = filename + '.mat'                   # data file that will be used to do analysis of parameters
 model_name = "Battery_parametrization_model.tse"      # "Battery_parametrization_model.tse" name of the model
 current_profile_filename = 'current_profiles.pickle'  # current profiles are used to populate LUTs in model
 flag_show = False                                     # if True, certain graphs used for debugging will be shown
@@ -245,7 +246,8 @@ if __name__ == "__main__":
     # signals for capturing
     channel_signals = ['Time', 'done_flag']
     for temp in test_temperatures:
-        for measurement in ['temperature', 'voltage', 'current', 'chgAh', 'disAh', 'script_no', 'Battery Cell.OCV']:
+        for measurement in ['temperature', 'voltage', 'current', 'chgAh', 'disAh', 'script_no', 'Battery Cell.OCV',
+                            'Battery Cell.Hysteresis voltage', 'Battery Cell.Diffusion voltage']:
             channel_signals.append('static_' + str(temp) + '.' + measurement)
             channel_signals.append('dynamic_' + str(temp) + '.' + measurement)
 
@@ -282,6 +284,8 @@ if __name__ == "__main__":
             script_no = list(cap_data[script_type + '_' + str(temp) + '.script_no'])
             temperature = list(cap_data[script_type + '_' + str(temp) + '.temperature'])
             OCV = list(cap_data[script_type + '_' + str(temp) + '.Battery Cell.OCV'])
+            voltage_diffusion = list(cap_data[script_type + '_' + str(temp) + '.Battery Cell.Diffusion voltage'])
+            voltage_hysteresis = list(cap_data[script_type + '_' + str(temp) + '.Battery Cell.Hysteresis voltage'])
             chgAh = list(cap_data[script_type + '_' + str(temp) + '.chgAh']/3600)  # converting to Ah from As
             disAh = list(cap_data[script_type + '_' + str(temp) + '.disAh']/3600)  # converting to Ah from As
 
@@ -295,7 +299,9 @@ if __name__ == "__main__":
             Script_1 = cell_functions.Script(time_vec[0:script_1_stop], temperature[0:script_1_stop],
                                              voltage[0:script_1_stop],
                                              current[0:script_1_stop], chgAh[0:script_1_stop], disAh[0:script_1_stop],
-                                             OCV[0:script_1_stop])
+                                             OCV=OCV[0:script_1_stop],
+                                             voltage_hysteresis=voltage_hysteresis[0:script_1_stop],
+                                             voltage_diffusion=voltage_diffusion[0:script_1_stop])
             Script_2 = cell_functions.Script(time_vec[script_1_stop:script_2_stop],
                                              temperature[script_1_stop:script_2_stop],
                                              voltage[script_1_stop:script_2_stop],
@@ -326,7 +332,7 @@ if __name__ == "__main__":
     mat_data['doHyst'] = doHyst
     mat_data['numpoles'] = numpoles
 
-    print('STEP 5: Saving the data dictionary into a .mat file: ' + output_data_filename)
-    scipy.io.savemat(output_data_filename, mat_data)
+    print('STEP 5: Saving the data dictionary into a .mat file: ' + output_filename)
+    scipy.io.savemat(output_filename, mat_data)
 
     print('Done!')

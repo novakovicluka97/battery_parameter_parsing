@@ -211,8 +211,7 @@ class CellAllData:
             """
             Dynamic data for scripts 1, 2 and 3
             """
-
-            # time, temp, voltage, current, chgAh, disAh
+            # time, temp, voltage, current, chgAh, disAh, OCV, Vhyst, Vdiffusion
             def __init__(self, script):
                 self.time = script[0][0][0][0]
                 self.temp = script[0][0][1][0]
@@ -221,6 +220,8 @@ class CellAllData:
                 self.chgAh = script[0][0][4][0]
                 self.disAh = script[0][0][5][0]
                 self.OCV_real = script[0][0][6][0]
+                self.voltage_hysteresis = script[0][0][7][0]
+                self.voltage_diffusion = script[0][0][8][0]
 
     class StaticData(OneTempStaticData):
         """
@@ -255,9 +256,14 @@ class CellAllData:
 
 
 class Script:  # Format for the pickled cell data is this class per temperature, per script
-    def __init__(self, time, temperature, voltage, current, chgAh, disAh, OCV=None):
+    def __init__(self, time, temperature, voltage, current, chgAh, disAh, OCV=None,
+                 voltage_diffusion=None, voltage_hysteresis=None):
         if OCV is None:
             OCV = voltage
+        if voltage_diffusion is None:
+            voltage_diffusion = voltage
+        if voltage_hysteresis is None:
+            voltage_hysteresis = voltage
         self.time = time
         self.temperature = temperature
         self.voltage = voltage
@@ -265,3 +271,5 @@ class Script:  # Format for the pickled cell data is this class per temperature,
         self.chgAh = chgAh
         self.disAh = disAh
         self.OCV = OCV
+        self.voltage_hysteresis = voltage_hysteresis
+        self.voltage_diffusion = voltage_diffusion

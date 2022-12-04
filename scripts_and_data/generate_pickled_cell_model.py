@@ -13,12 +13,14 @@ import numpy as np
 
 printout = True  # Print out the output model parameters
 use_static_Q_eta = True  # Use parameters Q and eta from static test instead of dynamic test
-data_origin = 'Typhoon_captured_data'  # 'Typhoon Hil software and hardware obtained data'
+data_origin = cell_data.filename
+# data_origin = 'Typhoon_captured_data_hyst_0'  # 'Typhoon Hil software and hardware obtained data'
 # data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
 output_filename = data_origin + '.pickle'  # Name of the pickled file
 minimization = "double_minimize"  # "differential_evolution" / "double_minimize"
 minimization = "SISOSubid"
 # minimization = "triple_minimize"
+# minimization = "differential_evolution"
 
 
 if __name__ == "__main__":
