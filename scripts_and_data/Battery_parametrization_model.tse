@@ -4,7 +4,7 @@ version = 4.2
 // Saved by sw version: 2023.1 DEV
 //
 
-model "Battery_parametrization_model" {
+model "battery_parametrization_model" {
     configuration {
         hil_device = "VHIL+"
         hil_configuration_id = 1
@@ -210,7 +210,7 @@ else {  //  (sw_select != 0)
             timer = TITHER_DISCHARGE_STOP_TIME;
         }
     }
-    else if (timer >= TITHER_DISCHARGE_STOP_TIME && sw_select == 3){
+    if (timer >= TITHER_DISCHARGE_STOP_TIME && sw_select == 3){
         timer = 0;
         if (Vcell < Vmin_25) {
             // If battery cell reached less than Vmin_25, stop the tither profile injection
@@ -566,6 +566,8 @@ else {
                 gamma = "G"
                 meas_OCV = "True"
                 meas_SOC = "True"
+                meas_diffusion = "True"
+                meas_hyst = "True"
                 thermal_flag = "False"
             }
             [
@@ -988,6 +990,8 @@ else {
                 gamma = "G"
                 meas_OCV = "True"
                 meas_SOC = "True"
+                meas_diffusion = "True"
+                meas_hyst = "True"
                 thermal_flag = "False"
             }
             [
@@ -1320,7 +1324,7 @@ else {  //  (sw_select != 0)
             timer = TITHER_DISCHARGE_STOP_TIME;
         }
     }
-    else if (timer >= TITHER_DISCHARGE_STOP_TIME && sw_select == 3){
+    if (timer >= TITHER_DISCHARGE_STOP_TIME && sw_select == 3){
         timer = 0;
         if (Vcell < Vmin_45) {
             // If battery cell reached less than Vmin, stop the tither profile injection
@@ -1561,6 +1565,8 @@ else {
                 gamma = "G"
                 meas_OCV = "True"
                 meas_SOC = "True"
+                meas_diffusion = "True"
+                meas_hyst = "True"
                 thermal_flag = "False"
             }
             [
@@ -1959,6 +1965,8 @@ else {
                 gamma = "G"
                 meas_OCV = "True"
                 meas_SOC = "True"
+                meas_diffusion = "True"
+                meas_hyst = "True"
                 thermal_flag = "False"
             }
             [
@@ -2291,7 +2299,7 @@ else {  //  (sw_select != 0)
             timer = TITHER_DISCHARGE_STOP_TIME;
         }
     }
-    else if (timer >= TITHER_DISCHARGE_STOP_TIME && sw_select == 3){
+    if (timer >= TITHER_DISCHARGE_STOP_TIME && sw_select == 3){
         timer = 0;
         if (Vcell < Vmin_5) {
             // If battery cell reached less than Vmin, stop the tither profile injection
@@ -2532,6 +2540,8 @@ else {
                 gamma = "G"
                 meas_OCV = "True"
                 meas_SOC = "True"
+                meas_diffusion = "True"
+                meas_hyst = "True"
                 thermal_flag = "False"
             }
             [
@@ -2930,6 +2940,8 @@ else {
                 gamma = "G"
                 meas_OCV = "True"
                 meas_SOC = "True"
+                meas_diffusion = "True"
+                meas_hyst = "True"
                 thermal_flag = "False"
             }
             [
@@ -3488,36 +3500,6 @@ else {
             position = 7896, 7960
         ]
 
-        comment Comment23 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
-        [
-            position = 7688, 8632
-        ]
-
-        comment Comment24 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
-        [
-            position = 8440, 8640
-        ]
-
-        comment Comment25 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
-        [
-            position = 9096, 8632
-        ]
-
-        comment Comment26 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
-        [
-            position = 7608, 7896
-        ]
-
-        comment Comment27 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
-        [
-            position = 8360, 7904
-        ]
-
-        comment Comment28 START <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Arial'; font-size:12pt; font-weight:400; font-style:normal;"><p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Numeric scale was configured to 1e2 instead of 1e6 (SOC calculation)</p></body></html> ENDCOMMENT 
-        [
-            position = 9016, 7896
-        ]
-
         connect Time.in Gain1.out as Connection750
         connect Gain1.in Clock1.out as Connection751
         connect From66 "C function17.sta1" as Connection802
@@ -3854,8 +3836,8 @@ else {
     CODE model_init
         R1 = 0.004
         C1 = 150.0
-        M0 = [0.0031315, 0.0023535, 0.0011502]
-        M = [0.039929, 0.020018, 0.020545]
+        M0 = [1e-05, 1e-05, 1e-05]
+        M = [1e-05, 1e-05, 1e-05]
         R0 = [0.0046198, 0.001781, 0.0011351]
         T_vector = [5, 25, 45]
         SIMULATION_SPEED_UP = 100
