@@ -34,7 +34,7 @@ RC1 = 60/SIMULATION_SPEED_UP                 # RC is the time constant so it mus
 GParam = [67.207, 92.645, 67.840]
 test_temperatures = [5, 25, 45]              # must exist in the model as well
 numpoles = 1
-doHyst = 0
+doHyst = 1
 
 capture_rate = SIMULATION_SPEED_UP                    # capture rate should be such that parameters sample every second
 filename = 'Typhoon_captured_data_hyst_' + str(doHyst)
@@ -247,7 +247,8 @@ if __name__ == "__main__":
     channel_signals = ['Time', 'done_flag']
     for temp in test_temperatures:
         for measurement in ['temperature', 'voltage', 'current', 'chgAh', 'disAh', 'script_no', 'Battery Cell.OCV',
-                            'Battery Cell.Hysteresis voltage', 'Battery Cell.Diffusion voltage']:
+                            'Battery Cell.Hysteresis voltage', 'Battery Cell.Diffusion voltage',
+                            'Battery Cell.Internal resistance']:
             channel_signals.append('static_' + str(temp) + '.' + measurement)
             channel_signals.append('dynamic_' + str(temp) + '.' + measurement)
 
@@ -286,6 +287,7 @@ if __name__ == "__main__":
             OCV = list(cap_data[script_type + '_' + str(temp) + '.Battery Cell.OCV'])
             voltage_diffusion = list(cap_data[script_type + '_' + str(temp) + '.Battery Cell.Diffusion voltage'])
             voltage_hysteresis = list(cap_data[script_type + '_' + str(temp) + '.Battery Cell.Hysteresis voltage'])
+            internal_resistance = list(cap_data[script_type + '_' + str(temp) + '.Battery Cell.Internal resistance'])
             chgAh = list(cap_data[script_type + '_' + str(temp) + '.chgAh']/3600)  # converting to Ah from As
             disAh = list(cap_data[script_type + '_' + str(temp) + '.disAh']/3600)  # converting to Ah from As
 
@@ -301,7 +303,8 @@ if __name__ == "__main__":
                                              current[0:script_1_stop], chgAh[0:script_1_stop], disAh[0:script_1_stop],
                                              OCV=OCV[0:script_1_stop],
                                              voltage_hysteresis=voltage_hysteresis[0:script_1_stop],
-                                             voltage_diffusion=voltage_diffusion[0:script_1_stop])
+                                             voltage_diffusion=voltage_diffusion[0:script_1_stop],
+                                             internal_resistance=internal_resistance[0:script_1_stop])
             Script_2 = cell_functions.Script(time_vec[script_1_stop:script_2_stop],
                                              temperature[script_1_stop:script_2_stop],
                                              voltage[script_1_stop:script_2_stop],

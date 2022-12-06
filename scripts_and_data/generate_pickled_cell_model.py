@@ -11,16 +11,20 @@ import numpy as np
 # This script will parse out the battery cell parameters from the battery cell data obtained from
 # "generate_battery_cell_data.py" python script. The parameters will be saved in the .pickle format.
 
-printout = True  # Print out the output model parameters
-use_static_Q_eta = True  # Use parameters Q and eta from static test instead of dynamic test
+printout = True                                     # Print out the output model parameters
+use_static_Q_eta = True                             # Use parameters Q and eta from static test instead of dynamic test
 data_origin = cell_data.filename
-# data_origin = 'Typhoon_captured_data_hyst_0'  # 'Typhoon Hil software and hardware obtained data'
-# data_origin = 'P14_Boulder_cell_data'  # 'Boulder Colorado P14 battery cell data'
-output_filename = data_origin + '.pickle'  # Name of the pickled file
-minimization = "double_minimize"  # "differential_evolution" / "double_minimize"
-minimization = "SISOSubid"
-# minimization = "triple_minimize"
-# minimization = "differential_evolution"
+# data_origin = 'Typhoon_captured_data_hyst_0'      # 'Typhoon Hil software and hardware obtained data'
+# data_origin = 'P14_Boulder_cell_data'             # 'Boulder Colorado P14 battery cell data'
+output_filename = data_origin + '.pickle'           # Name of the pickled file
+# minimization = "double_minimize"
+# minimization = "SISOSubid"
+minimization = "triple_minimize"
+minimization = "differential_evolution"
+init_guess = "a"                                    # correct replaces all output dynamic parameters into ones provided
+                                                    # into the cells (cheating)
+error_calc_range = "full"                           # full optimizes for the error over the entire range of values
+                                                    # (alternative calculates between 5% and 95% SOC)
 
 
 if __name__ == "__main__":

@@ -176,7 +176,7 @@ class CellAllData:
 
         try:
             for temp in temp_static:
-                if temp == 6:
+                if temp == 6:  # todo change this (remains from Boulder data)
                     self.static_data.append(self.StaticData(MAT_data['OCVData_' + '05'], temp))
                 else:
                     self.static_data.append(self.StaticData(MAT_data['OCVData_' + str(temp)], temp))
@@ -185,7 +185,7 @@ class CellAllData:
 
         try:
             for temp in temp_dyn:
-                if temp == 6:
+                if temp == 6:  # todo change this (remains from Boulder data)
                     self.dynamic_data.append(self.DynData(MAT_data['DYNData_' + '05'], temp))
                 else:
                     self.dynamic_data.append(self.DynData(MAT_data['DYNData_' + str(temp)], temp))
@@ -222,6 +222,7 @@ class CellAllData:
                 self.OCV_real = script[0][0][6][0]
                 self.voltage_hysteresis = script[0][0][7][0]
                 self.voltage_diffusion = script[0][0][8][0]
+                self.internal_resistance = script[0][0][9][0]
 
     class StaticData(OneTempStaticData):
         """
@@ -257,13 +258,15 @@ class CellAllData:
 
 class Script:  # Format for the pickled cell data is this class per temperature, per script
     def __init__(self, time, temperature, voltage, current, chgAh, disAh, OCV=None,
-                 voltage_diffusion=None, voltage_hysteresis=None):
+                 voltage_diffusion=None, voltage_hysteresis=None, internal_resistance=None):
         if OCV is None:
-            OCV = voltage
+            OCV = [404]*len(voltage)
         if voltage_diffusion is None:
-            voltage_diffusion = voltage
+            voltage_diffusion = [404]*len(voltage)
         if voltage_hysteresis is None:
-            voltage_hysteresis = voltage
+            voltage_hysteresis = [404]*len(voltage)
+        if internal_resistance is None:
+            internal_resistance = [404]*len(voltage)
         self.time = time
         self.temperature = temperature
         self.voltage = voltage
@@ -273,3 +276,4 @@ class Script:  # Format for the pickled cell data is this class per temperature,
         self.OCV = OCV
         self.voltage_hysteresis = voltage_hysteresis
         self.voltage_diffusion = voltage_diffusion
+        self.internal_resistance = internal_resistance

@@ -565,6 +565,7 @@ else {
                 execution_rate = "Ts_cell"
                 gamma = "G"
                 meas_OCV = "True"
+                meas_Rint = "True"
                 meas_SOC = "True"
                 meas_diffusion = "True"
                 meas_hyst = "True"
@@ -989,6 +990,7 @@ else {
                 execution_rate = "Ts_cell"
                 gamma = "G"
                 meas_OCV = "True"
+                meas_Rint = "True"
                 meas_SOC = "True"
                 meas_diffusion = "True"
                 meas_hyst = "True"
@@ -1564,6 +1566,7 @@ else {
                 execution_rate = "Ts_cell"
                 gamma = "G"
                 meas_OCV = "True"
+                meas_Rint = "True"
                 meas_SOC = "True"
                 meas_diffusion = "True"
                 meas_hyst = "True"
@@ -1964,6 +1967,7 @@ else {
                 execution_rate = "Ts_cell"
                 gamma = "G"
                 meas_OCV = "True"
+                meas_Rint = "True"
                 meas_SOC = "True"
                 meas_diffusion = "True"
                 meas_hyst = "True"
@@ -2539,6 +2543,7 @@ else {
                 execution_rate = "Ts_cell"
                 gamma = "G"
                 meas_OCV = "True"
+                meas_Rint = "True"
                 meas_SOC = "True"
                 meas_diffusion = "True"
                 meas_hyst = "True"
@@ -2939,6 +2944,7 @@ else {
                 execution_rate = "Ts_cell"
                 gamma = "G"
                 meas_OCV = "True"
+                meas_Rint = "True"
                 meas_SOC = "True"
                 meas_diffusion = "True"
                 meas_hyst = "True"
@@ -3836,8 +3842,8 @@ else {
     CODE model_init
         R1 = 0.004
         C1 = 150.0
-        M0 = [1e-05, 1e-05, 1e-05]
-        M = [1e-05, 1e-05, 1e-05]
+        M0 = [0.0031315, 0.0023535, 0.0011502]
+        M = [0.039929, 0.020018, 0.020545]
         R0 = [0.0046198, 0.001781, 0.0011351]
         T_vector = [5, 25, 45]
         SIMULATION_SPEED_UP = 100
@@ -3845,7 +3851,7 @@ else {
         Ts = 0.01
         Ts_cell = 0.002
         G = [67.207, 92.645, 67.84]  # G param is wrong for default battery
-        do_dyn_tither = 0  # dynamic tither makes no sense if there is no hysteresis
+        do_dyn_tither = 1  # dynamic tither makes no sense if there is no hysteresis
         
         rest_time_for_temperature_equilibrium = 7200/SIMULATION_SPEED_UP  # 7200s or 2h
         counter_cooldown_max = rest_time_for_temperature_equilibrium/Ts

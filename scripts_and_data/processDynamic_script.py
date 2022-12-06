@@ -97,7 +97,7 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
             scipy.io.savemat("SUB_ID.mat", SISOSubid_data)
 
             V_resistor = model.R0Param[k]*np.array(dynamic_data[k].script1.current)
-            V_resistor_reference = np.array(dynamic_data[k].script1.voltage)-np.array(dynamic_data[k].script1.OCV_real)-np.array(dynamic_data[k].script1.voltage_diffusion)-np.array(dynamic_data[k].script1.voltage_hysteresis)
+            V_resistor_reference = np.array(dynamic_data[k].script1.current)*np.array(dynamic_data[k].script1.internal_resistance)
             rc_current = get_rc_current(dynamic_data[k].script1.current, delta_T=1, RC1=model.RCParam[k],
                                         discretization="euler")
             V_diff = np.array(rc_current) * model.RParam[k]
@@ -110,35 +110,35 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
             row_index.append(f'{model.temps[k]} reference dynamic voltage data')
             excel_data.append(np.array(dynamic_data[k].OCV) + V_resistor + V_diff + V_h)  # generated dynamic voltage data
             row_index.append(f'{model.temps[k]} generated dynamic voltage data')
-            excel_data.append([sum(err**2)] * len(err))
+            excel_data.append([1000*np.sqrt(np.mean(err**2))] * len(err))
             row_index.append('Total RMS')
 
             excel_data.append(dynamic_data[k].script1.OCV_real)  # reference OCV data
             row_index.append(f'{model.temps[k]} reference OCV data')
             excel_data.append(dynamic_data[k].OCV)  # generated OCV data
             row_index.append(f'{model.temps[k]} generated OCV data')
-            excel_data.append([sum((np.array(dynamic_data[k].script1.OCV_real)-np.array(dynamic_data[k].OCV))**2)] * len(err))
+            excel_data.append([1000*np.sqrt(np.mean((np.array(dynamic_data[k].script1.OCV_real)-np.array(dynamic_data[k].OCV))**2))] * len(err))
             row_index.append('OCV RMS')
 
             excel_data.append(V_resistor_reference)  # reference internal resistance voltage drop
             row_index.append(f'{model.temps[k]} reference internal resistance voltage drop')
             excel_data.append(V_resistor)  # generated internal resistance voltage drop
             row_index.append(f'{model.temps[k]} generated internal resistance voltage drop')
-            excel_data.append([sum((V_resistor_reference - V_resistor)**2)] * len(err))
+            excel_data.append([1000*np.sqrt(np.mean((V_resistor_reference - V_resistor)**2))] * len(err))
             row_index.append('I*R0 RMS')
 
-            excel_data.append(dynamic_data[k].script1.voltage_diffusion)  # reference diffusion voltage drop
+            excel_data.append(-np.array(dynamic_data[k].script1.voltage_diffusion))  # reference diffusion voltage drop
             row_index.append(f'{model.temps[k]} reference diffusion voltage drop')
             excel_data.append(V_diff)  # generated diffusion voltage drop
             row_index.append(f'{model.temps[k]} generated diffusion voltage drop')
-            excel_data.append([sum((np.array(dynamic_data[k].script1.voltage_diffusion)-V_diff)**2)] * len(err))
+            excel_data.append([1000*np.sqrt(np.mean((np.array(dynamic_data[k].script1.voltage_diffusion)+V_diff)**2))] * len(err))
             row_index.append('Voltage diffusion RMS')
 
             excel_data.append(dynamic_data[k].script1.voltage_hysteresis)  # reference hysteresis voltage drop
             row_index.append(f'{model.temps[k]} reference hysteresis voltage drop')
             excel_data.append(V_h)  # generated hysteresis voltage drop
             row_index.append(f'{model.temps[k]} generated hysteresis voltage drop')
-            excel_data.append([sum((np.array(dynamic_data[k].script1.voltage_hysteresis)-V_h)**2)] * len(err))
+            excel_data.append([1000*np.sqrt(np.mean((np.array(dynamic_data[k].script1.voltage_hysteresis)-V_h)**2))] * len(err))
             row_index.append('Voltage hysteresis RMS')
 
     print("Dynamic model created!")
@@ -161,7 +161,8 @@ def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=
     alltemps = [dynamic_data[i].temp for i in range(len(dynamic_data))]
     index_array = np.where(np.array(alltemps) == temperature)
     ind = index_array[0][0]  # index of current temperature in the temperatures vector of model (and data?)
-    G = cell_data.GParam[ind]
+    if cell_model.init_guess == "correct":
+        G = cell_data.GParam[ind]
     model.GParam[ind] = G             # Boulder data: temp_5 -> G = 96.10954, 154.89
     Q = model.QParam[ind]             # Boulder data: temp_5 -> Q = 14.5924882
     eta = model.etaParam[ind]         # Boulder data: temp_5 -> eta = 0.981744
@@ -298,25 +299,27 @@ def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=
             R0 = W[0][0]
             R1 = np.transpose(W[0][1:])  # rest of the lstsq array values
 
+        # todo delete
         # Populate the model
-        # model.RCParam[ind] = RC
-        # model.RParam[ind] = np.transpose(R1)[0]
-        # model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
-        # model.R0Param[ind] = R0
-        # model.M0Param[ind] = M0
-        # model.MParam[ind] = M
+        if cell_model.init_guess == "correct":
+            model.RCParam      = cell_data.RCparam
+            model.RParam      =  cell_data.Rparam
+            model.R0Param      = cell_data.R0Param
+            model.M0Param      = cell_data.M0Param
+            model.MParam      =  cell_data.MParam
+            RC      = cell_data.RCparam[ind]
+            R1     =  cell_data.Rparam[ind]
+            R0      = cell_data.R0Param[ind]
+            M0      = cell_data.M0Param[ind]
+            M     =  cell_data.MParam[ind]
+        else:
+            model.RCParam[ind] = RC
+            model.RParam[ind] = np.transpose(R1)[0]
+            model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
+            model.R0Param[ind] = R0
+            model.M0Param[ind] = M0
+            model.MParam[ind] = M
 
-        #todo delete
-        model.RCParam      = cell_data.RCparam
-        model.RParam      =  cell_data.Rparam
-        model.R0Param      = cell_data.R0Param
-        model.M0Param      = cell_data.M0Param
-        model.MParam      =  cell_data.MParam
-        RC      = cell_data.RCparam[ind]
-        R1     =  cell_data.Rparam[ind]
-        R0      = cell_data.R0Param[ind]
-        M0      = cell_data.M0Param[ind]
-        M     =  cell_data.MParam[ind]
 
         v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) + R0 * np.array(script_1_current_corrected) + np.array(resistor_current_rc) * R1
         # v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) + R0 * np.array(script_1_current_corrected) + np.array(resistor_current_rc) * R1
@@ -340,8 +343,12 @@ def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=
     N1 = 1 if not N1 else N1
     N2 = len(verr_final) if not N2 else N2
 
-    root_mean_square_error = np.sqrt(np.mean(verr_final[N1:N2]**2))
-    print(f'RMS error for present value of gamma between 5% and 95% SOC = {round(root_mean_square_error * 1000, 3)} (mV)\n')
+    if cell_model.error_calc_range == "full":
+        root_mean_square_error = np.sqrt(np.mean(verr_final ** 2))
+        print(f'RMS error for present value of gamma for FULL RANGE = {round(root_mean_square_error * 1000, 3)} (mV)\n')
+    else:
+        root_mean_square_error = np.sqrt(np.mean(verr_final[N1:N2]**2))
+        print(f'RMS error for present value of gamma between 5% and 95% SOC = {round(root_mean_square_error * 1000, 3)} (mV)\n')
     assert root_mean_square_error, 'Exception: Cost is empty'
 
     return root_mean_square_error
