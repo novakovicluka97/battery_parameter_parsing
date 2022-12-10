@@ -7,6 +7,331 @@ fminbnd = scipy.optimize.fminbound
 from scipy import interpolate
 import matplotlib.pyplot as plt
 import generate_battery_cell_data as cell_data
+import generate_pickled_cell_model as cell_model
+import os
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+
+
+def get_h_list(script_1_current, G, Q, eta, delta_T=1):
+    """
+    Returns list of h values which in conjuction with M and M0 params creates a hysteresis voltage drop
+    EXPECTS CURRENT THAT IS POSITIVE WHEN IT IS FLOWING OUT OF THE BATTERY!!!
+    """
+    current_sign = np.sign(script_1_current)
+    script_1_current_corrected = np.copy(script_1_current)
+    for i in range(len(script_1_current)):
+        if script_1_current[i] < 0:
+            script_1_current_corrected[i] = script_1_current[i] * eta
+        else:
+            script_1_current_corrected[i] = script_1_current[i]
+
+    h = [0] * len(script_1_current)  # 'h' is a variable that relates to hysteresis voltage
+    fac = np.exp(-abs(G * script_1_current_corrected / (3600 * Q) * delta_T))  # also a hysteresis voltage variable
+    for k in range(1, len(script_1_current)):
+        h[k] = fac[k - 1] * h[k - 1] + (fac[k - 1] - 1) * current_sign[k - 1]
+
+    return h
+
+
+def get_rc_current(script_1_current, delta_T=1, RC1=None, discretization="euler", numpoles=1, RCfact=None):
+    """
+    Returns list or array of rc_current values which in conjuction with R1 creates a diffusion voltage drop
+    """
+
+    if discretization == "euler":
+        resistor_current_rc = [0]*len(script_1_current)  # Initialize RC resistor current for error calculation
+        for k in range(numpoles, len(script_1_current)):  # start from index 1
+            # forward euler like in the model of the battery cell
+            resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*RC1)/(delta_T+RC1)
+    else:  # exact
+        # original implementation
+        # resistor_current_rc = np.zeros((numpoles, len(script_1_current)))  # Initialize RC resistor current for error calculation
+        # for k in range(numpoles, len(script_1_current)):
+        #     resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current[k - 1]
+        # resistor_current_rc = np.transpose(resistor_current_rc)  # Close enough to Octave vrcRaw
+
+        resistor_current_rc = [0]*len(script_1_current)  # Initialize RC resistor current for error calculation
+        for k in range(numpoles, len(script_1_current)):
+            resistor_current_rc[k] = RCfact * resistor_current_rc[k - 1] + (1 - RCfact) * script_1_current[k - 1]
+
+    return resistor_current_rc
+
+
+def save_and_show_data(model, dynamic_data):
+    """
+    Saves all the data in the excel spreadsheet and SISOSubid.mat file
+    """
+    excel_data, row_index = [], []  # for result compilation
+
+    # Printing the output cell parameters
+    print(f"\nMinimization algorithm used: Fminbdn for Gamma and {cell_model.minimization} for R0, R1, RC")
+    print(f"Printout of model params:\n")
+    print(f"{model.temps=}  Relative error: {error_func(model.temps, 'temps')}")
+    print(f"{model.etaParam_static=}  Relative error: {error_func(model.etaParam_static, 'etaParam_static')}")
+    print(f"{model.etaParam=}  Relative error: {error_func(model.etaParam, 'etaParam')}")
+    print(f"{model.QParam_static=}  Relative error: {error_func(model.QParam_static, 'QParam_static')}")
+    print(f"{model.QParam=}  Relative error: {error_func(model.QParam, 'QParam')}")
+    print(f"{model.R0Param=}  Relative error: {error_func(model.R0Param, 'R0Param')}")
+    print(f"{model.RParam=}  Relative error: {error_func(model.RParam, 'RParam')}")
+    print(f"{model.RCParam=}  Relative error: {error_func(model.RCParam, 'RCParam')}")
+    print(f"{model.M0Param=}  Relative error: {error_func(model.M0Param, 'M0Param')}")
+    print(f"{model.MParam=}  Relative error: {error_func(model.MParam, 'MParam')}")
+    print(f"{model.GParam=}  Relative error: {error_func(model.GParam, 'GParam')}")
+    print(f"cell_model.ocv_vector at 25 degrees RMS error: {error_func(model.ocv_vector[1], 'OCV')}")
+    try:
+        plot_func([model.soc_vector[1], cell_data.SOC_default],
+                  [model.ocv_vector[1], cell_data.OCV_default[1]],
+                  [f"OCV vs SOC graph (Colorado, octave vs {cell_model.data_origin}) for 25 celsius",
+                   f"OCV vs SOC graph (Colorado, octave vs {cell_model.data_origin}) for 25 celsius"],
+                  flag_show=False)
+        plot_func([cell_data.SOC_default],
+                  [np.array(cell_data.OCV_default[0]) - np.array(model.ocv_vector[0])],
+                  ['T5 RMS error in OCV [V] as a function of SOC'],
+                  flag_show=False)
+        plot_func([cell_data.SOC_default],
+                  [np.array(cell_data.OCV_default[1]) - np.array(model.ocv_vector[1])],
+                  ['T25 RMS error in OCV [V] as a function of SOC'],
+                  flag_show=False)
+        plot_func([cell_data.SOC_default],
+                  [np.array(cell_data.OCV_default[2]) - np.array(model.ocv_vector[2])],
+                  ['T45 RMS error in OCV [V] as a function of SOC'],
+                  flag_show=False)
+    except:
+        print(f"Unable to plot {cell_model.data_origin}")
+        pass
+
+    for k in range(len(model.temps)):
+        # Second step: Compute OCV for "discharge portion" of test, based on static test data
+        corrected_current = [0] * len(dynamic_data[k].script1.current)
+        for index, current in enumerate(dynamic_data[k].script1.current):
+            if current > 0:  # if current is flowing into the battery and charging it, apply a coefficient
+                corrected_current[index] = current * model.etaParam[k]
+            else:
+                corrected_current[index] = current
+
+        V_resistor = model.R0Param[k] * np.array(dynamic_data[k].script1.current)
+        V_resistor_reference = np.array(dynamic_data[k].script1.current) * np.array(
+            dynamic_data[k].script1.internal_resistance)
+        rc_current = get_rc_current(dynamic_data[k].script1.current, delta_T=1, RC1=model.RCParam[k],
+                                    discretization="euler")
+        V_diff = np.array(rc_current) * model.RParam[k]
+        h = get_h_list(-np.array(dynamic_data[k].script1.current),
+                       model.GParam[k], model.QParam[k], eta=model.etaParam[k], delta_T=1)
+        V_h = np.array(h) * model.MParam[k] + np.sign(dynamic_data[k].script1.current) * model.M0Param[k]
+        err = np.array(dynamic_data[k].script1.voltage) - (np.array(dynamic_data[k].OCV) + V_resistor + V_diff + V_h)
+
+        excel_data.append(np.array(dynamic_data[k].script1.voltage))  # reference dynamic voltage data
+        row_index.append(f'{model.temps[k]}C ref dynamic voltage')
+        excel_data.append(np.array(dynamic_data[k].OCV) + V_resistor + V_diff + V_h)  # generated dynamic voltage data
+        row_index.append(f'{model.temps[k]}C gen dynamic voltage')
+        excel_data.append([1000 * np.sqrt(np.mean(err ** 2))] * len(err))
+        row_index.append(f'{model.temps[k]}C Total RMS')
+
+        excel_data.append(dynamic_data[k].script1.OCV_real)  # reference OCV data
+        row_index.append(f'{model.temps[k]}C ref OCV')
+        excel_data.append(dynamic_data[k].OCV)  # generated OCV data
+        row_index.append(f'{model.temps[k]}C gen OCV')
+        excel_data.append([1000 * np.sqrt(
+            np.mean((np.array(dynamic_data[k].script1.OCV_real) - np.array(dynamic_data[k].OCV)) ** 2))] * len(err))
+        row_index.append(f'{model.temps[k]}C OCV RMS')
+
+        excel_data.append(V_resistor_reference)  # reference internal resistance voltage drop
+        row_index.append(f'{model.temps[k]}C ref I*R0')
+        excel_data.append(V_resistor)  # generated internal resistance voltage drop
+        row_index.append(f'{model.temps[k]}C gen I*R0')
+        excel_data.append([1000 * np.sqrt(np.mean((V_resistor_reference - V_resistor) ** 2))] * len(err))
+        row_index.append(f'{model.temps[k]}C I*R0 RMS')
+
+        excel_data.append(-np.array(dynamic_data[k].script1.voltage_diffusion))  # reference diffusion voltage drop
+        row_index.append(f'{model.temps[k]}C ref V_diff')
+        excel_data.append(V_diff)  # generated diffusion voltage drop
+        row_index.append(f'{model.temps[k]}C gen V_diff')
+        excel_data.append(
+            [1000 * np.sqrt(np.mean((np.array(dynamic_data[k].script1.voltage_diffusion) + V_diff) ** 2))] * len(err))
+        row_index.append(f'{model.temps[k]}C V_diff RMS')
+
+        excel_data.append(dynamic_data[k].script1.voltage_hysteresis)  # reference hysteresis voltage drop
+        row_index.append(f'{model.temps[k]}C ref V_hyst')
+        excel_data.append(V_h)  # generated hysteresis voltage drop
+        row_index.append(f'{model.temps[k]}C gen V_hyst')
+        excel_data.append(
+            [1000 * np.sqrt(np.mean((np.array(dynamic_data[k].script1.voltage_hysteresis) - V_h) ** 2))] * len(err))
+        row_index.append(f'{model.temps[k]}C V_hyst RMS')
+
+        # Data needed to determine RC circuits is saved for external processing as well as excel data for visualizing
+        SISOSubid_data = {'verr': np.array(dynamic_data[k].script1.voltage) - np.array(dynamic_data[k].OCV),
+                          'curr_corrected': corrected_current,
+                          'curr': dynamic_data[k].script1.current}
+        scipy.io.savemat("SUB_ID_" + str(model.temps[k]) + ".mat", SISOSubid_data)
+
+    #
+    df = pd.DataFrame(data=excel_data,
+                      index=row_index)
+    df = df.T
+    # df.to_excel(cell_model.data_origin + ".xlsx")
+    # print("Excel data saved as ", cell_model.data_origin + ".xlsx")
+    # os.system("start EXCEL.EXE " + cell_model.data_origin + ".xlsx")
+
+    st.set_page_config(page_title="Battery cell parametrization", page_icon=":chart_with_upwards_trend:", layout="wide")
+    st.dataframe(df)
+
+    df_selection = df
+
+    # Main page 1
+    st.title(":bar_chart: Results Dashboard")
+    st.markdown("##")
+
+    total_rms_25C = round(df_selection['25C Total RMS'].mean(), 2)
+    total_rms_5C = round(df_selection['5C Total RMS'].mean(), 2)
+    total_rms_45C = round(df_selection['45C Total RMS'].mean(), 2)
+
+    left_column, middle_column, right_column = st.columns(3)
+    with left_column:
+        st.subheader("Total RMS error for the dynamic script for 5 degrees C:")
+        st.subheader(f"Voltage RMS = {total_rms_5C} mV")
+    with middle_column:
+        st.subheader("Total RMS error for the dynamic script for 25 degrees C:")
+        st.subheader(f"Voltage RMS = {total_rms_25C} mV")
+    with right_column:
+        st.subheader("Total RMS error for the dynamic script for 45 degrees C:")
+        st.subheader(f"Voltage RMS = {total_rms_45C} mV")
+
+    st.markdown("""---""")
+
+    # Plot
+    st.title(":bar_chart: Graph of dynamic script voltage for 25C (estimation vs original)")
+    st.line_chart(data=df, y=['25C ref dynamic voltage', '25C gen dynamic voltage'], width=0, height=500,
+                  use_container_width=True)
+
+    # Main page 2
+    st.title(f":chart_with_upwards_trend: Minimization algorithm used: Fminbdn for Gamma and {cell_model.minimization} for R0, R1, RC")
+    st.markdown("##")
+
+    column_0_Q = pd.DataFrame(data=[np.array(model.QParam),
+                                    np.array(cell_data.QParam)],
+                              index=["QParam", "QParam original"],
+                              columns=["5", "25", "45"])
+    column_1_eta = pd.DataFrame(data=[np.array(model.etaParam),
+                                    np.array(cell_data.etaParam)],
+                              index=["etaParam", "etaParam original"],
+                              columns=["5", "25", "45"])
+    column_2_R0 = pd.DataFrame(data=[np.array(model.R0Param),
+                                    np.array(cell_data.R0Param)],
+                              index=["R0Param", "R0Param original"],
+                              columns=["5", "25", "45"])
+    column_3_R1 = pd.DataFrame(data=[np.array(model.RParam),
+                                    np.array(cell_data.RParam)],
+                              index=["RParam", "RParam original"],
+                              columns=["5", "25", "45"])
+    column_4_RC = pd.DataFrame(data=[np.array(model.RCParam),
+                                    np.array(cell_data.RCparam)],
+                              index=["RCParam", "RCParam original"],
+                              columns=["5", "25", "45"])
+    column_5_G = pd.DataFrame(data=[np.array(model.GParam),
+                                    np.array(cell_data.GParam)],
+                              index=["GParam", "GParam original"],
+                              columns=["5", "25", "45"])
+    column_6_M = pd.DataFrame(data=[np.array(model.MParam),
+                                    np.array(cell_data.MParam)],
+                              index=["MParam", "MParam original"],
+                              columns=["5", "25", "45"])
+    column_7_M0 = pd.DataFrame(data=[np.array(model.M0Param),
+                                    np.array(cell_data.M0Param)],
+                              index=["M0Param", "M0Param original"],
+                              columns=["5", "25", "45"])
+
+    if cell_data.doHyst == 1:
+        column_0, column_1, column_2, column_3, column_4, column_5, column_6, column_7 = st.columns(8)
+        with column_0:
+            fig, ax = plt.subplots()
+            column_0_Q.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_1:
+            fig, ax = plt.subplots()
+            column_1_eta.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_2:
+            fig, ax = plt.subplots()
+            column_2_R0.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_3:
+            fig, ax = plt.subplots()
+            column_3_R1.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_4:
+            fig, ax = plt.subplots()
+            column_4_RC.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_5:
+            fig, ax = plt.subplots()
+            column_5_G.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_6:
+            fig, ax = plt.subplots()
+            column_6_M.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_7:
+            fig, ax = plt.subplots()
+            column_7_M0.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+    else:
+        column_0, column_1, column_2, column_3, column_4 = st.columns(5)
+        with column_0:
+            fig, ax = plt.subplots()
+            column_0_Q.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_1:
+            fig, ax = plt.subplots()
+            column_1_eta.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_2:
+            fig, ax = plt.subplots()
+            column_2_R0.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_3:
+            fig, ax = plt.subplots()
+            column_3_R1.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+        with column_4:
+            fig, ax = plt.subplots()
+            column_4_RC.T.plot.bar(ax=ax)
+            st.pyplot(fig)
+
+    # Main page 3
+    st.markdown("##")
+
+    left_column, right_column = st.columns(2)
+    with left_column:
+        st.subheader(f"Printout of model params:")
+        st.subheader("temps=          " + f"{model.temps}")
+        st.subheader("etaParam_static=" + f"{model.etaParam_static}")
+        st.subheader("etaParam=       " + f"{model.etaParam}")
+        st.subheader("QParam_static=  " + f"{model.QParam_static}")
+        st.subheader("QParam=         " + f"{model.QParam}")
+        st.subheader("R0Param=        " + f"{model.R0Param}")
+        st.subheader("RParam=         " + f"{model.RParam}")
+        st.subheader("RCParam=        " + f"{model.RCParam}")
+        st.subheader("M0Param=        " + f"{model.M0Param}")
+        st.subheader("MParam=         " + f"{model.MParam}")
+        st.subheader("GParam=         " + f"{model.GParam}")
+
+    with right_column:
+        st.subheader(f"Relative errors:")
+        st.subheader(f"{error_func(model.temps, 'temps')}")
+        st.subheader(f"{error_func(model.etaParam_static, 'etaParam_static')}")
+        st.subheader(f"{error_func(model.etaParam, 'etaParam')}")
+        st.subheader(f"{error_func(model.QParam_static, 'QParam_static')}")
+        st.subheader(f"{error_func(model.QParam, 'QParam')}")
+        st.subheader(f"{error_func(model.R0Param, 'R0Param')}")
+        st.subheader(f"{error_func(model.RParam, 'RParam')}")
+        st.subheader(f"{error_func(model.RCParam, 'RCParam')}")
+        st.subheader(f"{error_func(model.M0Param, 'M0Param')}")
+        st.subheader(f"{error_func(model.MParam, 'MParam')}")
+        st.subheader(f"{error_func(model.GParam, 'GParam')}")
+
+    st.markdown("""---""")
 
 
 def plot_func(x_axis_list, y_axis_list, names, flag_show: bool = False):
@@ -38,7 +363,7 @@ def error_func(model_param, param_name):
             elif param_name == 'QParam':
                 error.append(round((cell_data.QParam[i]-model_param[i])/cell_data.QParam[i], 2))
             elif param_name == 'RParam':
-                error.append(round((cell_data.Rparam[i]-model_param[i])/cell_data.Rparam[i], 2))
+                error.append(round((cell_data.RParam[i]-model_param[i])/cell_data.RParam[i], 2))
             elif param_name == 'RCParam':
                 error.append(round((cell_data.RCparam[i]-model_param[i])/cell_data.RCparam[i], 2))
             elif param_name == 'etaParam_static':
