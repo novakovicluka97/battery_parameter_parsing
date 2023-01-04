@@ -35,31 +35,34 @@ def get_h_list(script_1_current, G, Q, eta, delta_T=1):
     return h
 
 
-def get_rc_current(script_1_current, delta_T=1, RC1=None, discretization="euler", numpoles=1, RCfact=None):
+def get_rc_current(script_1_current, delta_T=1, RC=None, discretization="euler", numpoles=1, RCfact=None):
     """
-    Returns list or array of rc_current values which in conjuction with R1 creates a diffusion voltage drop
+    Returns array of rc_current values which in conjunction with R1 creates a diffusion voltage drop
     """
 
+    resistor_current_rc = np.zeros((numpoles, len(script_1_current)))
     if discretization == "euler":
-        resistor_current_rc = [0]*len(script_1_current)  # Initialize RC resistor current for error calculation
-        for k in range(numpoles, len(script_1_current)):  # start from index 1
-            # forward euler like in the model of the battery cell
-            resistor_current_rc[k] = (script_1_current[k]*delta_T+resistor_current_rc[k-1]*RC1)/(delta_T+RC1)
+        for numpole in range(numpoles):
+            for k in range(1, len(script_1_current)):  # start from index 1
+                # forward euler like in the typhoon model of the battery cell component
+                resistor_current_rc[numpole, k] = \
+                    (script_1_current[k]*delta_T+resistor_current_rc[numpole, k-1]*RC[numpole])/(delta_T+RC[numpole])
     else:  # exact
         # original implementation
         # resistor_current_rc = np.zeros((numpoles, len(script_1_current)))  # Initialize RC resistor current for error calculation
         # for k in range(numpoles, len(script_1_current)):
         #     resistor_current_rc[:, k] = np.diag(RCfact) * resistor_current_rc[:, k - 1] + (1 - RCfact) * script_1_current[k - 1]
         # resistor_current_rc = np.transpose(resistor_current_rc)  # Close enough to Octave vrcRaw
-
-        resistor_current_rc = [0]*len(script_1_current)  # Initialize RC resistor current for error calculation
-        for k in range(numpoles, len(script_1_current)):
-            resistor_current_rc[k] = RCfact * resistor_current_rc[k - 1] + (1 - RCfact) * script_1_current[k - 1]
+        for numpole in range(numpoles):
+            for k in range(1, len(script_1_current)):  # start from index 1
+                # forward euler like in the typhoon model of the battery cell component
+                resistor_current_rc[numpoles, k] = RCfact[numpole] * resistor_current_rc[k - 1] + \
+                                                   (1 - RCfact[numpole]) * script_1_current[k - 1]
 
     return resistor_current_rc
 
 
-def save_and_show_data(model, dynamic_data):
+def save_and_show_data(model, dynamic_data, numpoles):
     """
     Saves all the data in the excel spreadsheet and SISOSubid.mat file
     """
@@ -74,8 +77,8 @@ def save_and_show_data(model, dynamic_data):
     print(f"{model.QParam_static=}  Relative error: {error_func(model.QParam_static, 'QParam_static')}")
     print(f"{model.QParam=}  Relative error: {error_func(model.QParam, 'QParam')}")
     print(f"{model.R0Param=}  Relative error: {error_func(model.R0Param, 'R0Param')}")
-    print(f"{model.RParam=}  Relative error: {error_func(model.RParam, 'RParam')}")
-    print(f"{model.RCParam=}  Relative error: {error_func(model.RCParam, 'RCParam')}")
+    print(f"{model.R1Param=}  Relative error: {error_func(model.R1Param, 'R1Param')}")
+    print(f"{model.RC1Param=}  Relative error: {error_func(model.RC1Param, 'RC1Param')}")
     print(f"{model.M0Param=}  Relative error: {error_func(model.M0Param, 'M0Param')}")
     print(f"{model.MParam=}  Relative error: {error_func(model.MParam, 'MParam')}")
     print(f"{model.GParam=}  Relative error: {error_func(model.GParam, 'GParam')}")
@@ -114,9 +117,17 @@ def save_and_show_data(model, dynamic_data):
         V_resistor = model.R0Param[k] * np.array(dynamic_data[k].script1.current)
         V_resistor_reference = np.array(dynamic_data[k].script1.current) * np.array(
             dynamic_data[k].script1.internal_resistance)
-        rc_current = get_rc_current(dynamic_data[k].script1.current, delta_T=1, RC1=model.RCParam[k],
-                                    discretization="euler")
-        V_diff = np.array(rc_current) * model.RParam[k]
+        rc_current = get_rc_current(dynamic_data[k].script1.current, delta_T=1, RC=[model.RC1Param[k], model.RC2Param[k]],
+                                    discretization="euler", numpoles=2)
+
+        V_diff = np.zeros((len(rc_current[0])))
+        if numpoles == 3:
+            V_diff = rc_current[0] * model.R1Param[k] + rc_current[1] * model.R2Param[k] + rc_current[2] * model.R3Param[k]
+        elif numpoles == 2:
+            V_diff = rc_current[0] * model.R1Param[k] + rc_current[1] * model.R2Param[k]
+        elif numpoles == 1:
+            V_diff = rc_current[0] * model.R1Param[k]
+
         h = get_h_list(-np.array(dynamic_data[k].script1.current),
                        model.GParam[k], model.QParam[k], eta=model.etaParam[k], delta_T=1)
         V_h = np.array(h) * model.MParam[k] + np.sign(dynamic_data[k].script1.current) * model.M0Param[k]
@@ -221,14 +232,14 @@ def save_and_show_data(model, dynamic_data):
                                     np.array(cell_data.R0Param)],
                               index=["R0Param", "R0Param original"],
                               columns=["5", "25", "45"])
-    column_3_R1 = pd.DataFrame(data=[np.array(model.RParam),
-                                    np.array(cell_data.RParam)],
-                              index=["RParam", "RParam original"],
-                              columns=["5", "25", "45"])
-    column_4_RC = pd.DataFrame(data=[np.array(model.RCParam),
-                                    np.array(cell_data.RCparam)],
-                              index=["RCParam", "RCParam original"],
-                              columns=["5", "25", "45"])
+    column_3_R1 = pd.DataFrame(data=[np.array(model.R1Param),
+                                     np.array(cell_data.R1Param)],
+                               index=["R1Param", "R1Param original"],
+                               columns=["5", "25", "45"])
+    column_4_RC1 = pd.DataFrame(data=[np.array(model.RC1Param),
+                                     np.array(cell_data.RC1param)],
+                               index=["RC1Param", "RC1Param original"],
+                               columns=["5", "25", "45"])
     column_5_G = pd.DataFrame(data=[np.array(model.GParam),
                                     np.array(cell_data.GParam)],
                               index=["GParam", "GParam original"],
@@ -262,7 +273,7 @@ def save_and_show_data(model, dynamic_data):
             st.pyplot(fig)
         with column_4:
             fig, ax = plt.subplots()
-            column_4_RC.T.plot.bar(ax=ax)
+            column_4_RC1.T.plot.bar(ax=ax)
             st.pyplot(fig)
         with column_5:
             fig, ax = plt.subplots()
@@ -296,7 +307,7 @@ def save_and_show_data(model, dynamic_data):
             st.pyplot(fig)
         with column_4:
             fig, ax = plt.subplots()
-            column_4_RC.T.plot.bar(ax=ax)
+            column_4_RC1.T.plot.bar(ax=ax)
             st.pyplot(fig)
 
     # Main page 3
@@ -311,8 +322,8 @@ def save_and_show_data(model, dynamic_data):
         st.subheader("QParam_static=  " + f"{model.QParam_static}")
         st.subheader("QParam=         " + f"{model.QParam}")
         st.subheader("R0Param=        " + f"{model.R0Param}")
-        st.subheader("RParam=         " + f"{model.RParam}")
-        st.subheader("RCParam=        " + f"{model.RCParam}")
+        st.subheader("R1Param=         " + f"{model.R1Param}")
+        st.subheader("RC1Param=        " + f"{model.RC1Param}")
         st.subheader("M0Param=        " + f"{model.M0Param}")
         st.subheader("MParam=         " + f"{model.MParam}")
         st.subheader("GParam=         " + f"{model.GParam}")
@@ -325,8 +336,8 @@ def save_and_show_data(model, dynamic_data):
         st.subheader(f"{error_func(model.QParam_static, 'QParam_static')}")
         st.subheader(f"{error_func(model.QParam, 'QParam')}")
         st.subheader(f"{error_func(model.R0Param, 'R0Param')}")
-        st.subheader(f"{error_func(model.RParam, 'RParam')}")
-        st.subheader(f"{error_func(model.RCParam, 'RCParam')}")
+        st.subheader(f"{error_func(model.R1Param, 'R1Param')}")
+        st.subheader(f"{error_func(model.RC1Param, 'RC1Param')}")
         st.subheader(f"{error_func(model.M0Param, 'M0Param')}")
         st.subheader(f"{error_func(model.MParam, 'MParam')}")
         st.subheader(f"{error_func(model.GParam, 'GParam')}")
@@ -362,10 +373,10 @@ def error_func(model_param, param_name):
                 error.append(round((cell_data.etaParam[i]-model_param[i])/cell_data.etaParam[i], 2))
             elif param_name == 'QParam':
                 error.append(round((cell_data.QParam[i]-model_param[i])/cell_data.QParam[i], 2))
-            elif param_name == 'RParam':
-                error.append(round((cell_data.RParam[i]-model_param[i])/cell_data.RParam[i], 2))
-            elif param_name == 'RCParam':
-                error.append(round((cell_data.RCparam[i]-model_param[i])/cell_data.RCparam[i], 2))
+            elif param_name == 'R1Param':
+                error.append(round((cell_data.R1Param[i] - model_param[i]) / cell_data.R1Param[i], 2))
+            elif param_name == 'RC1Param':
+                error.append(round((cell_data.RC1param[i] - model_param[i]) / cell_data.RC1param[i], 2))
             elif param_name == 'etaParam_static':
                 error.append(round((cell_data.etaParam_static[i]-model_param[i])/cell_data.etaParam_static[i], 2))
             elif param_name == 'QParam_static':
@@ -391,17 +402,21 @@ class ESC_battery_model:
         self.etaParam = []
         self.QParam_static = []
         self.etaParam_static = []
-        self.RCParam = []
-        self.RParam = []
         self.soc_vector = []  # should be multidimensional arrays
         self.ocv_vector = []  # should be multidimensional arrays
         self.GParam = []  # model.GParam = [0] * len(data)
         self.M0Param = []  # model.M0Param = [0] * len(data)
         self.MParam = []  # model.MParam = [0] * len(data)
         self.R0Param = []  # model.R0Param = [0] * len(data)
-        self.RCParam = []  # model.RCParam = [[0] * len(data)] * numpoles
-        self.RParam = []  # model.RParam = [[0] * len(data)] * numpoles
-        self.CParam = []  # model.RParam = [[0] * len(data)] * numpoles
+        self.RC1Param = []  # model.RC1Param = [0] * len(data)
+        self.R1Param = []  # model.R1Param = [0] * len(data)
+        self.C1Param = []  # model.R1Param = [0] * len(data)
+        self.RC2Param = []  # model.RC2Param = [0] * len(data)
+        self.R2Param = []  # model.R2Param = [0] * len(data)
+        self.C2Param = []  # model.R2Param = [0] * len(data)
+        self.RC3Param = []  # model.RC3Param = [0] * len(data)
+        self.R3Param = []  # model.R3Param = [0] * len(data)
+        self.C3Param = []  # model.R3Param = [0] * len(data)
 
 
 class OneTempDynData:

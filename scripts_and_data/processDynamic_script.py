@@ -19,10 +19,16 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
     model.GParam = [0] * len(dynamic_data)
     model.MParam = [0] * len(dynamic_data)
     model.M0Param = [0] * len(dynamic_data)
-    model.RParam = [0] * len(dynamic_data)
     model.R0Param = [0] * len(dynamic_data)
-    model.RCParam = [0] * len(dynamic_data)
-    model.CParam = [0] * len(dynamic_data)
+    model.R1Param = [0] * len(dynamic_data)
+    model.RC1Param = [0] * len(dynamic_data)
+    model.C1Param = [0] * len(dynamic_data)
+    model.R2Param = [0] * len(dynamic_data)
+    model.RC2Param = [0] * len(dynamic_data)
+    model.C2Param = [0] * len(dynamic_data)
+    model.R3Param = [0] * len(dynamic_data)
+    model.RC3Param = [0] * len(dynamic_data)
+    model.C3Param = [0] * len(dynamic_data)
 
     # First step: Compute Q and eta again. This is to recalibrate the static test Q and eta
     ind25 = None
@@ -83,10 +89,10 @@ def processDynamic(dynamic_data, model, numpoles, doHyst, typhoon_origin=False):
         # Third step: Use optimization algorithm to find parameters M, M0, G, RC, R and R0
         print("Processing temperature: ", dynamic_data[k].temp, " degrees celsius")
         if doHyst:
-            GParam_optimal = fminbnd(minfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, typhoon_origin), xtol=0.1, maxfun=40, disp=2)
-            print(f"Converged value of GParam is {round(GParam_optimal)}")
+            GParam_optimal = fminbnd(minfn, 1, 250, args=(dynamic_data, model, model.temps[k], doHyst, typhoon_origin,
+                                                          numpoles), xtol=0.1, maxfun=40, disp=2)
         else:
-            minfn(0, dynamic_data, model, model.temps[k], doHyst, typhoon_origin)
+            minfn(0, dynamic_data, model, model.temps[k], doHyst, typhoon_origin, numpoles)
 
     print("Dynamic model created!")
 
@@ -140,7 +146,7 @@ def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=
     # Second modeling step: Compute time constants in "A" matrix, or in other terms, RC circuit parameters
     if cell_model.minimization != "SISOSubid":
         bnds = ((0, 1), (0, 1), (5, 120))  # Bounds for minimization functions  R0, R1, RC1
-        init_guess = [cell_data.R0Param[ind], cell_data.RParam[ind], cell_data.RCparam[ind]]  # R0, R1, RC1
+        init_guess = [cell_data.R0Param[ind], cell_data.R1Param[ind], cell_data.RC1param[ind]]  # R0, R1, RC1
         init_guess = [4e-3, 3e-3, 120]  # R0, R1, RC1
         # Todo: add R0 guess from static test (maybe even RC and R1)
 
@@ -175,12 +181,12 @@ def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=
         R1 = params.x[1]
         RC1 = params.x[2]
         model.R0Param[ind] = R0
-        model.RParam[ind] = R1
+        model.R1Param[ind] = R1
         model.RCParam[ind] = RC1
         model.CParam[ind] = RC1/R1
 
         # Initialize RC resistor current for error calculation
-        resistor_current_rc = cell_functions.get_rc_current(script_1_current, delta_T=delta_T, RC1=RC1, discretization="euler")
+        resistor_current_rc = cell_functions.get_rc_current(script_1_current, delta_T=delta_T, RC=RC1, discretization="euler")
 
         v_est_full = v_est_ocv + np.array(h) * model.MParam[ind] + model.M0Param[ind] * current_sign + \
                      R0 * np.array(script_1_current) + np.array(resistor_current_rc) * R1
@@ -190,15 +196,28 @@ def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=
         while True:
             A = SISOsubid(-np.diff(v_error), np.diff(script_1_current_corrected), numpoles_loop_no)
             eigA = LA.eig(A)[0]     # For Boulder: eigA = [0.2389149], [0.6528]
-            if eigA != np.conj(eigA):
-                print("WARNING: eigA is not a real number, results may not be proper. eigA = ", eigA)
-                eigA = abs(eigA)
-            if not (1 > eigA > 0):
-                print("WARNING: eigA is not in proper range, results may not be proper. eigA = ", eigA)
-                if eigA < 0:
-                    eigA = -eigA
-                elif eigA > 1:
-                    eigA = 1/eigA
+            if len(eigA) > 1:
+                if any(eigA != np.conj(eigA)):
+                    print("WARNING: eigA is not a real number, results may not be proper. eigA = ", eigA)
+                    eigA = abs(eigA)
+                for i in range(len(eigA)):
+                    if not (1 > eigA[i] > 0):
+                        print("WARNING: eigA is not in proper range, results may not be proper. eigA = ", eigA)
+                        if eigA[i] < 0:
+                            eigA = abs(eigA)
+                        elif eigA[i] > 1:
+                            eigA[0] = 1 / eigA[0]
+            else:
+                if eigA != np.conj(eigA):
+                    print("WARNING: eigA is not a real number, results may not be proper. eigA = ", eigA)
+                    eigA = abs(eigA)
+                if not (1 > eigA > 0):
+                    print("WARNING: eigA is not in proper range, results may not be proper. eigA = ", eigA)
+                    if eigA < 0:
+                        eigA = -eigA
+                    elif eigA > 1:
+                        eigA = 1/eigA
+
             okpoles = len(eigA)
             numpoles_loop_no = numpoles_loop_no + 1
             if okpoles >= numpoles:
@@ -206,61 +225,61 @@ def minfn(G, dynamic_data, model, temperature, doHyst, typhoon_origin, numpoles=
             print(f'Trying {numpoles_loop_no=}\n')
 
         # Solution of SISOSubid is RCfact which is np.exp(-delta_T/Tau) and as exponential function, the solution should be between 0 and 1
-        RCfact_var = np.sort(eigA)  # [0.66075] for boulder data
-        RCfact = (RCfact_var[len(RCfact_var) - numpoles:])[0]  # looks like it makes no sense to be different then previous variable
+        RCfact = np.sort(eigA)  # [0.66075] for boulder data
         RC = -1 / np.log(RCfact)  # reference code says 2.3844, but we get slightly over 2.4 s (or minutes)
+
         # 1 in previous function is delta_T and should be a variable but then that must also be propagated in SISOSubid
         # Simulate the R - C filters to find R - C currents
-        resistor_current_rc = cell_functions.get_rc_current(script_1_current, discretization="euler", numpoles=numpoles, RCfact=RCfact, RC1=RC)
+        resistor_current_rc = cell_functions.get_rc_current(script_1_current, discretization="euler", numpoles=numpoles, RCfact=RCfact, RC=RC)
 
         # Third modeling step: Hysteresis parameters
         if doHyst:
             # Todo: shorten into one line
             if typhoon_origin:
                 H_1 = np.append(np.transpose([h]), np.transpose([current_sign]), 1)  # in typhoon current sign is opposite
-                H_2 = np.append(np.transpose([script_1_current]), np.transpose([resistor_current_rc]), 1)  # In typhoon, correction coefficient is not applied to current, only to SOC
+                H_2 = np.append(np.transpose([script_1_current]), np.transpose(resistor_current_rc), 1)  # In typhoon, correction coefficient is not applied to current, only to SOC
             else:
                 H_1 = np.append(np.transpose([h]), np.transpose([current_sign]), 1)
-                H_2 = np.append(-np.transpose([script_1_current_corrected]), -np.transpose([resistor_current_rc]), 1)
+                H_2 = np.append(-np.transpose([script_1_current_corrected]), -np.transpose(resistor_current_rc), 1)
             H = np.append(H_1, H_2, 1)
             W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
             M  = W[0][0]
             M0 = W[0][1]
             R0 = W[0][2]
-            R1 = np.transpose(W[0][3:])  # rest of the lstsq array values
+            R = np.transpose(W[0][3:])  # rest of the lstsq array values
         else:
             if typhoon_origin:  # In typhoon, correction coefficient is not applied to current, only to SOC
-                H = np.append(np.transpose([script_1_current]), np.transpose([resistor_current_rc]), 1)
+                H = np.append(np.transpose([script_1_current]), np.transpose(resistor_current_rc), 1)
             else:
-                H = np.append(-np.transpose([script_1_current_corrected]), -np.transpose([resistor_current_rc]), 1)
+                H = np.append(-np.transpose([script_1_current_corrected]), -np.transpose(resistor_current_rc), 1)
             W = LA.lstsq(H, v_error)  # finds best W for H@W=v_error
             M = 0
             M0 = 0
             R0 = W[0][0]
-            R1 = np.transpose(W[0][1:])  # rest of the lstsq array values
+            R = np.transpose(W[0][1:])  # rest of the lstsq array values
 
         # Populate the model
         if cell_model.init_guess == "correct":
-            model.RCParam      = cell_data.RCparam
-            model.RParam      =  cell_data.RParam
+            model.RC1Param      = cell_data.RC1param
+            model.R1Param      =  cell_data.R1Param
             model.R0Param      = cell_data.R0Param
             model.M0Param      = cell_data.M0Param
             model.MParam      =  cell_data.MParam
-            RC      = cell_data.RCparam[ind]
-            R1     =  cell_data.RParam[ind]
+            RC      = cell_data.RC1param[ind]
+            R1     =  cell_data.R1Param[ind]
             R0      = cell_data.R0Param[ind]
             M0      = cell_data.M0Param[ind]
             M     =  cell_data.MParam[ind]
         else:
-            model.RCParam[ind] = RC
-            model.RParam[ind] = np.transpose(R1)[0]
-            model.CParam[ind] = model.RCParam[ind]/model.RParam[ind]
+            model.RC1Param[ind] = RC[0]
+            model.R1Param[ind] = R[0]
+            model.C1Param[ind] = model.RC1Param[ind]/model.R1Param[ind]
             model.R0Param[ind] = R0
             model.M0Param[ind] = M0
             model.MParam[ind] = M
 
 
-        v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) + R0 * np.array(script_1_current_corrected) + np.array(resistor_current_rc) * R1
+        v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) + R0 * np.array(script_1_current_corrected) +  R @ resistor_current_rc
         # v_est_full = v_est_ocv + np.array(h) * M + M0 * np.array(current_sign) + R0 * np.array(script_1_current_corrected) + np.array(resistor_current_rc) * R1
 
     verr_final = script_1_voltage - v_est_full  # v_est_full represents fully estimated data
@@ -389,7 +408,7 @@ def SISOsubid(y, u, n):  # Subspace system identification function
     U1 = U[:, 0: n]  # Determine U1
 
     # Fourth step: Determine gam and gamm
-    gam = U1 * np.diag(np.sqrt(ss[0:n]))
+    gam = U1 @ np.diag(np.sqrt(ss[0:n]))
     gamm = gam[0:(i - 1), :]
     gam_inv = LA.pinv(gam)  # Pseudo inverse of gam
     gamm_inv = LA.pinv(gamm)  # Pseudo inverse of gamm

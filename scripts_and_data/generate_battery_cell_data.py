@@ -60,8 +60,10 @@ SOC_default = [0.00000, 0.00500, 0.01000, 0.01500, 0.02000, 0.02500, 0.03000, 0.
 R0Param = [10e-3, 10e-3, 10e-3]
 etaParam = [0.982, 0.991, 0.990]
 QParam = [14.592, 14.532, 14.444]
-RParam = [R1] * 3
-RCparam = [RC1*SIMULATION_SPEED_UP] * 3
+R1Param = [R1] * 3
+RC1param = [RC1 * SIMULATION_SPEED_UP] * 3
+R2Param = [0] * 3
+RC2param = [0 * SIMULATION_SPEED_UP] * 3
 etaParam_static = etaParam
 QParam_static = QParam
 
@@ -111,7 +113,7 @@ info(V_end_script_1)
 
 import pickle
 # model_path = mdl.get_model_file_path()
-filename = 'c:\\\\PROJECT\\\\battery_cell_testing\\\\scripts_and_data\\\\{current_profile_filename}'
+filename = 'c:\\\\PROJECT\\\\battery_parameter_parsing\\\\scripts_and_data\\\\{current_profile_filename}'
 file = open(filename, 'rb')
 current_profiles_dict = pickle.load(file)
 
