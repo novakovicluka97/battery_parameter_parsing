@@ -50,6 +50,7 @@ model "Battery_parametrization_model" {
         sig_stim = "off"
         export_resource_list = ""
         export_dependency_list = ""
+        excluded_resource_list = ""
         export_out_file = ""
         export_lock_top_level = True
         export_encrypt_library = True
@@ -57,7 +58,7 @@ model "Battery_parametrization_model" {
     }
 
     component Subsystem Root {
-        component gen_c_function "C function1" {
+        component "core/C function" "C function1" {
             global_variables = "real next_sw;real counter_cooldown;real first_time_step_flag;"
             init_fnc = "/*Begin code section*/
 script_no = 1;  // start with the first script
@@ -140,13 +141,13 @@ first_time_step_flag = 0;
             size = 176, 160
         ]
 
-        component gen_probe sw_select_1 {
+        component "core/Probe" sw_select_1 {
         }
         [
             position = 8600, 7960
         ]
 
-        component src_clock Clock1 {
+        component "core/Clock" Clock1 {
             execution_rate = "Ts"
         }
         [
@@ -154,13 +155,13 @@ first_time_step_flag = 0;
             hide_name = True
         ]
 
-        component gen_probe Time {
+        component "core/Probe" Time {
         }
         [
             position = 7104, 8376
         ]
 
-        component gen_c_function "C function10" {
+        component "core/C function" "C function10" {
             global_variables = "real next_sw;real first_time_step_flag;real counter_cooldown;"
             init_fnc = "/*Begin code section*/
 script_no = 1;  // start with the first script
@@ -248,7 +249,7 @@ first_time_step_flag = 0;
             size = 176, 160
         ]
 
-        component src_constant DYN_DIS_CHG {
+        component "core/Constant" DYN_DIS_CHG {
             execution_rate = "Ts"
             value = "DYN_DIS_CHG"
         }
@@ -256,7 +257,7 @@ first_time_step_flag = 0;
             position = 6944, 8680
         ]
 
-        component src_constant DYN_CHG {
+        component "core/Constant" DYN_CHG {
             execution_rate = "Ts"
             value = "DYN_CHG"
         }
@@ -264,7 +265,7 @@ first_time_step_flag = 0;
             position = 6944, 8744
         ]
 
-        component gen_gain Gain1 {
+        component "core/Gain" Gain1 {
             gain = "SIMULATION_SPEED_UP"
         }
         [
@@ -272,7 +273,7 @@ first_time_step_flag = 0;
             hide_name = True
         ]
 
-        component src_constant STA_DIS_CHG {
+        component "core/Constant" STA_DIS_CHG {
             execution_rate = "Ts"
             value = "DISCHG_RATE"
         }
@@ -280,7 +281,7 @@ first_time_step_flag = 0;
             position = 6944, 8024
         ]
 
-        component src_constant STA_CHG {
+        component "core/Constant" STA_CHG {
             execution_rate = "Ts"
             value = "CHG_RATE"
         }
@@ -288,13 +289,13 @@ first_time_step_flag = 0;
             position = 6944, 8088
         ]
 
-        component gen_probe dyn_sw_select_1 {
+        component "core/Probe" dyn_sw_select_1 {
         }
         [
             position = 8680, 8328
         ]
 
-        component gen_c_function "C function17" {
+        component "core/C function" "C function17" {
             init_fnc = "/*Begin code section*/
 done_flag = 0;
 /*End code section*/"
@@ -321,13 +322,13 @@ else {
             size = 96, 152
         ]
 
-        component gen_probe done_flag {
+        component "core/Probe" done_flag {
         }
         [
             position = 7320, 8240
         ]
 
-        component gen_delay Delay1 {
+        component "core/Delay" Delay1 {
             del_length = "2000"
         }
         [
@@ -335,28 +336,28 @@ else {
             hide_name = True
         ]
 
-        component gen_delay Delay2 {
+        component "core/Delay" Delay2 {
         }
         [
             position = 7032, 8024
             hide_name = True
         ]
 
-        component gen_delay Delay3 {
+        component "core/Delay" Delay3 {
         }
         [
             position = 7032, 8088
             hide_name = True
         ]
 
-        component gen_delay Delay4 {
+        component "core/Delay" Delay4 {
         }
         [
             position = 7016, 8680
             hide_name = True
         ]
 
-        component gen_delay Delay5 {
+        component "core/Delay" Delay5 {
         }
         [
             position = 7016, 8744
@@ -377,13 +378,13 @@ else {
                 size = 64, 32
             ]
 
-            component gen_probe script_no {
+            component "core/Probe" script_no {
             }
             [
                 position = 7904, 8488
             ]
 
-            component sys_mp_signal_switch "Multiport signal switch1" {
+            component "core/Multiport signal switch" "Multiport signal switch1" {
                 number_of_input_terminals = "4"
             }
             [
@@ -391,7 +392,7 @@ else {
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table23" {
+            component "core/1D look-up table" "1D look-up table23" {
                 in_vec_x = "TIME_TITHER_DISCHARGE"
                 out_vec_f_x = "CURRENT_TITHER_DISCHARGE"
                 table_impl = "Non-equidistant"
@@ -401,7 +402,7 @@ else {
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table25" {
+            component "core/1D look-up table" "1D look-up table25" {
                 in_vec_x = "TIME_TITHER_CHARGE"
                 out_vec_f_x = "CURRENT_TITHER_CHARGE"
                 table_impl = "Non-equidistant"
@@ -432,7 +433,7 @@ else {
                 size = 64, 32
             ]
 
-            component gen_integrator Integrator1 {
+            component "core/Integrator" Integrator1 {
                 show_reset = "either"
             }
             [
@@ -440,13 +441,13 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe chgAh {
+            component "core/Probe" chgAh {
             }
             [
                 position = 8560, 8048
             ]
 
-            component gen_integrator Integrator2 {
+            component "core/Integrator" Integrator2 {
                 show_reset = "either"
             }
             [
@@ -454,13 +455,13 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe disAh {
+            component "core/Probe" disAh {
             }
             [
                 position = 8560, 8112
             ]
 
-            component gen_c_function "C function2" {
+            component "core/C function" "C function2" {
                 init_fnc = "/*Begin code section*/
 out = 0;
 out2 = 0;
@@ -494,13 +495,13 @@ else {
                 size = 48, 48
             ]
 
-            component gen_probe temperature {
+            component "core/Probe" temperature {
             }
             [
                 position = 7952, 8408
             ]
 
-            component gen_gain Gain2 {
+            component "core/Gain" Gain2 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -508,7 +509,7 @@ else {
                 hide_name = True
             ]
 
-            component gen_gain Gain3 {
+            component "core/Gain" Gain3 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -516,20 +517,20 @@ else {
                 hide_name = True
             ]
 
-            component tm_delay "Unit Delay1" {
+            component "core/Unit Delay" "Unit Delay1" {
             }
             [
                 position = 7856, 8488
                 hide_name = True
             ]
 
-            component gen_probe current {
+            component "core/Probe" current {
             }
             [
                 position = 8560, 8176
             ]
 
-            component tm_delay "Unit Delay7" {
+            component "core/Unit Delay" "Unit Delay7" {
             }
             [
                 position = 8352, 8112
@@ -545,7 +546,7 @@ else {
                 size = 32, 32
             ]
 
-            component gen_probe voltage {
+            component "core/Probe" voltage {
             }
             [
                 position = 7960, 8240
@@ -754,7 +755,7 @@ else {
             size = 248, 160
         ]
 
-        component src_constant TEST_TEMP_1 {
+        component "core/Constant" TEST_TEMP_1 {
             execution_rate = "Ts"
             value = "25"
         }
@@ -762,7 +763,7 @@ else {
             position = 6944, 8440
         ]
 
-        component src_constant TEST_TEMP_2 {
+        component "core/Constant" TEST_TEMP_2 {
             execution_rate = "Ts"
             value = "45"
         }
@@ -770,7 +771,7 @@ else {
             position = 6944, 8496
         ]
 
-        component src_constant TEST_TEMP_3 {
+        component "core/Constant" TEST_TEMP_3 {
             execution_rate = "Ts"
             value = "5"
         }
@@ -792,7 +793,7 @@ else {
                 size = 64, 32
             ]
 
-            component sys_mp_signal_switch "Multiport signal switch4" {
+            component "core/Multiport signal switch" "Multiport signal switch4" {
                 number_of_input_terminals = "5"
             }
             [
@@ -800,7 +801,7 @@ else {
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table30" {
+            component "core/1D look-up table" "1D look-up table30" {
                 in_vec_x = "DYN_TIME_PROFILE"
                 out_vec_f_x = "DYN_CURRENT_PROFILE"
                 table_impl = "Non-equidistant"
@@ -831,7 +832,7 @@ else {
                 size = 64, 32
             ]
 
-            component gen_integrator Integrator7 {
+            component "core/Integrator" Integrator7 {
                 show_reset = "either"
             }
             [
@@ -839,13 +840,13 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe chgAh {
+            component "core/Probe" chgAh {
             }
             [
                 position = 8528, 7992
             ]
 
-            component gen_integrator Integrator8 {
+            component "core/Integrator" Integrator8 {
                 show_reset = "either"
             }
             [
@@ -853,19 +854,19 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe disAh {
+            component "core/Probe" disAh {
             }
             [
                 position = 8528, 8072
             ]
 
-            component gen_probe script_no {
+            component "core/Probe" script_no {
             }
             [
                 position = 7944, 8424
             ]
 
-            component lut_1d "1D look-up table31" {
+            component "core/1D look-up table" "1D look-up table31" {
                 in_vec_x = "TIME_TITHER_DISCHARGE"
                 out_vec_f_x = "CURRENT_TITHER_DISCHARGE"
                 table_impl = "Non-equidistant"
@@ -875,7 +876,7 @@ else {
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table32" {
+            component "core/1D look-up table" "1D look-up table32" {
                 in_vec_x = "TIME_TITHER_CHARGE"
                 out_vec_f_x = "CURRENT_TITHER_CHARGE"
                 table_impl = "Non-equidistant"
@@ -885,13 +886,13 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe temperature {
+            component "core/Probe" temperature {
             }
             [
                 position = 7944, 8352
             ]
 
-            component gen_gain Gain4 {
+            component "core/Gain" Gain4 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -899,7 +900,7 @@ else {
                 hide_name = True
             ]
 
-            component gen_gain Gain9 {
+            component "core/Gain" Gain9 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -907,7 +908,7 @@ else {
                 hide_name = True
             ]
 
-            component gen_c_function "C function18" {
+            component "core/C function" "C function18" {
                 init_fnc = "/*Begin code section*/
 out = 0;
 out2 = 0;
@@ -941,20 +942,20 @@ else {
                 size = 48, 48
             ]
 
-            component tm_delay "Unit Delay6" {
+            component "core/Unit Delay" "Unit Delay6" {
             }
             [
                 position = 7880, 8424
                 hide_name = True
             ]
 
-            component gen_probe current {
+            component "core/Probe" current {
             }
             [
                 position = 8528, 8136
             ]
 
-            component tm_delay "Unit Delay12" {
+            component "core/Unit Delay" "Unit Delay12" {
             }
             [
                 position = 8344, 8088
@@ -970,7 +971,7 @@ else {
                 size = 32, 32
             ]
 
-            component gen_probe voltage {
+            component "core/Probe" voltage {
             }
             [
                 position = 7920, 8176
@@ -1193,7 +1194,7 @@ else {
             size = 256, 160
         ]
 
-        component gen_c_function "C function27" {
+        component "core/C function" "C function27" {
             global_variables = "real next_sw;real counter_cooldown;real first_time_step_flag;"
             init_fnc = "/*Begin code section*/
 script_no = 1;  // start with the first script
@@ -1276,7 +1277,7 @@ first_time_step_flag = 0;
             size = 176, 160
         ]
 
-        component gen_c_function "C function28" {
+        component "core/C function" "C function28" {
             global_variables = "real next_sw;real first_time_step_flag;real counter_cooldown;"
             init_fnc = "/*Begin code section*/
 script_no = 1;  // start with the first script
@@ -1378,13 +1379,13 @@ first_time_step_flag = 0;
                 size = 64, 32
             ]
 
-            component gen_probe script_no {
+            component "core/Probe" script_no {
             }
             [
                 position = 7904, 8488
             ]
 
-            component sys_mp_signal_switch "Multiport signal switch1" {
+            component "core/Multiport signal switch" "Multiport signal switch1" {
                 number_of_input_terminals = "4"
             }
             [
@@ -1392,7 +1393,7 @@ first_time_step_flag = 0;
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table23" {
+            component "core/1D look-up table" "1D look-up table23" {
                 in_vec_x = "TIME_TITHER_DISCHARGE"
                 out_vec_f_x = "CURRENT_TITHER_DISCHARGE"
                 table_impl = "Non-equidistant"
@@ -1402,7 +1403,7 @@ first_time_step_flag = 0;
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table25" {
+            component "core/1D look-up table" "1D look-up table25" {
                 in_vec_x = "TIME_TITHER_CHARGE"
                 out_vec_f_x = "CURRENT_TITHER_CHARGE"
                 table_impl = "Non-equidistant"
@@ -1433,7 +1434,7 @@ first_time_step_flag = 0;
                 size = 64, 32
             ]
 
-            component gen_integrator Integrator1 {
+            component "core/Integrator" Integrator1 {
                 show_reset = "either"
             }
             [
@@ -1441,13 +1442,13 @@ first_time_step_flag = 0;
                 hide_name = True
             ]
 
-            component gen_probe chgAh {
+            component "core/Probe" chgAh {
             }
             [
                 position = 8560, 8048
             ]
 
-            component gen_integrator Integrator2 {
+            component "core/Integrator" Integrator2 {
                 show_reset = "either"
             }
             [
@@ -1455,13 +1456,13 @@ first_time_step_flag = 0;
                 hide_name = True
             ]
 
-            component gen_probe disAh {
+            component "core/Probe" disAh {
             }
             [
                 position = 8560, 8112
             ]
 
-            component gen_c_function "C function2" {
+            component "core/C function" "C function2" {
                 init_fnc = "/*Begin code section*/
 out = 0;
 out2 = 0;
@@ -1495,13 +1496,13 @@ else {
                 size = 48, 48
             ]
 
-            component gen_probe temperature {
+            component "core/Probe" temperature {
             }
             [
                 position = 7952, 8408
             ]
 
-            component gen_gain Gain2 {
+            component "core/Gain" Gain2 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -1509,7 +1510,7 @@ else {
                 hide_name = True
             ]
 
-            component gen_gain Gain3 {
+            component "core/Gain" Gain3 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -1517,20 +1518,20 @@ else {
                 hide_name = True
             ]
 
-            component tm_delay "Unit Delay1" {
+            component "core/Unit Delay" "Unit Delay1" {
             }
             [
                 position = 7856, 8488
                 hide_name = True
             ]
 
-            component gen_probe current {
+            component "core/Probe" current {
             }
             [
                 position = 8560, 8176
             ]
 
-            component tm_delay "Unit Delay7" {
+            component "core/Unit Delay" "Unit Delay7" {
             }
             [
                 position = 8352, 8112
@@ -1546,7 +1547,7 @@ else {
                 size = 32, 32
             ]
 
-            component gen_probe voltage {
+            component "core/Probe" voltage {
             }
             [
                 position = 7968, 8232
@@ -1769,7 +1770,7 @@ else {
                 size = 64, 32
             ]
 
-            component sys_mp_signal_switch "Multiport signal switch4" {
+            component "core/Multiport signal switch" "Multiport signal switch4" {
                 number_of_input_terminals = "5"
             }
             [
@@ -1777,7 +1778,7 @@ else {
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table30" {
+            component "core/1D look-up table" "1D look-up table30" {
                 in_vec_x = "DYN_TIME_PROFILE"
                 out_vec_f_x = "DYN_CURRENT_PROFILE"
                 table_impl = "Non-equidistant"
@@ -1808,7 +1809,7 @@ else {
                 size = 64, 32
             ]
 
-            component gen_integrator Integrator7 {
+            component "core/Integrator" Integrator7 {
                 show_reset = "either"
             }
             [
@@ -1816,13 +1817,13 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe chgAh {
+            component "core/Probe" chgAh {
             }
             [
                 position = 8528, 7992
             ]
 
-            component gen_integrator Integrator8 {
+            component "core/Integrator" Integrator8 {
                 show_reset = "either"
             }
             [
@@ -1830,19 +1831,19 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe disAh {
+            component "core/Probe" disAh {
             }
             [
                 position = 8528, 8072
             ]
 
-            component gen_probe script_no {
+            component "core/Probe" script_no {
             }
             [
                 position = 7944, 8424
             ]
 
-            component lut_1d "1D look-up table31" {
+            component "core/1D look-up table" "1D look-up table31" {
                 in_vec_x = "TIME_TITHER_DISCHARGE"
                 out_vec_f_x = "CURRENT_TITHER_DISCHARGE"
                 table_impl = "Non-equidistant"
@@ -1852,7 +1853,7 @@ else {
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table32" {
+            component "core/1D look-up table" "1D look-up table32" {
                 in_vec_x = "TIME_TITHER_CHARGE"
                 out_vec_f_x = "CURRENT_TITHER_CHARGE"
                 table_impl = "Non-equidistant"
@@ -1862,13 +1863,13 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe temperature {
+            component "core/Probe" temperature {
             }
             [
                 position = 7944, 8352
             ]
 
-            component gen_gain Gain4 {
+            component "core/Gain" Gain4 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -1876,7 +1877,7 @@ else {
                 hide_name = True
             ]
 
-            component gen_gain Gain9 {
+            component "core/Gain" Gain9 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -1884,7 +1885,7 @@ else {
                 hide_name = True
             ]
 
-            component gen_c_function "C function18" {
+            component "core/C function" "C function18" {
                 init_fnc = "/*Begin code section*/
 out = 0;
 out2 = 0;
@@ -1918,20 +1919,20 @@ else {
                 size = 48, 48
             ]
 
-            component tm_delay "Unit Delay6" {
+            component "core/Unit Delay" "Unit Delay6" {
             }
             [
                 position = 7880, 8424
                 hide_name = True
             ]
 
-            component gen_probe current {
+            component "core/Probe" current {
             }
             [
                 position = 8528, 8136
             ]
 
-            component tm_delay "Unit Delay12" {
+            component "core/Unit Delay" "Unit Delay12" {
             }
             [
                 position = 8344, 8088
@@ -1947,7 +1948,7 @@ else {
                 size = 32, 32
             ]
 
-            component gen_probe voltage {
+            component "core/Probe" voltage {
             }
             [
                 position = 7912, 8184
@@ -2170,7 +2171,7 @@ else {
             size = 256, 160
         ]
 
-        component gen_c_function "C function29" {
+        component "core/C function" "C function29" {
             global_variables = "real next_sw;real counter_cooldown;real first_time_step_flag;"
             init_fnc = "/*Begin code section*/
 script_no = 1;  // start with the first script
@@ -2253,7 +2254,7 @@ first_time_step_flag = 0;
             size = 176, 160
         ]
 
-        component gen_c_function "C function30" {
+        component "core/C function" "C function30" {
             global_variables = "real next_sw;real first_time_step_flag;real counter_cooldown;"
             init_fnc = "/*Begin code section*/
 script_no = 1;  // start with the first script
@@ -2355,13 +2356,13 @@ first_time_step_flag = 0;
                 size = 64, 32
             ]
 
-            component gen_probe script_no {
+            component "core/Probe" script_no {
             }
             [
                 position = 7904, 8488
             ]
 
-            component sys_mp_signal_switch "Multiport signal switch1" {
+            component "core/Multiport signal switch" "Multiport signal switch1" {
                 number_of_input_terminals = "4"
             }
             [
@@ -2369,7 +2370,7 @@ first_time_step_flag = 0;
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table23" {
+            component "core/1D look-up table" "1D look-up table23" {
                 in_vec_x = "TIME_TITHER_DISCHARGE"
                 out_vec_f_x = "CURRENT_TITHER_DISCHARGE"
                 table_impl = "Non-equidistant"
@@ -2379,7 +2380,7 @@ first_time_step_flag = 0;
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table25" {
+            component "core/1D look-up table" "1D look-up table25" {
                 in_vec_x = "TIME_TITHER_CHARGE"
                 out_vec_f_x = "CURRENT_TITHER_CHARGE"
                 table_impl = "Non-equidistant"
@@ -2410,7 +2411,7 @@ first_time_step_flag = 0;
                 size = 64, 32
             ]
 
-            component gen_integrator Integrator1 {
+            component "core/Integrator" Integrator1 {
                 show_reset = "either"
             }
             [
@@ -2418,13 +2419,13 @@ first_time_step_flag = 0;
                 hide_name = True
             ]
 
-            component gen_probe chgAh {
+            component "core/Probe" chgAh {
             }
             [
                 position = 8560, 8048
             ]
 
-            component gen_integrator Integrator2 {
+            component "core/Integrator" Integrator2 {
                 show_reset = "either"
             }
             [
@@ -2432,13 +2433,13 @@ first_time_step_flag = 0;
                 hide_name = True
             ]
 
-            component gen_probe disAh {
+            component "core/Probe" disAh {
             }
             [
                 position = 8560, 8112
             ]
 
-            component gen_c_function "C function2" {
+            component "core/C function" "C function2" {
                 init_fnc = "/*Begin code section*/
 out = 0;
 out2 = 0;
@@ -2472,13 +2473,13 @@ else {
                 size = 48, 48
             ]
 
-            component gen_probe temperature {
+            component "core/Probe" temperature {
             }
             [
                 position = 7952, 8408
             ]
 
-            component gen_gain Gain2 {
+            component "core/Gain" Gain2 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -2486,7 +2487,7 @@ else {
                 hide_name = True
             ]
 
-            component gen_gain Gain3 {
+            component "core/Gain" Gain3 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -2494,20 +2495,20 @@ else {
                 hide_name = True
             ]
 
-            component tm_delay "Unit Delay1" {
+            component "core/Unit Delay" "Unit Delay1" {
             }
             [
                 position = 7856, 8488
                 hide_name = True
             ]
 
-            component gen_probe current {
+            component "core/Probe" current {
             }
             [
                 position = 8560, 8176
             ]
 
-            component tm_delay "Unit Delay7" {
+            component "core/Unit Delay" "Unit Delay7" {
             }
             [
                 position = 8352, 8112
@@ -2523,7 +2524,7 @@ else {
                 size = 32, 32
             ]
 
-            component gen_probe voltage {
+            component "core/Probe" voltage {
             }
             [
                 position = 7968, 8240
@@ -2746,7 +2747,7 @@ else {
                 size = 64, 32
             ]
 
-            component sys_mp_signal_switch "Multiport signal switch4" {
+            component "core/Multiport signal switch" "Multiport signal switch4" {
                 number_of_input_terminals = "5"
             }
             [
@@ -2754,7 +2755,7 @@ else {
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table30" {
+            component "core/1D look-up table" "1D look-up table30" {
                 in_vec_x = "DYN_TIME_PROFILE"
                 out_vec_f_x = "DYN_CURRENT_PROFILE"
                 table_impl = "Non-equidistant"
@@ -2785,7 +2786,7 @@ else {
                 size = 64, 32
             ]
 
-            component gen_integrator Integrator7 {
+            component "core/Integrator" Integrator7 {
                 show_reset = "either"
             }
             [
@@ -2793,13 +2794,13 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe chgAh {
+            component "core/Probe" chgAh {
             }
             [
                 position = 8528, 7992
             ]
 
-            component gen_integrator Integrator8 {
+            component "core/Integrator" Integrator8 {
                 show_reset = "either"
             }
             [
@@ -2807,19 +2808,19 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe disAh {
+            component "core/Probe" disAh {
             }
             [
                 position = 8528, 8072
             ]
 
-            component gen_probe script_no {
+            component "core/Probe" script_no {
             }
             [
                 position = 7944, 8424
             ]
 
-            component lut_1d "1D look-up table31" {
+            component "core/1D look-up table" "1D look-up table31" {
                 in_vec_x = "TIME_TITHER_DISCHARGE"
                 out_vec_f_x = "CURRENT_TITHER_DISCHARGE"
                 table_impl = "Non-equidistant"
@@ -2829,7 +2830,7 @@ else {
                 hide_name = True
             ]
 
-            component lut_1d "1D look-up table32" {
+            component "core/1D look-up table" "1D look-up table32" {
                 in_vec_x = "TIME_TITHER_CHARGE"
                 out_vec_f_x = "CURRENT_TITHER_CHARGE"
                 table_impl = "Non-equidistant"
@@ -2839,13 +2840,13 @@ else {
                 hide_name = True
             ]
 
-            component gen_probe temperature {
+            component "core/Probe" temperature {
             }
             [
                 position = 7944, 8352
             ]
 
-            component gen_gain Gain4 {
+            component "core/Gain" Gain4 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -2853,7 +2854,7 @@ else {
                 hide_name = True
             ]
 
-            component gen_gain Gain9 {
+            component "core/Gain" Gain9 {
                 gain = "SIMULATION_SPEED_UP"
             }
             [
@@ -2861,7 +2862,7 @@ else {
                 hide_name = True
             ]
 
-            component gen_c_function "C function18" {
+            component "core/C function" "C function18" {
                 init_fnc = "/*Begin code section*/
 out = 0;
 out2 = 0;
@@ -2895,20 +2896,20 @@ else {
                 size = 48, 48
             ]
 
-            component tm_delay "Unit Delay6" {
+            component "core/Unit Delay" "Unit Delay6" {
             }
             [
                 position = 7880, 8424
                 hide_name = True
             ]
 
-            component gen_probe current {
+            component "core/Probe" current {
             }
             [
                 position = 8528, 8136
             ]
 
-            component tm_delay "Unit Delay12" {
+            component "core/Unit Delay" "Unit Delay12" {
             }
             [
                 position = 8344, 8088
@@ -2924,7 +2925,7 @@ else {
                 size = 32, 32
             ]
 
-            component gen_probe voltage {
+            component "core/Probe" voltage {
             }
             [
                 position = 7896, 8176
@@ -3642,7 +3643,15 @@ else {
     }
 
     default {
-        gen_c_function {
+        "core/1D look-up table" {
+            in_vec_x = "np.arange(-5,6)"
+            out_vec_f_x = "np.arange(-5,6)**2"
+            table_impl = "Equidistant"
+            ext_mode = "Clip"
+            execution_rate = "inherit"
+        }
+
+        "core/C function" {
             input_terminals = "real in;"
             input_terminals_show_labels = "False;"
             input_terminals_feedthrough = "True;"
@@ -3659,7 +3668,20 @@ else {
             execution_rate = "inherit"
         }
 
-        gen_delay {
+        "core/Clock" {
+            enb_reset = "False"
+            reset_at = "1.0"
+            execution_rate = "100e-6"
+        }
+
+        "core/Constant" {
+            value = "1"
+            signal_type = "real"
+            execution_rate = "100e-6"
+            _tunable = "False"
+        }
+
+        "core/Delay" {
             delay_type = "Fixed delay"
             del_length = "2"
             max_delay_length = "20"
@@ -3668,14 +3690,14 @@ else {
             execution_rate = "inherit"
         }
 
-        gen_gain {
+        "core/Gain" {
             gain = "1"
             multiplication = "Element-wise(K.*u)"
             _tunable = "False"
             execution_rate = "inherit"
         }
 
-        gen_integrator {
+        "core/Integrator" {
             show_reset = "none"
             reset_type = "asynchronous"
             show_init_condition = "internal"
@@ -3688,7 +3710,12 @@ else {
             execution_rate = "inherit"
         }
 
-        gen_probe {
+        "core/Multiport signal switch" {
+            number_of_input_terminals = "2"
+            execution_rate = "inherit"
+        }
+
+        "core/Probe" {
             signal_access = "inherit"
             addr = "0"
             override_signal_name = "False"
@@ -3699,33 +3726,7 @@ else {
             execution_rate = "inherit"
         }
 
-        lut_1d {
-            in_vec_x = "np.arange(-5,6)"
-            out_vec_f_x = "np.arange(-5,6)**2"
-            table_impl = "Equidistant"
-            ext_mode = "Clip"
-            execution_rate = "inherit"
-        }
-
-        src_clock {
-            enb_reset = "False"
-            reset_at = "1.0"
-            execution_rate = "100e-6"
-        }
-
-        src_constant {
-            value = "1"
-            signal_type = "real"
-            execution_rate = "100e-6"
-            _tunable = "False"
-        }
-
-        sys_mp_signal_switch {
-            number_of_input_terminals = "2"
-            execution_rate = "inherit"
-        }
-
-        tm_delay {
+        "core/Unit Delay" {
             init_value = "0"
             signal_out_type = "inherit"
             execution_rate = "inherit"
@@ -3842,8 +3843,8 @@ else {
     CODE model_init
         R1 = 0.004
         C1 = 150.0
-        M0 = [0.00313, 0.00235, 0.00115]
-        M = [0.03993, 0.02002, 0.02054]
+        M0 = [1e-05, 1e-05, 1e-05]
+        M = [1e-05, 1e-05, 1e-05]
         R0 = [0.01, 0.01, 0.01]
         T_vector = [5, 25, 45]
         SIMULATION_SPEED_UP = 100
@@ -3851,7 +3852,7 @@ else {
         Ts = 0.01
         Ts_cell = 0.002
         G = [67.207, 92.645, 67.84]  # G param is wrong for default battery
-        do_dyn_tither = 1  # dynamic tither makes no sense if there is no hysteresis
+        do_dyn_tither = 0  # dynamic tither makes no sense if there is no hysteresis
         
         rest_time_for_temperature_equilibrium = 7200/SIMULATION_SPEED_UP  # 7200s or 2h
         counter_cooldown_max = rest_time_for_temperature_equilibrium/Ts
@@ -3885,7 +3886,7 @@ else {
         
         import pickle
         # model_path = mdl.get_model_file_path()
-        filename = 'c:\\PROJECT\\battery_cell_testing\\scripts_and_data\\current_profiles.pickle'
+        filename = 'c:\\PROJECT\\battery_parameter_parsing\\scripts_and_data\\current_profiles.pickle'
         file = open(filename, 'rb')
         current_profiles_dict = pickle.load(file)
         
